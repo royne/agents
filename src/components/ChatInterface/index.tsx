@@ -17,12 +17,14 @@ export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText && !selectedImage) return;
 
-    const newMessage: Message = {
+    const userMessage: Message = {
       id: Date.now().toString(),
       text: inputText,
       isUser: true,
@@ -30,10 +32,35 @@ export default function ChatInterface() {
       image: selectedImage ? URL.createObjectURL(selectedImage) : undefined
     };
 
-    setMessages(prev => [...prev, newMessage]);
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/groq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [userMessage] })
+      });
+
+      const data = await response.json();
+
+      const aiMessage: Message = {
+        id: Date.now().toString(),
+        text: data.response,
+        isUser: false,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      setIsLoading(false);
+
+    } catch (error) {
+      console.error('Error:', error);
+      setIsLoading(false);
+    }
+
     setInputText('');
     setSelectedImage(null);
   };
+
   return (
     <div className="flex flex-col h-[90vh] bg-gray-800 rounded-xl shadow-xl">
       <MessageList messages={messages} />
@@ -56,9 +83,16 @@ export default function ChatInterface() {
           />
           <button
             type="submit"
-            className="p-3 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors shadow-lg"
+            disabled={isLoading}
+            className={`p-3 ${
+              isLoading ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500'
+            } text-white rounded-lg transition-colors shadow-lg`}
           >
-            <PaperAirplaneIcon className="h-5 w-5" />
+            {isLoading ? (
+              <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"/>
+            ) : (
+              <PaperAirplaneIcon className="h-5 w-5" />
+            )}
           </button>
         </div>
         {selectedImage && (
