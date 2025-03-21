@@ -27,6 +27,12 @@ const AGENTS = [
     name: 'Experto en marketing digital',
     description: 'Especialista en marketing digital',
     model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'deepseek-r1-distill-llama-70b' 
+  },
+  {
+    id: '3',
+    name: 'Investigador de productos y tendencias',
+    description: 'Especialista en marketing digital',
+    model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'deepseek-r1-distill-llama-70b' 
   }
 ];
 
@@ -50,14 +56,15 @@ export default function ChatInterface() {
       image: selectedImage ? URL.createObjectURL(selectedImage) : undefined
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
     setIsLoading(true);
+
     try {
       const response = await fetch('/api/groq', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          messages: messages.slice(-5).map(m => ({
+          messages: updatedMessages.map(m => ({
             text: m.text,
             isUser: m.isUser
           })),
@@ -73,16 +80,17 @@ export default function ChatInterface() {
         isUser: false,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      setMessages([...updatedMessages, aiMessage]);
       setIsLoading(false);
 
     } catch (error) {
       console.error('Error:', error);
+      setMessages(updatedMessages);
+    } finally {
       setIsLoading(false);
+      setInputText('');
+      setSelectedImage(null);
     }
-
-    setInputText('');
-    setSelectedImage(null);
   };
 
   return (

@@ -6,9 +6,10 @@ interface AgentPrompt {
 }
 
 const AGENT_PROMPTS: AgentPrompt = {
-  '1': `Eres un asistente general experto en el nicho de belleza y skincare. tu mision es encontrar los problemas mas comhunes de las personas y con la informacion que te suministren de algun producto vas a analizarlo y a generarme angulos de venta ganadores para vender por internet`,
-  '2': `Eres un especialista en marketing digital con 10 años de experiencia. Proporciona estrategias concretas, ejemplos de campañas exitosas y métricas relevantes. Usa viñetas para listar recomendaciones.`,
-  'default': `Responde de manera profesional y precisa.`
+  '1': `Eres un asistente en ventas experto en ecomerce y tu fuerte es hacer videos  publicitarios.  apartir de la conversacion anterior cuando te pida los guiones toma eso de base y genara 3 diferentes cada uno y tipo ugc. responde al usuario de manera profesional`,
+  '2': `Eres un especialista en marketing digital con 10 años de experiencia. Proporciona estrategias concretas, ejemplos de campañas exitosas y métricas relevantes. Usa viñetas para listar recomendaciones. responde siempre en español y tabien el pensamiento hazlo en español`,
+  'default': `Responde de manera profesional y precisa.`,
+  '3': `Eres un investigador de productos y tendencias en skin care. a partir de el problema o prodcuto que se te pregunte vas a buscar en internet sobre ese tema y vas a proponer 3 productos para realizarle un posteiror analisis.  responde al usuario de manera profesional y siempre en español`,
 };
 
 const groq = new Groq({
@@ -26,20 +27,27 @@ export default async function handler(
     content: AGENT_PROMPTS[agentId] || AGENT_PROMPTS['default']
   };
 
-  const formattedMessages = messages.map(msg => ({
-    role: msg.isUser ? "user" : "assistant",
-    content: msg.text
-  }));
+  const formattedMessages = [
+    systemPrompt,
+    ...messages.map(msg => ({
+      role: msg.isUser ? "user" : "assistant",
+      content: msg.text
+    }))
+  ];
 
+  type ValidRole = "system" | "user" | "assistant";
+  const validRoles = new Set<ValidRole>(["system", "user", "assistant"]);
 
-  console.log('System Prompt:', systemPrompt);
-  console.log('Messages:', messages);
-  console.log('Agent ID:', agentId);
+  const safeMessages = formattedMessages.filter(msg => 
+    validRoles.has(msg.role as ValidRole)
+  );
+
+  console.log('safeMessages:', safeMessages);
   try {
     const completion = await groq.chat.completions.create({
-      messages: [systemPrompt, ...formattedMessages],
+      messages: safeMessages,
       model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'deepseek-r1-distill-llama-70b',
-      temperature: 0.7,
+      temperature: 0.6,
       max_tokens: 1024,
       stream: false,
       reasoning_format: "hidden"
