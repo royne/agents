@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, KeyboardEvent } from 'react';
 import { PaperAirplaneIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import MessageList from '../../components/MessageList/MessageList';
 import InputArea from '../../components/ChatInterface/InputArea';
@@ -43,9 +43,9 @@ export default function ChatInterface() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputText && !selectedImage) return;
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!inputText && !selectedImage || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -93,6 +93,13 @@ export default function ChatInterface() {
     }
   };
 
+  const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
   return (
     <div className="flex flex-col h-[90vh] bg-gray-800 rounded-xl shadow-xl">
       <AgentSelector
@@ -118,6 +125,7 @@ export default function ChatInterface() {
           <InputArea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
+            onKeyPress={handleKeyPress}
             className="bg-gray-600 border-gray-500 text-white placeholder-gray-400"
           />
           <button
