@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { PaperAirplaneIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import MessageList from '../../components/MessageList/MessageList';
 import InputArea from '../../components/ChatInterface/InputArea';
+import AgentSelector from '../../components/AgentSelector';
+import process from 'process';
 
 interface Message {
   id: string;
@@ -13,8 +15,24 @@ interface Message {
   image?: string;
 }
 
+const AGENTS = [
+  {
+    id: '1',
+    name: 'Asistente General',
+    description: 'Asistente para consultas generales',
+    model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'deepseek-r1-distill-llama-70b' 
+  },
+  {
+    id: '2',
+    name: 'Experto en marketing digital',
+    description: 'Especialista en marketing digital',
+    model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'deepseek-r1-distill-llama-70b' 
+  }
+];
+
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [selectedAgentId, setSelectedAgentId] = useState('1');
   const [inputText, setInputText] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,7 +56,13 @@ export default function ChatInterface() {
       const response = await fetch('/api/groq', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [userMessage] })
+        body: JSON.stringify({ 
+          messages: messages.slice(-5).map(m => ({
+            text: m.text,
+            isUser: m.isUser
+          })),
+          agentId: selectedAgentId 
+        })
       });
 
       const data = await response.json();
@@ -63,6 +87,13 @@ export default function ChatInterface() {
 
   return (
     <div className="flex flex-col h-[90vh] bg-gray-800 rounded-xl shadow-xl">
+      <AgentSelector 
+        agents={AGENTS}
+        onSelect={(agent) => {
+          setSelectedAgentId(agent.id);
+        }}
+      />
+
       <MessageList messages={messages} />
       
       <form onSubmit={handleSubmit} className="p-4 bg-gray-700 rounded-b-xl border-t border-gray-600">
