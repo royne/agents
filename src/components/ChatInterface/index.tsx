@@ -17,28 +17,28 @@ interface Message {
 
 const AGENTS = [
   {
-    id: 'general',
-    name: 'Asistente General',
-    description: 'Asistente para consultas generales',
-    model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'deepseek-r1-distill-llama-70b' 
+    id: 'research',
+    name: 'Asistente investigador de marketing',
+    description: 'Asistente para consultas y analisis de tendencias y productos',
+    model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'deepseek-r1-distill-llama-70b'
   },
   {
     id: 'marketing',
-    name: 'Experto en marketing digital',
-    description: 'Especialista en marketing digital',
-    model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'deepseek-r1-distill-llama-70b' 
+    name: 'Especialista en marketing digital',
+    description: 'Especialista generador de angulos de venta e investigacion',
+    model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'deepseek-r1-distill-llama-70b'
   },
   {
-    id: 'research',
-    name: 'Investigador de productos y tendencias',
-    description: 'Especialista en marketing digital',
-    model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'deepseek-r1-distill-llama-70b' 
-  }
+    id: 'script',
+    name: 'Experto en contenido',
+    description: 'Especialista en creacion de contenido UGC',
+    model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'deepseek-r1-distill-llama-70b'
+  },
 ];
 
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [selectedAgentId, setSelectedAgentId] = useState('general');
+  const [selectedAgentId, setSelectedAgentId] = useState('research');
   const [inputText, setInputText] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -65,12 +65,12 @@ export default function ChatInterface() {
       const response = await fetch(`/api/agents/${selectedAgentId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           messages: [...messages, userMessage].map(m => ({
             text: m.text,
             isUser: m.isUser
           })),
-          agentId: selectedAgentId 
+          agentId: selectedAgentId
         })
       });
 
@@ -82,7 +82,7 @@ export default function ChatInterface() {
         isUser: false,
         timestamp: new Date()
       };
-      
+
       // Add AI message after response
       setMessages(prev => [...prev, aiMessage]);
 
@@ -95,7 +95,7 @@ export default function ChatInterface() {
 
   return (
     <div className="flex flex-col h-[90vh] bg-gray-800 rounded-xl shadow-xl">
-      <AgentSelector 
+      <AgentSelector
         agents={AGENTS}
         onSelect={(agent) => {
           setSelectedAgentId(agent.id);
@@ -103,7 +103,7 @@ export default function ChatInterface() {
       />
 
       <MessageList messages={messages} />
-      
+
       <form onSubmit={handleSubmit} className="p-4 bg-gray-700 rounded-b-xl border-t border-gray-600">
         <div className="flex gap-2">
           <label className="cursor-pointer text-gray-300 hover:text-blue-400 transition-colors">
@@ -115,7 +115,7 @@ export default function ChatInterface() {
               onChange={(e) => e.target.files?.[0] && setSelectedImage(e.target.files[0])}
             />
           </label>
-          <InputArea 
+          <InputArea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             className="bg-gray-600 border-gray-500 text-white placeholder-gray-400"
@@ -123,12 +123,11 @@ export default function ChatInterface() {
           <button
             type="submit"
             disabled={isLoading}
-            className={`p-3 ${
-              isLoading ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500'
-            } text-white rounded-lg transition-colors shadow-lg`}
+            className={`p-3 ${isLoading ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500'
+              } text-white rounded-lg transition-colors shadow-lg`}
           >
             {isLoading ? (
-              <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"/>
+              <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <PaperAirplaneIcon className="h-5 w-5" />
             )}
