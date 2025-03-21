@@ -17,19 +17,19 @@ interface Message {
 
 const AGENTS = [
   {
-    id: '1',
+    id: 'general',
     name: 'Asistente General',
     description: 'Asistente para consultas generales',
     model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'deepseek-r1-distill-llama-70b' 
   },
   {
-    id: '2',
+    id: 'marketing',
     name: 'Experto en marketing digital',
     description: 'Especialista en marketing digital',
     model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'deepseek-r1-distill-llama-70b' 
   },
   {
-    id: '3',
+    id: 'research',
     name: 'Investigador de productos y tendencias',
     description: 'Especialista en marketing digital',
     model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'deepseek-r1-distill-llama-70b' 
@@ -38,11 +38,10 @@ const AGENTS = [
 
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [selectedAgentId, setSelectedAgentId] = useState('1');
+  const [selectedAgentId, setSelectedAgentId] = useState('general');
   const [inputText, setInputText] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,15 +55,18 @@ export default function ChatInterface() {
       image: selectedImage ? URL.createObjectURL(selectedImage) : undefined
     };
 
-    const updatedMessages = [...messages, userMessage];
+    // Immediately show user message
+    setMessages(prev => [...prev, userMessage]);
+    setInputText('');
+    setSelectedImage(null);
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/groq', {
+      const response = await fetch(`/api/agents/${selectedAgentId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          messages: updatedMessages.map(m => ({
+          messages: [...messages, userMessage].map(m => ({
             text: m.text,
             isUser: m.isUser
           })),
@@ -80,16 +82,14 @@ export default function ChatInterface() {
         isUser: false,
         timestamp: new Date()
       };
-      setMessages([...updatedMessages, aiMessage]);
-      setIsLoading(false);
+      
+      // Add AI message after response
+      setMessages(prev => [...prev, aiMessage]);
 
     } catch (error) {
       console.error('Error:', error);
-      setMessages(updatedMessages);
     } finally {
       setIsLoading(false);
-      setInputText('');
-      setSelectedImage(null);
     }
   };
 
