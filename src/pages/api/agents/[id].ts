@@ -1,9 +1,16 @@
 import { agentConfig } from '../../../entities/agents/agent_config';
 import { extractMessages } from '../../../services/messages/extractor';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { Groq } from 'groq-sdk';
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
+  const apiKey = req.headers['x-api-key'];
+
+  if (!apiKey || typeof apiKey !== 'string') {
+    return res.status(401).json({ error: 'API Key is required' });
+  }
+
   const agentInfo = agentConfig[id as keyof typeof agentConfig];
 
   if (!agentInfo) {
@@ -20,6 +27,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(500).json({ error: 'Error loading agent module' });
   }
 
+  const groq = new Groq({ apiKey });
   const { messages } = req.body;
   const safeMessages = extractMessages(messages, agent.systemPrompt);
 
@@ -31,7 +39,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   };
 
   try {
-    const completion = await agent.groq.chat.completions.create(payload);
+    const completion = await groq.chat.completions.create(payload);
     res.status(200).json({
       response: completion.choices[0].message.content
     });

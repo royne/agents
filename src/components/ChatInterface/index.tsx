@@ -5,8 +5,9 @@ import AgentSelector from '../AgentSelector';
 import { ChatForm } from './ChatForm';
 import { AGENTS } from './constants';
 import { useChatLogic } from './hooks/useChatLogic';
+import { ChatInterfaceProps } from './types';
 
-export default function ChatInterface() {
+export default function ChatInterface({ apiKey }: ChatInterfaceProps) {
   const {
     messages,
     selectedAgentId,
@@ -17,7 +18,7 @@ export default function ChatInterface() {
     setInputText,
     setSelectedImage,
     handleSubmit
-  } = useChatLogic();
+  } = useChatLogic(apiKey);
 
   return (
     <div className="flex flex-col h-[90vh] bg-gray-800 rounded-xl shadow-xl">

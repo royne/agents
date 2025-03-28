@@ -1,5 +1,3 @@
-import { Groq } from 'groq-sdk';
-
 interface BasePayload {
   model: string,
   temperature: number,
@@ -16,8 +14,4 @@ const basePayload: BasePayload = {
   reasoning_format: "hidden"
 };
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY
-});
-
-export { groq, basePayload }
+export { basePayload }

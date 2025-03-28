@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Message } from '../types';
 
-export const useChatLogic = () => {
+export const useChatLogic = (apiKey: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedAgentId, setSelectedAgentId] = useState('research');
   const [inputText, setInputText] = useState('');
@@ -28,7 +28,10 @@ export const useChatLogic = () => {
     try {
       const response = await fetch(`/api/agents/${selectedAgentId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Api-Key': apiKey
+        },
         body: JSON.stringify({
           messages: [...messages, userMessage].map(m => ({
             text: m.text,

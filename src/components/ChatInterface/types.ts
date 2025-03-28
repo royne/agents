@@ -12,3 +12,7 @@ export interface Agent {
   description: string;
   model: string;
 }
+
+export interface ChatInterfaceProps {
+  apiKey: string;
+}
