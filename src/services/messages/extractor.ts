@@ -1,23 +1,25 @@
-interface Message {
-  text: string;
-  isUser: boolean;
+import type { Message, Role } from '../../types/groq';
+
+interface RawMessage {
+  role: string;
+  content: string;
 }
 
-export const extractMessages = (messages: Message[], systemPrompt: { role: string; content: string; }) => {
-  type ValidRole = 'system' | 'user' | 'assistant';
-  const validRoles = new Set<ValidRole>(['system', 'user', 'assistant']);
+export function extractMessages(messages: RawMessage[], systemPrompt: Message): Message[] {
+  const safeMessages: Message[] = [systemPrompt];
 
-  const formattedMessages = [
-    systemPrompt,
-    ...messages.map(msg => ({
-      role: msg.isUser ? "user" : "assistant",
-      content: msg.text
-    }))
-  ];
-
-  const safeMessages = formattedMessages.filter(msg =>
-    validRoles.has(msg.role as ValidRole)
-  );
+  for (const message of messages) {
+    if (isValidRole(message.role)) {
+      safeMessages.push({
+        role: message.role as Role,
+        content: message.content
+      });
+    }
+  }
 
   return safeMessages;
-};
+}
+
+function isValidRole(role: string): role is Role {
+  return ['system', 'user', 'assistant'].includes(role);
+}

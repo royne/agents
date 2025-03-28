@@ -2,6 +2,8 @@ import { agentConfig } from '../../../entities/agents/agent_config';
 import { extractMessages } from '../../../services/messages/extractor';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { Groq } from 'groq-sdk';
+import { agentsData } from './agents-data';
+import type { Message } from '../../../types/groq';
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
@@ -17,19 +19,14 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(404).json({ error: 'Agent not found' });
   }
 
-  const { module } = agentInfo;
-  let agent;
-
-  try {
-    agent = await import(`../../../entities/agents/${module}`);
-  } catch (error) {
-    console.error('Error loading agent module:', error);
-    return res.status(500).json({ error: 'Error loading agent module' });
+  const agent = agentsData[id as keyof typeof agentsData];
+  if (!agent) {
+    return res.status(500).json({ error: 'Agent data not found' });
   }
 
   const groq = new Groq({ apiKey });
   const { messages } = req.body;
-  const safeMessages = extractMessages(messages, agent.systemPrompt);
+  const safeMessages = extractMessages(messages, agent.systemPrompt) as Message[];
 
   const payload = {
     ...agent.basePayload,
@@ -38,6 +35,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     reasoning_format: "hidden" as const
   };
 
+  console.log('Payload:', payload);
   try {
     const completion = await groq.chat.completions.create(payload);
     res.status(200).json({

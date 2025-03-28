@@ -1,4 +1,14 @@
-export const agentConfig = {
+interface AgentConfig {
+  id: string;
+  endpoint: string;
+  module: string;
+}
+
+interface AgentConfigs {
+  [key: string]: AgentConfig;
+}
+
+export const agentConfig: AgentConfigs = {
   research: {
     id: 'research',
     endpoint: 'api/agents/research',
@@ -14,4 +24,4 @@ export const agentConfig = {
     endpoint: 'api/agents/marketing',
     module: 'marketing_agent',
   }
-} as const;
+};

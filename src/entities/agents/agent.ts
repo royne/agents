@@ -1,17 +1,9 @@
-interface BasePayload {
-  model: string,
-  temperature: number,
-  max_tokens: number
-  stream: boolean,
-  reasoning_format: string
-};
+import type { BasePayload } from '../../types/groq';
 
-const basePayload: BasePayload = {
+export const basePayload: BasePayload = {
   model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'llama-3.3-70b-versatile',
-  temperature: 0.6,
+  temperature: 0.7,
   max_tokens: 1024,
   stream: false,
   reasoning_format: "hidden"
 };
-
-export { basePayload }

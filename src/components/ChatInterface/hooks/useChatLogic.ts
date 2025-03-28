@@ -34,8 +34,8 @@ export const useChatLogic = (apiKey: string) => {
         },
         body: JSON.stringify({
           messages: [...messages, userMessage].map(m => ({
-            text: m.text,
-            isUser: m.isUser
+            role: m.isUser ? 'user' : 'assistant',
+            content: m.text
           })),
           agentId: selectedAgentId
         })
