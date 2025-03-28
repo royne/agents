@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Message } from '../types';
+import { chatHistoryService } from '../../../services/storage/chatHistory';
 
 export const useChatLogic = (apiKey: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -33,10 +34,7 @@ export const useChatLogic = (apiKey: string) => {
           'X-Api-Key': apiKey
         },
         body: JSON.stringify({
-          messages: [...messages, userMessage].map(m => ({
-            role: m.isUser ? 'user' : 'assistant',
-            content: m.text
-          })),
+          messages: chatHistoryService.convertToApiMessages([...messages, userMessage]),
           agentId: selectedAgentId
         })
       });

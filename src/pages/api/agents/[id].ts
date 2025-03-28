@@ -35,7 +35,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     reasoning_format: "hidden" as const
   };
 
-  console.log('Payload:', payload);
   try {
     const completion = await groq.chat.completions.create(payload);
     res.status(200).json({
