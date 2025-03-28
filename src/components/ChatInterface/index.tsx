@@ -38,6 +38,8 @@ export default function ChatInterface({ apiKey }: ChatInterfaceProps) {
           }}
           onSaveChat={handleSaveChat}
           hasMessages={messages.length > 0}
+          messages={messages}
+          selectedAgentId={selectedAgentId}
         />
       </div>
 
