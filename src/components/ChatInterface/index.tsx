@@ -5,10 +5,11 @@ import AgentSelector from '../AgentSelector';
 import { ChatForm } from './ChatForm';
 import { AGENTS } from './constants';
 import { useChatLogic } from './hooks/useChatLogic';
-import { ChatInterfaceProps } from './types';
 import { chatHistoryService } from '../../services/storage/chatHistory';
+import { useAppContext } from '../../contexts/AppContext';
 
-export default function ChatInterface({ apiKey }: ChatInterfaceProps) {
+export default function ChatInterface() {
+  const { apiKey } = useAppContext();
   const {
     messages,
     selectedAgentId,
@@ -19,7 +20,7 @@ export default function ChatInterface({ apiKey }: ChatInterfaceProps) {
     setInputText,
     setSelectedImage,
     handleSubmit
-  } = useChatLogic(apiKey);
+  } = useChatLogic(apiKey || '');
 
   const handleSaveChat = () => {
     if (messages.length > 0) {

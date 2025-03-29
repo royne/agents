@@ -1,15 +1,11 @@
 import DashboardLayout from '../components/layout/DashboardLayout';
 import ChatInterface from '../components/ChatInterface';
 
-interface ChatPageProps {
-  apiKey: string;
-}
-
-export default function Chat({ apiKey }: ChatPageProps) {
+export default function Chat() {
   return (
     <DashboardLayout>
-      <div>
-        <ChatInterface apiKey={apiKey} />
+      <div className='w-full md:w-3/4 mx-auto'>
+        <ChatInterface/>
       </div>
     </DashboardLayout>
   );

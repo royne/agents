@@ -21,12 +21,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const storedAuth = localStorage.getItem('auth_data');
     if (storedAuth) {
       setAuthData(JSON.parse(storedAuth));
-      const storedApiKey = localStorage.getItem('groq_api_key');
-      //if (!storedApiKey) {
-      //  router.push('/settings');
-      //}
     }
   }, [router]);
+
+  useEffect(() => {
+    const storedApiKey = localStorage.getItem('groq_api_key');
+    if (storedApiKey) {
+      setApiKey(storedApiKey);
+    }
+  }, []);
 
   const login = (username: string, password: string): boolean => {
     const user = USERS[username];

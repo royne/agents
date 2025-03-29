@@ -49,6 +49,9 @@ export default function LoginPage() {
             </div>
           </form>
         </div>
+        <span className="flex justify-center text-xs text-gray-400 mt-2">
+          Desarrollado por <strong> RAC </strong>
+        </span>
       </div>
     </div>
   );

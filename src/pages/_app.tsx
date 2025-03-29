@@ -28,9 +28,6 @@ function AuthWrapper({ Component, pageProps }: AppProps) {
   return (
     <div className="min-h-screen max-h-screen bg-gray-900 text-gray-100 border border-transparent overflow-hidden">
       <Component {...pageProps} />
-      <span className="flex justify-center text-xs text-gray-400 mt-2">
-        Desarrollado por <strong> RAC </strong>
-      </span>
     </div>
   );
 }
