@@ -1,21 +1,24 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { useAppContext } from '../../contexts/AppContext';
+import { supabase } from '../../lib/supabase';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAppContext();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = login(username.trim(), password);
-    if (success) {
-      router.push('/dashboard');
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password
+    });
+
+    if (error) {
+      setError(error.message);
     } else {
-      setError('Credenciales inválidas');
+      router.push('/');
     }
   };
 
@@ -28,9 +31,9 @@ export default function LoginPage() {
             <div className="flex flex-col gap-4 w-full">
               <input
                 className="w-full p-2 rounded border border-gray-300 bg-gray-700"
-                placeholder="Usuario"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
               <input
                 className="w-full p-2 rounded border border-gray-300 bg-gray-700"

@@ -1,12 +1,13 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { USERS } from '../data/users';
+import { supabase } from '../lib/supabase';
 
 type AppContextType = {
   apiKey: string | null;
   authData: { isAuthenticated: boolean } | null;
   setApiKey: (key: string) => void;
-  login: (username: string, password: string) => boolean;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
 };
 
@@ -31,24 +32,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = (username: string, password: string): boolean => {
-    const user = USERS[username];
-    if (user?.password === password) {
-      const auth = { 
-        isAuthenticated: true,
-        username: user.username,
-        role: user.role 
-      };
-      localStorage.setItem('auth_data', JSON.stringify(auth));
-      setAuthData(auth);
+  const login = async (email: string, password: string): Promise<boolean> => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      setError(error.message);
+      return false;
+    }
+
+    if (data?.user) {
+      localStorage.setItem('auth_data', JSON.stringify(data.user));
+      setAuthData({ isAuthenticated: true });
       return true;
     }
     return false;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     localStorage.removeItem('auth_data');
     setAuthData(null);
+    router.push('/auth/login');
   };
 
   return (
