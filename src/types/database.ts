@@ -46,6 +46,7 @@ export interface Campaign {
   name: string;
   launch_date: Date;
   product_id: string;
+  cp: string;
   created_at: Date;
   updated_at?: Date;
 };

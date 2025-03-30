@@ -40,6 +40,7 @@ export default function CampaignPage() {
         name: '',
         launch_date: new Date().toISOString(),
         product_id: '',
+        cp: '',
         ...currentCampaign,
         company_id: authData.company_id
       };
@@ -80,6 +81,9 @@ export default function CampaignPage() {
         items={campaigns}
         onDelete={handleDelete}
         onEdit={handleEdit}
+        additionalAttr={[
+          { option: 'Cuenta publicitaria', value: 'cp' }
+        ]}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -108,6 +112,13 @@ export default function CampaignPage() {
               </option>
             ))}
           </select>
+          <input
+            type="text"
+            placeholder="Cuenta publicitaria"
+            className="w-full p-2 rounded bg-gray-700 text-white"
+            value={currentCampaign.cp || ''}
+            onChange={(e) => setCurrentCampaign({...currentCampaign, cp: e.target.value})}
+          />
           <button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import CrudLayout from '../../components/layout/CrudLayout';
 import { salesDatabaseService } from '../../services/database/salesService';
 import { campaignDatabaseService } from '../../services/database/campaignService';
 import { adDatabaseService } from '../../services/database/adService';
@@ -84,7 +83,7 @@ export default function Sales() {
               >
                 <div className="flex justify-between items-center">
                   <div>
-                    <h3 className="text-lg font-bold">{campaign.name}</h3>
+                    <h3 className="text-lg font-bold">{campaign.name} - {campaign.cp}</h3>
                     <p className="text-sm text-gray-400">
                       {new Date(campaign.launch_date).toLocaleDateString()}
                     </p>
@@ -161,24 +160,6 @@ export default function Sales() {
             </form>
           </div>
         )}
-
-        {/* Tabla de ventas */}
-        <CrudLayout
-          title="Registro de Ventas"
-          items={sales.map(sale => {
-            const ad = ads.find(a => a.id === sale.advertisement_id);
-            const campaign = campaigns.find(c => c.id === ad?.campaign_id);
-            
-            return {
-              id: sale.id,
-              name: `$${sale.amount}  (${new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long'}).format(new Date(sale.date))})  - AD: ${ad?.name ?? 'N/A'} - Campaña ${campaign?.name ?? 'N/A'}`
-            };
-          })}
-          onDelete={() => {}}
-          onEdit={() => {}}
-          hideAddButton={true}
-          children={null}
-        />
       </div>
     </DashboardLayout>
   );

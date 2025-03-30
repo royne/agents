@@ -19,16 +19,16 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex bg-gray-900">
-      {/* Sidebar Colapsable */}
+    <div className="h-screen flex overflow-hidden bg-gray-900">
+      {/* Sidebar Colapsable - Fixed y sin scroll propio */}
       <div 
         className={`${
           isSidebarOpen ? 'w-64' : 'w-16'
-        } bg-gray-800 transition-all duration-300 fixed h-full hover:w-64 z-50`}
+        } bg-gray-800 transition-all duration-300 fixed h-screen z-50`}
         onMouseEnter={() => setIsSidebarOpen(true)}
         onMouseLeave={() => setIsSidebarOpen(false)}
       >
-        <div className="p-4 flex flex-col h-full justify-between">
+        <div className="p-4 flex flex-col h-full justify-between overflow-y-auto">
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <div className='flex items-center px-2'><FaRobot /></div>
@@ -76,9 +76,9 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Main Content - Con posición relativa al sidebar y scroll propio */}
       <main 
-        className={`flex-1 bg-gray-900 p-8 overflow-auto ${
+        className={`flex-1 bg-gray-900 p-8 overflow-y-auto h-screen ${
           isSidebarOpen ? 'ml-64' : 'ml-16'
         } transition-all duration-300`}
       >

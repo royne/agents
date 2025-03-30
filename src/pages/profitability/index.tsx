@@ -14,7 +14,7 @@ const modules = [
     name: 'Análisis de Ventas',
     icon: FaChartLine,
     description: 'Análisis de ventas y estadísticas',
-    path: '/profitability'
+    path: '/profitability/sales-tracking'
   }
 ];
 

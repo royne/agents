@@ -8,9 +8,13 @@ interface CrudLayoutProps {
   onEdit: (id: string) => void;
   hideAddButton?: boolean;
   children: React.ReactNode;
+  additionalAttr?: Array<{ option: string; value: string }>;
 }
 
-export default function CrudLayout({ title, items, onDelete, onEdit, hideAddButton, children }: CrudLayoutProps) {
+type ItemAttr = { [key: string]: string };
+const itemAttr = (item: ItemAttr, attr: string) => item[attr] || '-';
+
+export default function CrudLayout({ title, items, onDelete, onEdit, hideAddButton, additionalAttr, children }: CrudLayoutProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -30,6 +34,9 @@ export default function CrudLayout({ title, items, onDelete, onEdit, hideAddButt
           <thead className="bg-gray-700">
             <tr>
               <th className="px-6 py-3 text-left">Nombre</th>
+              {additionalAttr && additionalAttr.map((attr) => (
+                <th key={attr.option} className="px-6 py-3 text-left">{attr.option}</th>
+              ))}
               <th className="px-6 py-3 text-right">Acciones</th>
             </tr>
           </thead>
@@ -37,6 +44,11 @@ export default function CrudLayout({ title, items, onDelete, onEdit, hideAddButt
             {items.map((item) => (
               <tr key={item.id} className="border-t border-gray-700">
                 <td className="px-6 py-4">{item.name}</td>
+                {additionalAttr && additionalAttr.map((attr) => (
+                  <td key={attr.value} className="px-6 py-4">
+                    {itemAttr(item, attr.value)}
+                  </td>
+                ))}
                 <td className="px-6 py-4 text-right space-x-4">
                   <button 
                     onClick={() => onEdit(item.id)}
