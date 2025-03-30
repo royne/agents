@@ -1,21 +1,27 @@
 import type { AppProps } from 'next/app'
 import '../styles/globals.css'
 import { AppProvider, useAppContext } from '../contexts/AppContext';
-import { useRouter } from 'next/router';
+import { useRouter, type NextRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export default function App({ Component, pageProps }: AppProps) {
+const router = useRouter();
   return (
     <AppProvider>
-      <AuthWrapper Component={Component} pageProps={pageProps} />
+      <AuthWrapper {...{Component, pageProps}} router={useRouter()} />
     </AppProvider>
   );
 }
 
-function AuthWrapper({ Component, pageProps }: AppProps) {
+interface AuthWrapperProps {
+  Component: React.ComponentType<any>; // O el tipo que necesites
+  pageProps: any; // O el tipo que necesites
+  router: NextRouter; // Asegúrate de que el tipo sea NextRouter
+}
+
+function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
   const { authData } = useAppContext();
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
