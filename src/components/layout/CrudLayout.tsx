@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
-type CrudLayoutProps = {
+interface CrudLayoutProps {
   title: string;
   items: Array<{ id: string; name: string }>;
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
+  hideAddButton?: boolean;
   children: React.ReactNode;
-};
+}
 
-export default function CrudLayout({ title, items, onDelete, onEdit, children }: CrudLayoutProps) {
+export default function CrudLayout({ title, items, onDelete, onEdit, hideAddButton, children }: CrudLayoutProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (

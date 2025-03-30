@@ -58,6 +58,15 @@ export interface Advertisement {
   updated_at?: Date;
 };
 
+export interface Sale {
+  id: string;
+  advertisement_id: string;
+  amount: number;
+  date: Date;
+  created_at: Date;
+  updated_at?: Date;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -95,6 +104,11 @@ export interface Database {
         Row: Advertisement;
         Insert: Omit<Advertisement, 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Advertisement, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      sales: {
+        Row: Sale;
+        Insert: Omit<Sale, 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Sale, 'id' | 'created_at' | 'updated_at'>>;
       };
     };
   };

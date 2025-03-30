@@ -1,4 +1,4 @@
-import DashboardLayout from '../components/layout/DashboardLayout';
+import DashboardLayout from '../../components/layout/DashboardLayout';
 import { FaChartLine } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
@@ -8,7 +8,7 @@ const modules = [
     name: 'Registro de Ventas',
     icon: FaChartLine,
     description: 'Registro de ventas',
-    path: '/profitability'
+    path: '/profitability/sales'
   },
   {
     name: 'Análisis de Ventas',
