@@ -18,7 +18,7 @@ export default function CampaignPage() {
   return (
     <DashboardLayout>
       <CrudLayout
-        title="Canpaña"
+        title="Campañas"
         items={products}
         onDelete={handleDelete}
         onEdit={handleEdit}
@@ -29,6 +29,17 @@ export default function CampaignPage() {
             placeholder="Nombre de la campaña"
             className="w-full p-2 rounded bg-gray-700 text-white"
           />
+          <input
+            type="date"
+            placeholder="Fecha de lanzamiento"
+            className="w-full p-2 rounded bg-gray-700 text-white"
+          />
+          <select className="w-full p-2 rounded bg-gray-700 text-white">
+            <option value="">Selecciona un producto</option>
+            <option value="1">Producto 1</option>
+            <option value="2">Producto 2</option>
+            <option value="3">Producto 3</option>
+          </select>
           <button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"

@@ -2,7 +2,7 @@ import type { AppProps } from 'next/app'
 import '../styles/globals.css'
 import { AppProvider, useAppContext } from '../contexts/AppContext';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -16,22 +16,28 @@ export default function App({ Component, pageProps }: AppProps) {
 function AuthWrapper({ Component, pageProps }: AppProps) {
   const { authData } = useAppContext();
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        if (router.pathname.startsWith('/auth')) {
-          router.push('/');
-        }
-      } else {
-        if (!router.pathname.startsWith('/auth')) {
-          router.push('/auth/login');
-        }
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session && !authData) {
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
-    });
+      
+      if (session && router.pathname.startsWith('/auth')) {
+        router.push('/');
+      } else if (!session && !router.pathname.startsWith('/auth')) {
+        router.push('/auth/login');
+      }
+      setLoading(false);
+    };
 
-    return () => subscription.unsubscribe();
-  }, [router]);
+    checkAuth();
+  }, [router, authData]);
+
+  if (loading) return <div className="min-h-screen bg-gray-900"></div>;
 
   return (
     <div className="min-h-screen max-h-screen bg-gray-900 text-gray-100 border border-transparent overflow-hidden">

@@ -32,6 +32,24 @@ export interface Agent {
   updated_at: Date;
 }
 
+export type Product = {
+  id: string;
+  name: string;
+  description: string;
+  provider_price: number;
+  created_at: Date;
+  updated_at?: Date;
+};
+
+export interface Campaign {
+  id: string;
+  name: string;
+  launch_date: Date;
+  product_id: string;
+  created_at: Date;
+  updated_at?: Date;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -54,6 +72,16 @@ export interface Database {
         Row: Agent;
         Insert: Omit<Agent, 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Agent, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      products: {
+        Row: Product;
+        Insert: Omit<Product, 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Product, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      campaigns: {
+        Row: Campaign;
+        Insert: Omit<Campaign, 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Campaign, 'id' | 'created_at' | 'updated_at'>>;
       };
     };
   };

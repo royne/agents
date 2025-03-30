@@ -5,7 +5,10 @@ import { supabase } from '../lib/supabase';
 
 type AppContextType = {
   apiKey: string | null;
-  authData: { isAuthenticated: boolean } | null;
+  authData: { 
+    isAuthenticated: boolean;
+    company_id?: string;
+  } | null;
   setApiKey: (key: string) => void;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
@@ -15,15 +18,35 @@ const AppContext = createContext<AppContextType>({} as AppContextType);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [apiKey, setApiKey] = useState<string | null>(null);
-  const [authData, setAuthData] = useState<{ isAuthenticated: boolean } | null>(null);
+  const [authData, setAuthData] = useState<{ 
+    isAuthenticated: boolean;
+    company_id?: string;
+  } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const storedAuth = localStorage.getItem('auth_data');
-    if (storedAuth) {
-      setAuthData(JSON.parse(storedAuth));
-    }
-  }, [router]);
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('company_id')
+          .eq('user_id', session.user.id)
+          .single();
+
+        const authData = {
+          isAuthenticated: true,
+          company_id: profile?.company_id
+        };
+        
+        localStorage.setItem('auth_data', JSON.stringify(authData));
+        setAuthData(authData);
+      }
+    };
+    
+    checkSession();
+  }, []);
 
   useEffect(() => {
     const storedApiKey = localStorage.getItem('groq_api_key');
@@ -33,19 +56,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (error) {
-      setError(error.message);
-      return false;
-    }
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (data?.user) {
-      localStorage.setItem('auth_data', JSON.stringify(data.user));
-      setAuthData({ isAuthenticated: true });
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('user_id', data.user.id)
+        .single();
+
+      const authData = {
+        isAuthenticated: true,
+        company_id: profile?.company_id
+      };
+      
+      localStorage.setItem('auth_data', JSON.stringify(authData));
+      setAuthData(authData);
       return true;
     }
     return false;

@@ -1,24 +1,25 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { supabase } from '../../lib/supabase';
+import { useAppContext } from '../../contexts/AppContext';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const { login } = useAppContext();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password
-    });
-
-    if (error) {
-      setError(error.message);
-    } else {
-      router.push('/');
+    try {
+      const success = await login(email.trim(), password);
+      if (success) {
+        router.push('/');
+      } else {
+        setError('Credenciales inválidas');
+      }
+    } catch (error) {
+      setError('Error en el servidor');
     }
   };
 
