@@ -50,6 +50,14 @@ export interface Campaign {
   updated_at?: Date;
 };
 
+export interface Advertisement {
+  id: string;
+  name: string;
+  campaign_id: string;
+  created_at: Date;
+  updated_at?: Date;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -82,6 +90,11 @@ export interface Database {
         Row: Campaign;
         Insert: Omit<Campaign, 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Campaign, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      advertisements: {
+        Row: Advertisement;
+        Insert: Omit<Advertisement, 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Advertisement, 'id' | 'created_at' | 'updated_at'>>;
       };
     };
   };
