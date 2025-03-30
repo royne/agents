@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
 import Link from 'next/link';
@@ -8,6 +8,7 @@ const menuItems = [
   { name: 'MultiChat', icon: FaComments, path: '/chat' },
   { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability' },
   { name: 'Logística', icon: FaTruck, path: '/logistics' },
+  { name: 'Manager DB', icon: FaDatabase, path: '/dbmanager' },
   { name: 'Agentes', icon: FaRobot, path: '/agents' },
   { name: 'Configuración', icon: FaCog, path: '/settings' },
 ];

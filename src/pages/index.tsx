@@ -1,5 +1,5 @@
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 
@@ -21,6 +21,12 @@ const modules = [
     icon: FaTruck,
     description: 'Gestión de logística y envíos',
     path: '/logistics'
+  },
+  {
+    name: 'Manager DB',
+    icon: FaDatabase,
+    description: 'Gestión de base de datos',
+    path: '/dbmanager'
   },
   {
     name: 'Agentes',

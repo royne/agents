@@ -1,34 +1,37 @@
-import DashboardLayout from '../components/layout/DashboardLayout';
-import { FaChartLine } from 'react-icons/fa';
+import DashboardLayout from '../../components/layout/DashboardLayout';
+import { FaDatabase } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 
 const modules = [
   {
-    name: 'Registro de Ventas',
-    icon: FaChartLine,
-    description: 'Registro de ventas',
-    path: '/profitability'
+    name: 'Productos',
+    icon: FaDatabase,
+    description: 'Gestión de productos',
+    path: '/dbmanager/products'
   },
   {
-    name: 'Análisis de Ventas',
-    icon: FaChartLine,
-    description: 'Análisis de ventas y estadísticas',
-    path: '/profitability'
+    name: 'Campañas',
+    icon: FaDatabase,
+    description: 'Gestión de campañas',
+    path: '/dbmanager/campaigns'
+  },
+  {
+    name: 'Anuncios',
+    icon: FaDatabase,
+    description: 'Gestión de anuncios',
+    path: '/dbmanager/ads'
   }
 ];
 
-export default function Profitability() {
+export default function DBManager() {
   const router = useRouter();
 
   return (
     <DashboardLayout>
       <div>
-        <h1 className="text-2xl mb-8">Control diario</h1>
-        <div className="mb-6">
-          aca va el grafico del control diario
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <h1 className="text-2xl mb-8">Gestión de Base de Datos</h1>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {modules.map((module) => (
             <Link key={module.path} href={module.path}>
               <div className="bg-gray-800 p-6 rounded-lg shadow-md cursor-pointer hover:bg-gray-700 transform hover:-translate-y-0.5 transition-all duration-200">
