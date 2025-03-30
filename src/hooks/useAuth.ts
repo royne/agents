@@ -16,7 +16,12 @@ export const useAuth = () => {
   useEffect(() => {
     const storedAuth = localStorage.getItem(AUTH_STORAGE_KEY);
     if (storedAuth) {
-      setAuthData(JSON.parse(storedAuth));
+      try {
+        setAuthData(JSON.parse(storedAuth));
+      } catch (error) {
+        console.error('Error parsing auth data:', error);
+        setIsLoginModalOpen(true);
+      }
     } else {
       setIsLoginModalOpen(true);
     }
@@ -24,12 +29,14 @@ export const useAuth = () => {
 
   const login = (username: string, password: string): boolean => {
     const user = USERS[username];
+    console.log('User:', user);
     if (user && user.password === password) {
       const newAuthData = {
         username: user.username,
         role: user.role,
         isAuthenticated: true
       };
+      console.log('New Auth Data:', newAuthData);
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newAuthData));
       setAuthData(newAuthData);
       setIsLoginModalOpen(false);
