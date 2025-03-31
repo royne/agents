@@ -23,7 +23,7 @@ export default function CampaignPage() {
     setLoading(true);
     const [campaignsData, productsData] = await Promise.all([
       campaignDatabaseService.getCampaigns(authData.company_id),
-      productDatabaseService.getProducts()
+      productDatabaseService.getProducts(authData.company_id)
     ]);
     setCampaigns(campaignsData);
     setProducts(productsData);

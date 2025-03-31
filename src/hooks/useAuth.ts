@@ -29,14 +29,12 @@ export const useAuth = () => {
 
   const login = (username: string, password: string): boolean => {
     const user = USERS[username];
-    console.log('User:', user);
     if (user && user.password === password) {
       const newAuthData = {
         username: user.username,
         role: user.role,
         isAuthenticated: true
       };
-      console.log('New Auth Data:', newAuthData);
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newAuthData));
       setAuthData(newAuthData);
       setIsLoginModalOpen(false);

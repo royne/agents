@@ -16,15 +16,16 @@ export default function ProductsPage() {
   }, []);
 
   const fetchProducts = async () => {
+    if (!authData?.company_id) return;
+    
     setLoading(true);
-    const data = await productDatabaseService.getProducts();
+    const data = await productDatabaseService.getProducts(authData.company_id);
     setProducts(data);
     setLoading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('-----------', authData)
     if (!authData?.company_id) return;
 
     try {

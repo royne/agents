@@ -16,10 +16,11 @@ export const productDatabaseService = {
     return data;
   },
 
-  async getProducts(): Promise<Product[]> {
+  async getProducts(company_id: string): Promise<Product[]> {
     const { data, error } = await supabase
       .from('products')
       .select('*')
+      .eq('company_id', company_id)
       .order('created_at', { ascending: false });
 
     if (error) {

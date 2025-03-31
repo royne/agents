@@ -10,7 +10,6 @@ export const useApiKey = () => {
 
   useEffect(() => {
     const storedApiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
-    console.log('API Key:', storedApiKey);
     if (storedApiKey) {
       setApiKey(storedApiKey);
     } else {
