@@ -2,6 +2,7 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import { FaChartLine } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import SalesGrafic from '../../components/Financial/salesGrafic';
 
 const modules = [
   {
@@ -26,7 +27,7 @@ export default function Profitability() {
       <div>
         <h1 className="text-2xl mb-8">Control diario</h1>
         <div className="mb-6">
-          aca va el grafico del control diario
+          <SalesGrafic periodDays={14} />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {modules.map((module) => (
