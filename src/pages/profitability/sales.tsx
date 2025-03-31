@@ -5,17 +5,19 @@ import { campaignDatabaseService } from '../../services/database/campaignService
 import { adDatabaseService } from '../../services/database/adService';
 import type { Sale, Campaign, Advertisement } from '../../types/database';
 import { useAppContext } from '../../contexts/AppContext';
+import SalesForm from '../../components/Financial/salesForm';
+import ExpensesForm from '../../components/Financial/expensesForm';
 
 export default function Sales() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [ads, setAds] = useState<Advertisement[]>([]);
   const [selectedAd, setSelectedAd] = useState<Advertisement | null>(null);
-  const [currentSale, setCurrentSale] = useState<Partial<Sale>>({});
   const [loading, setLoading] = useState(false);
   const { authData } = useAppContext();
   const [hoveredCampaign, setHoveredCampaign] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [operationType, setOperationType] = useState<'venta' | 'gasto'>('venta');
 
   useEffect(() => {
     fetchData();
@@ -44,45 +46,49 @@ export default function Sales() {
     setLoading(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!authData?.company_id || !selectedAd) return;
-
-    try {
-      setLoading(true);
-      const salePayload = {
-        advertisement_id: selectedAd.id,
-        amount: 0,
-        order_dropi: '',
-        date: new Date(),
-        ...currentSale,
-        company_id: authData.company_id
-      };
-
-      await salesDatabaseService.createSale(salePayload, authData.company_id);
-      await fetchData();
-      setCurrentSale({});
-      setSelectedAd(null);
-      setIsModalOpen(false); // Cerrar modal después de guardar
-      alert('Venta registrada correctamente');
-    } catch (error) {
-      alert('Error al guardar: ' + (error as Error).message);
-    } finally {
-      setLoading(false);
-    }
+  const handleSuccess = async () => {
+    await fetchData();
+    setSelectedAd(null);
+    setIsModalOpen(false);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedAd(null);
-    setCurrentSale({});
   };
+
+  const ToggleSwitch = () => (
+    <div className="flex items-center justify-center mb-6 bg-gray-800 p-4 rounded-lg">
+      <span className={`mr-3 font-medium ${operationType === 'venta' ? 'text-green-400' : 'text-gray-300'}`}>
+        Venta
+      </span>
+      <label className="relative inline-flex items-center cursor-pointer">
+        <input 
+          type="checkbox" 
+          className="sr-only"
+          checked={operationType === 'gasto'}
+          onChange={() => setOperationType(operationType === 'venta' ? 'gasto' : 'venta')}
+        />
+        <div className={`w-11 h-6 rounded-full transition-colors duration-200 ease-in-out ${
+          operationType === 'gasto' ? 'bg-red-500' : 'bg-green-500'
+        }`}>
+          <div className={`absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform duration-200 ease-in-out ${
+            operationType === 'gasto' ? 'translate-x-5' : ''
+          }`}></div>
+        </div>
+      </label>
+      <span className={`ml-3 font-medium ${operationType === 'gasto' ? 'text-red-400' : 'text-gray-300'}`}>
+        Gasto
+      </span>
+    </div>
+  );
 
   return (
     <DashboardLayout>
       <div className="space-y-8 max-w-6xl mx-auto">
-        {/* Sección de Campañas/Anuncios */}
-        <h1 className='text-center'>CONTROL DE VENTAS</h1>
+        <h1 className='text-center'>CONTROL DE VENTAS Y GASTOS</h1>
+        <ToggleSwitch />
+
         <div className="bg-gray-800 p-6 rounded-lg">
           <h2 className="text-2xl font-bold mb-6">Campañas Activas</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -90,7 +96,8 @@ export default function Sales() {
               <div 
                 key={campaign.id}
                 className={`bg-gray-700 p-4 rounded-xl relative transition-all duration-300 ${
-                  hoveredCampaign === campaign.id ? 'bg-green-800/30' : ''
+                  hoveredCampaign === campaign.id ? 
+                  (operationType === 'gasto' ? 'bg-red-800/30' : 'bg-green-800/30') : ''
                 }`}
                 onClick={() => setHoveredCampaign(
                   hoveredCampaign === campaign.id ? null : campaign.id
@@ -104,7 +111,8 @@ export default function Sales() {
                     </p>
                   </div>
                   <div className={`w-2 h-2 rounded-full ${
-                    hoveredCampaign === campaign.id ? 'bg-green-400' : 'bg-gray-500'
+                    hoveredCampaign === campaign.id ? 
+                    (operationType === 'gasto' ? 'bg-red-400' : 'bg-green-400') : 'bg-gray-500'
                   }`} />
                 </div>
 
@@ -131,7 +139,6 @@ export default function Sales() {
           </div>
         </div>
 
-        {/* Modal del Formulario de registro */}
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div 
@@ -141,7 +148,10 @@ export default function Sales() {
             <div className="relative bg-gray-800 p-6 rounded-lg w-full max-w-lg mx-auto z-10 shadow-2xl">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">
-                  Registrar venta para {selectedAd?.name}
+                  {operationType === 'venta' 
+                    ? `Registrar venta para ${selectedAd?.name}`
+                    : `Registrar gasto para ${selectedAd?.name}`
+                  }
                 </h2>
                 <button 
                   onClick={closeModal}
@@ -150,56 +160,22 @@ export default function Sales() {
                   &times;
                 </button>
               </div>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <input
-                  type="number"
-                  placeholder="Monto de la venta"
-                  className="w-full p-3 rounded bg-gray-700 text-white"
-                  value={currentSale.amount || ''}
-                  onChange={(e) => setCurrentSale({
-                    ...currentSale,
-                    amount: Number(e.target.value)
-                  })}
-                  required
+              
+              {operationType === 'venta' ? (
+                <SalesForm 
+                  selectedAd={selectedAd}
+                  companyId={authData?.company_id || ''}
+                  onSuccess={handleSuccess}
+                  onCancel={closeModal}
                 />
-                <input
-                  type="text"
-                  placeholder="Número de orden de drop"
-                  className="w-full p-3 rounded bg-gray-700 text-white"
-                  value={currentSale.order_dropi || ''}
-                  onChange={(e) => setCurrentSale({
-                    ...currentSale,
-                    order_dropi: e.target.value
-                  })}
-                  required
+              ) : (
+                <ExpensesForm
+                  selectedAd={selectedAd}
+                  companyId={authData?.company_id || ''}
+                  onSuccess={handleSuccess}
+                  onCancel={closeModal}
                 />
-                <input
-                  type="date"
-                  className="w-full p-3 rounded bg-gray-700 text-white"
-                  value={currentSale.date ? new Date(currentSale.date).toISOString().split('T')[0] : ''}
-                  onChange={(e) => setCurrentSale({
-                    ...currentSale,
-                    date: new Date(e.target.value)
-                  })}
-                  required
-                />
-                <div className="flex gap-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 rounded"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded disabled:opacity-50"
-                    disabled={loading}
-                  >
-                    {loading ? 'Guardando...' : 'Registrar Venta'}
-                  </button>
-                </div>
-              </form>
+              )}
             </div>
           </div>
         )}

@@ -69,6 +69,15 @@ export interface Sale {
   updated_at?: Date;
 };
 
+export interface DailyExpenses {
+  id: string;
+  advertisement_id: string;
+  amount: number;
+  date: Date;
+  created_at: Date;
+  updated_at?: Date;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -111,6 +120,11 @@ export interface Database {
         Row: Sale;
         Insert: Omit<Sale, 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Sale, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      daily_expenses: {
+        Row: DailyExpenses;
+        Insert: Omit<DailyExpenses, 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<DailyExpenses, 'id' | 'created_at' | 'updated_at'>>;
       };
     };
   };
