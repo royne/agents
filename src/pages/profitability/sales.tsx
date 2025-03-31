@@ -15,10 +15,17 @@ export default function Sales() {
   const [loading, setLoading] = useState(false);
   const { authData } = useAppContext();
   const [hoveredCampaign, setHoveredCampaign] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (selectedAd) {
+      setIsModalOpen(true);
+    }
+  }, [selectedAd]);
 
   const fetchData = async () => {
     if (!authData?.company_id) return;
@@ -46,6 +53,7 @@ export default function Sales() {
       const salePayload = {
         advertisement_id: selectedAd.id,
         amount: 0,
+        order_dropi: '',
         date: new Date(),
         ...currentSale,
         company_id: authData.company_id
@@ -55,12 +63,19 @@ export default function Sales() {
       await fetchData();
       setCurrentSale({});
       setSelectedAd(null);
+      setIsModalOpen(false); // Cerrar modal después de guardar
       alert('Venta registrada correctamente');
     } catch (error) {
       alert('Error al guardar: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedAd(null);
+    setCurrentSale({});
   };
 
   return (
@@ -116,48 +131,76 @@ export default function Sales() {
           </div>
         </div>
 
-        {/* Formulario de registro */}
-        {selectedAd && (
-          <div className="bg-gray-800 p-6 rounded-lg">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Registrar venta para {selectedAd.name}</h2>
-              <button 
-                onClick={() => setSelectedAd(null)}
-                className="text-gray-400 hover:text-gray-300 text-3xl"
-              >
-                &times;
-              </button>
+        {/* Modal del Formulario de registro */}
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div 
+              className="absolute inset-0 bg-black opacity-70"
+              onClick={closeModal}
+            ></div>
+            <div className="relative bg-gray-800 p-6 rounded-lg w-full max-w-lg mx-auto z-10 shadow-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">
+                  Registrar venta para {selectedAd?.name}
+                </h2>
+                <button 
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-gray-300 text-3xl"
+                >
+                  &times;
+                </button>
+              </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <input
+                  type="number"
+                  placeholder="Monto de la venta"
+                  className="w-full p-3 rounded bg-gray-700 text-white"
+                  value={currentSale.amount || ''}
+                  onChange={(e) => setCurrentSale({
+                    ...currentSale,
+                    amount: Number(e.target.value)
+                  })}
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Número de orden de drop"
+                  className="w-full p-3 rounded bg-gray-700 text-white"
+                  value={currentSale.order_dropi || ''}
+                  onChange={(e) => setCurrentSale({
+                    ...currentSale,
+                    order_dropi: e.target.value
+                  })}
+                  required
+                />
+                <input
+                  type="date"
+                  className="w-full p-3 rounded bg-gray-700 text-white"
+                  value={currentSale.date ? new Date(currentSale.date).toISOString().split('T')[0] : ''}
+                  onChange={(e) => setCurrentSale({
+                    ...currentSale,
+                    date: new Date(e.target.value)
+                  })}
+                  required
+                />
+                <div className="flex gap-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 rounded"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded disabled:opacity-50"
+                    disabled={loading}
+                  >
+                    {loading ? 'Guardando...' : 'Registrar Venta'}
+                  </button>
+                </div>
+              </form>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                type="number"
-                placeholder="Monto de la venta"
-                className="w-full p-3 rounded bg-gray-700 text-white"
-                value={currentSale.amount || ''}
-                onChange={(e) => setCurrentSale({
-                  ...currentSale,
-                  amount: Number(e.target.value)
-                })}
-                required
-              />
-              <input
-                type="date"
-                className="w-full p-3 rounded bg-gray-700 text-white"
-                value={currentSale.date ? new Date(currentSale.date).toISOString().split('T')[0] : ''}
-                onChange={(e) => setCurrentSale({
-                  ...currentSale,
-                  date: new Date(e.target.value)
-                })}
-                required
-              />
-              <button
-                type="submit"
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded disabled:opacity-50"
-                disabled={loading}
-              >
-                {loading ? 'Guardando...' : 'Registrar Venta'}
-              </button>
-            </form>
           </div>
         )}
       </div>
