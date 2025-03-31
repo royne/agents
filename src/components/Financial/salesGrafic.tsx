@@ -27,10 +27,10 @@ interface ChartData {
 }
 
 interface SalesGraficProps {
-  periodDays?: number; // Número de días para mostrar (por defecto 30)
+  periodDays?: number;
 }
 
-const SalesGrafic = ({ periodDays = 30 }: SalesGraficProps) => {
+const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
   const [rawSales, setRawSales] = useState<Sale[]>([]);
   const [rawExpenses, setRawExpenses] = useState<DailyExpenses[]>([]);
   const [data, setData] = useState<ChartData[]>([]);
@@ -40,9 +40,9 @@ const SalesGrafic = ({ periodDays = 30 }: SalesGraficProps) => {
   const [ads, setAds] = useState<Advertisement[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<string>('');
   const [selectedAd, setSelectedAd] = useState<string>('');
-  const [selectedPeriod, setSelectedPeriod] = useState<number>(periodDays);
+  const [selectedPeriod, setSelectedPeriod] = useState<number>(1);
   const [selectedView, setSelectedView] = useState<string>('barra');
-  const [showOnlyToday, setShowOnlyToday] = useState<boolean>(false);
+  const [showOnlyToday, setShowOnlyToday] = useState<boolean>(true);
   const { authData } = useAppContext();
 
   const totalVentas = filteredData.reduce((sum, item) => sum + item.ventas, 0);
@@ -61,6 +61,7 @@ const SalesGrafic = ({ periodDays = 30 }: SalesGraficProps) => {
   // Periodos predefinidos
   const periods = [
     { label: 'Hoy', days: 1 },
+    { label: '3 días', days: 3 },
     { label: '7 días', days: 7 },
     { label: '14 días', days: 14 },
     { label: '30 días', days: 30 },
