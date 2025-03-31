@@ -20,11 +20,11 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   return (
     <div className="h-screen flex overflow-hidden bg-gray-900">
-      {/* Sidebar Colapsable - Fixed y sin scroll propio */}
+      {/* Sidebar para escritorio/tablet - Oculto en móviles */}
       <div 
         className={`${
           isSidebarOpen ? 'w-64' : 'w-16'
-        } bg-gray-800 transition-all duration-300 fixed h-screen z-50`}
+        } bg-gray-800 transition-all duration-300 fixed h-screen z-50 hidden md:block`}
         onMouseEnter={() => setIsSidebarOpen(true)}
         onMouseLeave={() => setIsSidebarOpen(false)}
       >
@@ -76,11 +76,36 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
         </div>
       </div>
 
-      {/* Main Content - Con posición relativa al sidebar y scroll propio */}
+      {/* Barra de navegación inferior para móviles */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-800 z-50">
+        <div className="flex justify-around items-center">
+          {menuItems.map((item) => (
+            <Link key={item.path} href={item.path}>
+              <div
+                className={`flex items-center justify-center py-3 px-3 ${
+                  router.pathname === item.path ? 'text-white' : 'text-gray-400'
+                }`}
+              >
+                <item.icon className="text-xl" />
+              </div>
+            </Link>
+          ))}
+          <div
+            className="flex items-center justify-center py-3 px-3 text-red-400"
+            onClick={() => {
+              router.push('/auth/login');
+              logout();
+            }}
+          >
+            <FaSignOutAlt className="text-xl" />
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content - Ajustado para móviles */}
       <main 
-        className={`flex-1 bg-gray-900 p-8 overflow-y-auto h-screen ${
-          isSidebarOpen ? 'ml-64' : 'ml-16'
-        } transition-all duration-300`}
+        className={`flex-1 bg-gray-900 p-8 overflow-y-auto h-screen transition-all duration-300
+                   md:ml-16 ${isSidebarOpen ? 'md:ml-64' : ''} pb-16 md:pb-8`}
       >
         {children}
       </main>
