@@ -68,7 +68,7 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
     { label: '7 días', days: 7 },
     { label: '14 días', days: 14 },
     { label: '30 días', days: 30 },
-    { label: 'Personalizado', days: -1 }
+    { label: '🗓', days: -1 }
   ];
 
   useEffect(() => {
@@ -264,19 +264,31 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
   const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (!active || !payload || !payload.length) return null;
     
-    // Extraer datos de ventas y gastos
-    const ventasData = payload.find(p => p.name === 'Ventas');
-    const gastosData = payload.find(p => p.name === 'Gastos');
+    // Extraer datos de ventas y gastos - ajustado para funcionar con ambos tipos de gráficos
+    const ventasData = payload.find(p => p.name === 'Ventas' || p.dataKey === 'ventas');
+    const gastosData = payload.find(p => p.name === 'Gastos' || p.dataKey === 'gastos');
     
     // Convertir valores a números para evitar errores de TypeScript
     const ventasValue = ventasData && typeof ventasData.value === 'number' ? ventasData.value : 0;
     const gastosValue = gastosData && typeof gastosData.value === 'number' ? gastosData.value : 0;
     
-    // Obtener el contador de ventas
-    const ventasCount = payload[0]?.payload?.ventasCount || 0;
+    // Obtener el contador de ventas - mejorado para funcionar con ambos tipos de gráficos
+    let ventasCount = 0;
+    
+    // Intentar obtener el contador de ventas de diferentes maneras según el tipo de gráfico
+    if (payload[0]?.payload?.ventasCount !== undefined) {
+      ventasCount = payload[0].payload.ventasCount;
+    } else if (ventasData?.payload?.ventasCount !== undefined) {
+      ventasCount = ventasData.payload.ventasCount;
+    }
     
     // Calcular el balance
     const balance = ventasValue - gastosValue;
+    
+    // Añadir console.log para depuración
+    console.log('Tooltip payload:', payload);
+    console.log('ventasData:', ventasData);
+    console.log('ventasCount:', ventasCount);
     
     return (
       <div className="bg-gray-800 border border-gray-600 p-2 rounded shadow-lg">
@@ -291,7 +303,7 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
       </div>
     );
   };
-
+  
   const handleCampaignChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const campaignId = e.target.value;
     setSelectedCampaign(campaignId);
@@ -509,6 +521,7 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
             <YAxis tick={{ fill: '#ddd' }} />
             <Tooltip
               content={(props) => <CustomTooltip {...props} />}
+              isAnimationActive={false}
             />
             <Legend wrapperStyle={{ color: '#ddd' }} />
             <Line 
