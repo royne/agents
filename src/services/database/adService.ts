@@ -5,7 +5,7 @@ export const adDatabaseService = {
   async createAd(adData: Omit<Advertisement, 'id' | 'created_at'>, company_id: string): Promise<Advertisement | null> {
     const { data, error } = await supabase
       .from('advertisements')
-      .insert({ ...adData, company_id })
+      .insert({ ...adData, company_id, status: true })
       .select()
       .single();
 

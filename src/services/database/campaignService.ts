@@ -5,7 +5,7 @@ export const campaignDatabaseService = {
   async createCampaign(campaignData: Omit<Campaign, 'id' | 'created_at'>, company_id: string): Promise<Campaign | null> {
     const { data, error } = await supabase
       .from('campaigns')
-      .insert({ ...campaignData, company_id })
+      .insert({ ...campaignData, company_id, status: true })
       .select()
       .single();
 

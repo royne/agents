@@ -47,6 +47,7 @@ export interface Campaign {
   launch_date: Date;
   product_id: string;
   cp: string;
+  status: boolean;
   created_at: Date;
   updated_at?: Date;
 };
@@ -55,6 +56,7 @@ export interface Advertisement {
   id: string;
   name: string;
   campaign_id: string;
+  status: boolean;
   created_at: Date;
   updated_at?: Date;
 };
