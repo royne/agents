@@ -41,8 +41,8 @@ export default function Sales() {
     const adsData = await adDatabaseService.getAds(authData.company_id);
     
     setSales(salesData);
-    setCampaigns(campaignsData);
-    setAds(adsData);
+    setCampaigns(campaignsData.filter(campaign => campaign.status === true));
+    setAds(adsData.filter(ad => ad.status === true));
     setLoading(false);
   };
 
@@ -92,7 +92,7 @@ export default function Sales() {
         <div className="bg-gray-800 p-6 rounded-lg">
           <h2 className="text-2xl font-bold mb-6">Campañas Activas</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {campaigns.map((campaign) => (
+            {campaigns.length > 0 ? campaigns.map((campaign) => (
               <div 
                 key={campaign.id}
                 className={`bg-gray-700 p-4 rounded-xl relative transition-all duration-300 ${
@@ -135,7 +135,11 @@ export default function Sales() {
                   </div>
                 )}
               </div>
-            ))}
+            )) : (
+              <div className="col-span-3 text-center py-4">
+                <p className="text-gray-400">No hay campañas activas disponibles</p>
+              </div>
+            )}
           </div>
         </div>
 

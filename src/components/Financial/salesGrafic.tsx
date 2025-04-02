@@ -43,6 +43,9 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
   const [selectedPeriod, setSelectedPeriod] = useState<number>(1);
   const [selectedView, setSelectedView] = useState<string>('barra');
   const [showOnlyToday, setShowOnlyToday] = useState<boolean>(true);
+  const [customDateRange, setCustomDateRange] = useState<boolean>(false);
+  const [startDate, setStartDate] = useState<string>(formatDateForInput(new Date()));
+  const [endDate, setEndDate] = useState<string>(formatDateForInput(new Date()));
   const { authData } = useAppContext();
 
   const totalVentas = filteredData.reduce((sum, item) => sum + item.ventas, 0);
@@ -65,16 +68,16 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
     { label: '7 días', days: 7 },
     { label: '14 días', days: 14 },
     { label: '30 días', days: 30 },
-    { label: '90 días', days: 90 }
+    { label: 'Personalizado', days: -1 }
   ];
 
   useEffect(() => {
     fetchData();
-  }, [authData, selectedPeriod]);
+  }, [authData]);
 
   useEffect(() => {
     processDataWithFilters();
-  }, [rawSales, rawExpenses, selectedCampaign, selectedAd, showOnlyToday, selectedPeriod]);
+  }, [rawSales, rawExpenses, selectedCampaign, selectedAd, selectedPeriod, customDateRange, startDate, endDate]);
 
   const fetchData = async () => {
     if (!authData?.company_id) return;
@@ -137,22 +140,63 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
       );
     }
     
-    // Crear mapa de fechas para los últimos N días
-    const chartData: Map<string, ChartData> = new Map();
-    const today = getCurrentLocalDate();
+    // Filtrar por rango de fechas
+    let startDateObj, endDateObj;
+    let dateArray: string[] = [];
     
-    // Inicializar el mapa con fechas vacías
-    for (let i = 0; i < selectedPeriod; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - i);
-      // Usar formatDateForInput para asegurar el formato correcto YYYY-MM-DD
-      const dateStr = formatDateForInput(date);
-      chartData.set(dateStr, { date: dateStr, ventas: 0, gastos: 0, ventasCount: 0 });
+    if (customDateRange) {
+      // Usar rango de fechas personalizado
+      startDateObj = new Date(startDate);
+      endDateObj = new Date(endDate);
+      
+      // Ajustar para incluir todo el día final
+      endDateObj.setHours(23, 59, 59, 999);
+      
+      // Crear array de fechas entre inicio y fin (inclusive)
+      const tempDate = new Date(startDateObj);
+      while (tempDate <= endDateObj) {
+        dateArray.push(formatDateForInput(tempDate));
+        tempDate.setDate(tempDate.getDate() + 1);
+      }
+    } else {
+      // Usar período predefinido
+      const today = new Date();
+      today.setHours(23, 59, 59, 999); // Final del día de hoy
+      endDateObj = today;
+      
+      startDateObj = new Date(today);
+      startDateObj.setDate(today.getDate() - (selectedPeriod - 1));
+      startDateObj.setHours(0, 0, 0, 0); // Inicio del día
+      
+      // Crear array de fechas para el período
+      for (let i = 0; i < selectedPeriod; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        dateArray.push(formatDateForInput(date));
+      }
     }
+    
+    // Filtrar ventas y gastos por el rango de fechas
+    filteredSales = filteredSales.filter(sale => {
+      const saleDate = new Date(sale.date);
+      return saleDate >= startDateObj && saleDate <= endDateObj;
+    });
+    
+    filteredExpenses = filteredExpenses.filter(expense => {
+      const expenseDate = new Date(expense.date);
+      return expenseDate >= startDateObj && expenseDate <= endDateObj;
+    });
+    
+    // Crear mapa de fechas para los datos del gráfico
+    const chartData: Map<string, ChartData> = new Map();
+    
+    // Inicializar el mapa con todas las fechas en el rango
+    dateArray.forEach(dateStr => {
+      chartData.set(dateStr, { date: dateStr, ventas: 0, gastos: 0, ventasCount: 0 });
+    });
     
     // Agregar ventas al mapa
     filteredSales.forEach(sale => {
-      // Asegurarnos de tener el formato correcto YYYY-MM-DD
       const saleDate = new Date(sale.date);
       const dateStr = formatDateForInput(saleDate);
       
@@ -168,7 +212,6 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
     
     // Agregar gastos al mapa
     filteredExpenses.forEach(expense => {
-      // Asegurarnos de tener el formato correcto YYYY-MM-DD
       const expenseDate = new Date(expense.date);
       const dateStr = formatDateForInput(expenseDate);
       
@@ -187,8 +230,8 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
     
     setData(result);
     
-    // Aplicar filtro de solo hoy si está activado
-    if (showOnlyToday) {
+    // Para el filtro "Hoy", mostrar solo datos de hoy
+    if (selectedPeriod === 1 && !customDateRange) {
       const todayStr = getTodayString();
       setFilteredData(result.filter(item => item.date === todayStr));
     } else {
@@ -196,14 +239,59 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
     }
   };
   
+  // Corregir el problema de zona horaria que causa que la fecha se muestre un día antes
   const formatDate = (dateStr: string) => {
-    // Corregir el problema de zona horaria que causa que la fecha se muestre un día antes
     const date = new Date(dateStr);
-    // Asegurar que usamos la fecha local sin ajustes de zona horaria
     const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
     return localDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
   };
-  
+
+  // Función auxiliar para formatear fechas en el tooltip
+  const formatTooltipDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+    return localDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+
+  // Definir tipos para los props del tooltip personalizado
+  interface CustomTooltipProps {
+    active?: boolean;
+    payload?: any[];
+    label?: string;
+  }
+
+  // Componente de tooltip personalizado reutilizable
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+    if (!active || !payload || !payload.length) return null;
+    
+    // Extraer datos de ventas y gastos
+    const ventasData = payload.find(p => p.name === 'Ventas');
+    const gastosData = payload.find(p => p.name === 'Gastos');
+    
+    // Convertir valores a números para evitar errores de TypeScript
+    const ventasValue = ventasData && typeof ventasData.value === 'number' ? ventasData.value : 0;
+    const gastosValue = gastosData && typeof gastosData.value === 'number' ? gastosData.value : 0;
+    
+    // Obtener el contador de ventas
+    const ventasCount = payload[0]?.payload?.ventasCount || 0;
+    
+    // Calcular el balance
+    const balance = ventasValue - gastosValue;
+    
+    return (
+      <div className="bg-gray-800 border border-gray-600 p-2 rounded shadow-lg">
+        <p className="text-gray-300 mb-1">{`Fecha: ${formatTooltipDate(label || '')}`}</p>
+        <p className="text-green-400">{`Ventas: $${ventasValue.toLocaleString('es-ES')} (${ventasCount} ventas)`}</p>
+        <p className="text-red-400">{`Gastos: $${gastosValue.toLocaleString('es-ES')}`}</p>
+        <div className="mt-1 pt-1 border-t border-gray-600">
+          <p className={`font-bold ${balance >= 0 ? 'text-blue-400' : 'text-yellow-400'}`}>
+            {`Balance: $${balance.toLocaleString('es-ES')}`}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   const handleCampaignChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const campaignId = e.target.value;
     setSelectedCampaign(campaignId);
@@ -215,8 +303,31 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
   };
   
   const handlePeriodChange = (days: number) => {
-    setSelectedPeriod(days);
-    setShowOnlyToday(days === 1);
+    if (days === -1) {
+      // Activar modo de rango personalizado
+      setCustomDateRange(true);
+      // Establecer fechas predeterminadas: hoy y hace 7 días
+      const today = new Date();
+      const weekAgo = new Date();
+      weekAgo.setDate(today.getDate() - 7);
+      
+      setStartDate(formatDateForInput(weekAgo));
+      setEndDate(formatDateForInput(today));
+      setShowOnlyToday(false);
+    } else {
+      // Desactivar modo de rango personalizado
+      setCustomDateRange(false);
+      setSelectedPeriod(days);
+      setShowOnlyToday(days === 1);
+    }
+  };
+  
+  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStartDate(e.target.value);
+  };
+  
+  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEndDate(e.target.value);
   };
   
   if (loading && rawSales.length === 0) {
@@ -230,7 +341,12 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
   return (
     <div className="w-full bg-gray-800 p-4 rounded-lg">
       <h2 className="text-xl font-bold mb-4 text-center">
-        Ventas vs Gastos {showOnlyToday ? 'de hoy' : `(últimos ${selectedPeriod} días)`}
+        Ventas vs Gastos {customDateRange 
+          ? `(${startDate} al ${endDate})` 
+          : showOnlyToday 
+            ? 'de hoy' 
+            : `(últimos ${selectedPeriod} días)`
+        }
       </h2>
       
       {/* Filtros y controles */}
@@ -242,7 +358,8 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
               key={period.days}
               onClick={() => handlePeriodChange(period.days)}
               className={`px-2 py-1 text-xs rounded ${
-                selectedPeriod === period.days 
+                (period.days === -1 && customDateRange) || 
+                (period.days !== -1 && selectedPeriod === period.days && !customDateRange)
                   ? 'bg-blue-600 text-white' 
                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}
@@ -298,6 +415,31 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
               ))}
           </select>
         </div>
+        
+        {/* Selector de fechas personalizado - Ahora por debajo de los otros filtros */}
+        {customDateRange && (
+          <div className="col-span-1 sm:col-span-2 lg:col-span-4 flex gap-2 mt-2">
+            <div className="flex-1">
+              <label className="text-xs text-gray-400 block mb-1">Desde</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={handleStartDateChange}
+                className="w-full p-2 rounded bg-gray-700 text-white text-sm"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-xs text-gray-400 block mb-1">Hasta</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={handleEndDateChange}
+                className="w-full p-2 rounded bg-gray-700 text-white text-sm"
+                min={startDate}
+              />
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Resumen de totales */}
@@ -337,15 +479,7 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
             />
             <YAxis tick={{ fill: '#ddd' }} />
             <Tooltip 
-              formatter={(value, name, props) => {
-                const dataPoint = props.payload;
-                if (name === 'ventas') {
-                  return [`$${value} (${dataPoint?.ventasCount || 0} ventas)`, 'Ventas'];
-                }
-                return [`$${value}`, name === 'gastos' ? 'Gastos' : name];
-              }}
-              labelFormatter={(label) => `Fecha: ${formatDate(label as string)}`}
-              contentStyle={{ backgroundColor: '#333', border: '1px solid #666' }}
+              content={(props) => <CustomTooltip {...props} />}
             />
             <Legend wrapperStyle={{ color: '#ddd' }} />
             <Bar 
@@ -374,15 +508,7 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
             />
             <YAxis tick={{ fill: '#ddd' }} />
             <Tooltip
-              formatter={(value, name, props) => {
-                const dataPoint = props.payload;
-                if (name === 'ventas') {
-                  return [`$${value} (${dataPoint?.ventasCount || 0} ventas)`, 'Ventas'];
-                }
-                return [`$${value}`, name === 'gastos' ? 'Gastos' : name];
-              }}
-              labelFormatter={(label) => `Fecha: ${formatDate(label as string)}`}
-              contentStyle={{ backgroundColor: '#333', border: '1px solid #666' }}
+              content={(props) => <CustomTooltip {...props} />}
             />
             <Legend wrapperStyle={{ color: '#ddd' }} />
             <Line 
