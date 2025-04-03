@@ -170,8 +170,17 @@ export default function CampaignPage() {
                   type="date"
                   placeholder="Fecha de lanzamiento"
                   className="w-full p-2 rounded bg-gray-700 text-white"
-                  value={currentCampaign.launch_date?.toString().split('T')[0] || ''}
-                  onChange={(e) => setCurrentCampaign({...currentCampaign, launch_date: new Date(e.target.value)})}
+                  value={currentCampaign.launch_date instanceof Date 
+                    ? currentCampaign.launch_date.toISOString().split('T')[0] 
+                    : currentCampaign.launch_date 
+                      ? new Date(currentCampaign.launch_date).toISOString().split('T')[0] 
+                      : ''}
+                  onChange={(e) => {
+                    const dateValue = e.target.value;
+                    if (dateValue) {
+                      setCurrentCampaign({...currentCampaign, launch_date: new Date(dateValue)});
+                    }
+                  }}
                   required
                 />
                 <select
