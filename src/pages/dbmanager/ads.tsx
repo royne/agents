@@ -12,6 +12,7 @@ export default function AdsPage() {
   const [currentAd, setCurrentAd] = useState<Partial<Advertisement>>({});
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const { authData } = useAppContext();
 
   useEffect(() => {
@@ -54,6 +55,7 @@ export default function AdsPage() {
       alert(currentAd.id ? 'Anuncio actualizado' : 'Anuncio creado');
       setCurrentAd({});
       setIsModalOpen(false);
+      setIsEditing(false);
     } catch (error) {
       alert('Error al guardar: ' + (error as Error).message);
     } finally {
@@ -80,6 +82,13 @@ export default function AdsPage() {
 
   const handleCreateNew = () => {
     setCurrentAd({});
+    setIsEditing(false);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (ad: Advertisement) => {
+    setCurrentAd(ad);
+    setIsEditing(true);
     setIsModalOpen(true);
   };
 
@@ -118,7 +127,13 @@ export default function AdsPage() {
                         {item.status ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right space-x-4">
+                    <td className="px-6 py-4 text-right space-x-2">
+                      <button
+                        onClick={() => handleEdit(item)}
+                        className="px-3 py-1 rounded text-white text-sm bg-blue-600 hover:bg-blue-700"
+                      >
+                        Editar
+                      </button>
                       <button 
                         onClick={() => handleToggleStatus(item.id, !!item.status)}
                         className={`px-3 py-1 rounded text-white text-sm ${item.status ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
@@ -144,9 +159,13 @@ export default function AdsPage() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Nuevo Anuncio</h2>
+                <h2 className="text-xl font-bold">{isEditing ? 'Editar Anuncio' : 'Nuevo Anuncio'}</h2>
                 <button 
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setCurrentAd({});
+                    setIsEditing(false);
+                  }}
                   className="text-gray-400 hover:text-gray-300"
                 >
                   ×

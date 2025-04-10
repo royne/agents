@@ -16,6 +16,12 @@ const modules = [
     icon: FaChartLine,
     description: 'Análisis de ventas y estadísticas',
     path: '/profitability/sales-tracking'
+  },
+  {
+    name: 'Análisis de gastos ',
+    icon: FaChartLine,
+    description: 'Análisis de gastos',
+    path: '/profitability/expenses'
   }
 ];
 
@@ -29,7 +35,7 @@ export default function Profitability() {
         <div className="mb-6">
           <SalesGrafic periodDays={14} />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {modules.map((module) => (
             <Link key={module.path} href={module.path}>
               <div className="bg-gray-800 p-6 rounded-lg shadow-md cursor-pointer hover:bg-gray-700 transform hover:-translate-y-0.5 transition-all duration-200">
