@@ -4,6 +4,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { Groq } from 'groq-sdk';
 import { agentsData } from './agents-data';
 import type { Message } from '../../../types/groq';
+import { enrichWithRAG } from '../../../entities/agents/script_agent';
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
@@ -26,7 +27,19 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
   const groq = new Groq({ apiKey });
   const { messages } = req.body;
-  const safeMessages = extractMessages(messages, agent.systemPrompt) as Message[];
+  let safeMessages = extractMessages(messages, agent.systemPrompt) as Message[];
+
+  // Enriquecer con RAG si es el agente de scripts
+  if (id === 'script') {
+    try {
+      const enrichedMessages = await enrichWithRAG(safeMessages);
+      safeMessages = enrichedMessages;
+    } catch (error) {
+      console.error('Error al enriquecer con RAG:', error);
+      // Continuar con los mensajes originales si hay un error
+    }
+  }
+
 
   const payload = {
     ...agent.basePayload,
