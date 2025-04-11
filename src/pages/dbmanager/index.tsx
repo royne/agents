@@ -1,24 +1,24 @@
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { FaDatabase } from 'react-icons/fa';
+import { FaAlgolia, FaDatabase, FaMegaport, FaStream } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 
 const modules = [
   {
     name: 'Productos',
-    icon: FaDatabase,
+    icon: FaStream,
     description: 'Gestión de productos',
     path: '/dbmanager/products'
   },
   {
     name: 'Campañas',
-    icon: FaDatabase,
+    icon: FaAlgolia,
     description: 'Gestión de campañas',
     path: '/dbmanager/campaigns'
   },
   {
     name: 'Anuncios',
-    icon: FaDatabase,
+    icon: FaMegaport,
     description: 'Gestión de anuncios',
     path: '/dbmanager/ads'
   }

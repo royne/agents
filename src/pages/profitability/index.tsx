@@ -1,25 +1,26 @@
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { FaChartLine } from 'react-icons/fa';
+import { FaDollarSign, FaMoneyBillWave, FaStream } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import SalesGrafic from '../../components/Financial/salesGrafic';
+import { FaArrowTrendDown } from 'react-icons/fa6';
 
 const modules = [
   {
     name: 'Registro de Ventas',
-    icon: FaChartLine,
+    icon: FaDollarSign,
     description: 'Registro de ventas',
     path: '/profitability/sales'
   },
   {
     name: 'Análisis de Ventas',
-    icon: FaChartLine,
+    icon: FaMoneyBillWave,
     description: 'Análisis de ventas y estadísticas',
     path: '/profitability/sales-tracking'
   },
   {
     name: 'Análisis de gastos ',
-    icon: FaChartLine,
+    icon: FaArrowTrendDown,
     description: 'Análisis de gastos',
     path: '/profitability/expenses'
   }
