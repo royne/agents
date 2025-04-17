@@ -6,10 +6,11 @@ import { campaignDatabaseService } from '../../services/database/campaignService
 import { adDatabaseService } from '../../services/database/adService';
 import type { DailyExpenses, Campaign, Advertisement } from '../../types/database';
 import { useAppContext } from '../../contexts/AppContext';
+import { useFilters } from '../../hooks/useFilters';
+import DataFilters from '../../components/filters/DataFilters';
 
 export default function Expenses() {
   const [expenses, setExpenses] = useState<DailyExpenses[]>([]);
-  const [filteredExpenses, setFilteredExpenses] = useState<DailyExpenses[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [ads, setAds] = useState<Advertisement[]>([]);
   const [loading, setLoading] = useState(false);
@@ -17,19 +18,9 @@ export default function Expenses() {
   const [currentExpense, setCurrentExpense] = useState<Partial<DailyExpenses>>({});
   const { authData } = useAppContext();
 
-  // filters 
-  const [selectedCampaign, setSelectedCampaign] = useState<string>('');
-  const [selectedAd, setSelectedAd] = useState<string>('');
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
-
   useEffect(() => {
     fetchData();
   }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [expenses, selectedCampaign, selectedAd, startDate, endDate]);
 
   const fetchData = async () => {
     if (!authData?.company_id) return;
@@ -43,58 +34,28 @@ export default function Expenses() {
     const adsData = await adDatabaseService.getAds(authData.company_id);
     
     setExpenses(expensesData);
-    setFilteredExpenses(expensesData);
     setCampaigns(campaignsData);
     setAds(adsData);
     setLoading(false);
   };
 
-  const applyFilters = () => {
-    let filtered = [...expenses];
-
-    // campaign filter
-    if (selectedCampaign) {
-      const adsInCampaign = ads.filter(ad => ad.campaign_id === selectedCampaign).map(ad => ad.id);
-      filtered = filtered.filter(expense => 
-        adsInCampaign.includes(expense.advertisement_id)
-      );
-    }
-
-    // ad filter
-    if (selectedAd) {
-      filtered = filtered.filter(expense => expense.advertisement_id === selectedAd);
-    }
-
-    // start date filter
-    if (startDate) {
-      const start = new Date(startDate);
-      start.setHours(0, 0, 0, 0);
-      filtered = filtered.filter(expense => {
-        const expenseDate = new Date(expense.date);
-        return expenseDate >= start;
-      });
-    }
-
-    // end date filter
-    if (endDate) {
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999);
-      filtered = filtered.filter(expense => {
-        const expenseDate = new Date(expense.date);
-        return expenseDate <= end;
-      });
-    }
-
-    setFilteredExpenses(filtered);
-  };
-
-  const resetFilters = () => {
-    setSelectedCampaign('');
-    setSelectedAd('');
-    setStartDate('');
-    setEndDate('');
-    setFilteredExpenses(expenses);
-  };
+  // Usar el hook useFilters para manejar la lógica de filtros
+  const {
+    filteredItems: filteredExpenses,
+    selectedCampaign,
+    setSelectedCampaign,
+    selectedAd,
+    setSelectedAd,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    resetFilters
+  } = useFilters<DailyExpenses>({
+    items: expenses,
+    ads,
+    campaigns
+  });
 
   const handleEdit = (id: string) => {
     const expense = expenses.find(e => e.id === id);
@@ -161,83 +122,26 @@ export default function Expenses() {
         <h1 className='text-center'>ANÁLISIS DE GASTOS</h1>
         
         {/* Filtros */}
-        <div className="bg-gray-800 p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold mb-4">Filtros</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Campaña</label>
-              <select
-                className="w-full p-2 rounded bg-gray-700 text-white"
-                value={selectedCampaign}
-                onChange={(e) => {
-                  setSelectedCampaign(e.target.value);
-                  // Resetear el anuncio seleccionado si cambia la campaña
-                  if (e.target.value) {
-                    setSelectedAd('');
-                  }
-                }}
-              >
-                <option value="">Todas las campañas</option>
-                {campaigns.map(campaign => (
-                  <option key={campaign.id} value={campaign.id}>
-                    {campaign.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Anuncio</label>
-              <select
-                className="w-full p-2 rounded bg-gray-700 text-white"
-                value={selectedAd}
-                onChange={(e) => setSelectedAd(e.target.value)}
-              >
-                <option value="">Todos los anuncios</option>
-                {ads
-                  .filter(ad => !selectedCampaign || ad.campaign_id === selectedCampaign)
-                  .map(ad => (
-                    <option key={ad.id} value={ad.id}>
-                      {ad.name}
-                    </option>
-                  ))
-                }
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Fecha inicio</label>
-              <input
-                type="date"
-                className="w-full p-2 rounded bg-gray-700 text-white"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Fecha fin</label>
-              <input
-                type="date"
-                className="w-full p-2 rounded bg-gray-700 text-white"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={resetFilters}
-              className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded"
-            >
-              Limpiar filtros
-            </button>
-          </div>
-        </div>
+        <DataFilters
+          campaigns={campaigns}
+          ads={ads}
+          selectedCampaign={selectedCampaign}
+          setSelectedCampaign={setSelectedCampaign}
+          selectedAd={selectedAd}
+          setSelectedAd={setSelectedAd}
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
+          resetFilters={resetFilters}
+        />
 
         {/* Summary */}
         <div className="bg-gray-800 p-6 rounded-lg shadow">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gray-700 p-4 rounded-lg">
               <h3 className="text-lg font-medium text-gray-300">Total de gastos</h3>
-              <p className="text-2xl font-bold">${totalExpenses.toFixed(2)}</p>
+              <p className="text-2xl font-bold">$ {totalExpenses.toLocaleString('es-CO', { maximumFractionDigits: 0 })}</p>
             </div>
             <div className="bg-gray-700 p-4 rounded-lg">
               <h3 className="text-lg font-medium text-gray-300">Número de registros</h3>
@@ -246,7 +150,7 @@ export default function Expenses() {
             <div className="bg-gray-700 p-4 rounded-lg">
               <h3 className="text-lg font-medium text-gray-300">Promedio diario</h3>
               <p className="text-2xl font-bold">
-                ${filteredExpenses.length ? (totalExpenses / filteredExpenses.length).toFixed(2) : '0.00'}
+                $ {filteredExpenses.length ? (totalExpenses / filteredExpenses.length).toLocaleString('es-CO', { maximumFractionDigits: 0 }) : '0'}
               </p>
             </div>
           </div>
@@ -261,7 +165,7 @@ export default function Expenses() {
             
             return {
               id: expense.id,
-              name: `$${expense.amount}  (${new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long'}).format(new Date(expense.date))})  - AD: ${ad?.name ?? 'N/A'} - Campaña ${campaign?.name ?? 'N/A'}`
+              name: `$ ${expense.amount.toLocaleString('es-CO', { maximumFractionDigits: 0 })}  (${new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long'}).format(new Date(expense.date))})  - AD: ${ad?.name ?? 'N/A'} - Campaña ${campaign?.name ?? 'N/A'}`
             };
           })}
           onDelete={handleDelete}

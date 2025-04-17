@@ -6,6 +6,8 @@ import { campaignDatabaseService } from '../../services/database/campaignService
 import { adDatabaseService } from '../../services/database/adService';
 import type { Sale, Campaign, Advertisement } from '../../types/database';
 import { useAppContext } from '../../contexts/AppContext';
+import { useFilters } from '../../hooks/useFilters';
+import DataFilters from '../../components/filters/DataFilters';
 
 export default function SalesTracking() {
   const [sales, setSales] = useState<Sale[]>([]);
@@ -15,6 +17,24 @@ export default function SalesTracking() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentSale, setCurrentSale] = useState<Partial<Sale>>({});
   const { authData } = useAppContext();
+
+  // Usar el hook useFilters para manejar la lógica de filtros
+  const {
+    filteredItems: filteredSales,
+    selectedCampaign,
+    setSelectedCampaign,
+    selectedAd,
+    setSelectedAd,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    resetFilters
+  } = useFilters<Sale>({
+    items: sales,
+    ads,
+    campaigns
+  });
 
   useEffect(() => {
     fetchData();
@@ -96,16 +116,51 @@ export default function SalesTracking() {
       <div className="space-y-8 max-w-6xl mx-auto">
         <h1 className='text-center'>ANÁLISIS DE VENTAS</h1>
         
+        {/* Filtros */}
+        <DataFilters
+          campaigns={campaigns}
+          ads={ads}
+          selectedCampaign={selectedCampaign}
+          setSelectedCampaign={setSelectedCampaign}
+          selectedAd={selectedAd}
+          setSelectedAd={setSelectedAd}
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
+          resetFilters={resetFilters}
+        />
+
+        {/* Resumen */}
+        <div className="bg-gray-800 p-6 rounded-lg shadow">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-gray-700 p-4 rounded-lg">
+              <h3 className="text-lg font-medium text-gray-300">Total de ventas</h3>
+              <p className="text-2xl font-bold">$ {filteredSales.reduce((sum, sale) => sum + (sale.amount || 0), 0).toLocaleString('es-CO', { maximumFractionDigits: 0 })}</p>
+            </div>
+            <div className="bg-gray-700 p-4 rounded-lg">
+              <h3 className="text-lg font-medium text-gray-300">Número de registros</h3>
+              <p className="text-2xl font-bold">{filteredSales.length}</p>
+            </div>
+            <div className="bg-gray-700 p-4 rounded-lg">
+              <h3 className="text-lg font-medium text-gray-300">Promedio por venta</h3>
+              <p className="text-2xl font-bold">
+                $ {filteredSales.length ? (filteredSales.reduce((sum, sale) => sum + (sale.amount || 0), 0) / filteredSales.length).toLocaleString('es-CO', { maximumFractionDigits: 0 }) : '0'}
+              </p>
+            </div>
+          </div>
+        </div>
+        
         {/* Tabla de ventas */}
         <CrudLayout
           title="Registro de Ventas"
-          items={sales.map(sale => {
+          items={filteredSales.map(sale => {
             const ad = ads.find(a => a.id === sale.advertisement_id);
             const campaign = campaigns.find(c => c.id === ad?.campaign_id);
             
             return {
               id: sale.id,
-              name: `$${sale.amount}  (${new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long'}).format(new Date(sale.date))})  - AD: ${ad?.name ?? 'N/A'} - Campaña ${campaign?.name ?? 'N/A'}`
+              name: `$ ${sale.amount.toLocaleString('es-CO', { maximumFractionDigits: 0 })}  (${new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long'}).format(new Date(sale.date))})  - AD: ${ad?.name ?? 'N/A'} - Campaña ${campaign?.name ?? 'N/A'}`
             };
           })}
           onDelete={handleDelete}
