@@ -7,6 +7,7 @@ import { ScriptEmbedding } from '../../types/embeddings';
 const ScriptEmbeddingsPage = () => {
   const [scripts, setScripts] = useState<ScriptEmbedding[]>([]);
   const [newScript, setNewScript] = useState('');
+  const [scriptTitle, setScriptTitle] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,10 +52,16 @@ const ScriptEmbeddingsPage = () => {
       setLoading(true);
       setMessage({ text: 'Creando embedding...', type: 'info' });
 
-      // Crear embedding a través del servicio
-      await embeddingService.createEmbedding(newScript, { source: 'manual' });
+      // Crear embedding a través del servicio con título personalizado
+      const metadata = { 
+        source: 'manual',
+        title: scriptTitle.trim() || undefined // Solo usar si se proporciona un título
+      };
+      
+      await embeddingService.createEmbedding(newScript, metadata);
       
       setNewScript('');
+      setScriptTitle('');
       setMessage({ text: 'Script creado exitosamente', type: 'success' });
       fetchScripts(); // Recargar la lista
     } catch (error) {
@@ -124,13 +131,23 @@ const ScriptEmbeddingsPage = () => {
         )}
         
         {/* Formulario para crear scripts */}
-        <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+        <div className="bg-gray-800 p-6 rounded-lg shadow-md mb-8">
           <h2 className="text-xl font-semibold mb-4">Añadir Nuevo Script</h2>
           <form onSubmit={handleCreateScript}>
             <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Contenido del Script</label>
+              <label className="block text-gray-300 mb-2">Título (opcional)</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-700 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={scriptTitle}
+                onChange={(e) => setScriptTitle(e.target.value)}
+                placeholder="Título descriptivo para el script"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-300 mb-2">Contenido del Script</label>
               <textarea
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-700 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={5}
                 value={newScript}
                 onChange={(e) => setNewScript(e.target.value)}
@@ -149,14 +166,14 @@ const ScriptEmbeddingsPage = () => {
         </div>
         
         {/* Búsqueda de scripts similares */}
-        <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+        <div className="bg-gray-800 p-6 rounded-lg shadow-md mb-8">
           <h2 className="text-xl font-semibold mb-4">Buscar Scripts Similares</h2>
           <form onSubmit={handleSearch}>
             <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Consulta</label>
+              <label className="block text-gray-300 mb-2">Consulta</label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-700 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Escribe tu consulta aquí..."
@@ -178,13 +195,22 @@ const ScriptEmbeddingsPage = () => {
               <h3 className="text-lg font-semibold mb-2">Resultados de Búsqueda</h3>
               <div className="space-y-4">
                 {searchResults.map((script) => (
-                  <div key={script.id} className="border p-4 rounded-lg">
+                  <div key={script.id} className="border border-gray-700 bg-gray-700 p-4 rounded-lg">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
+                        {script.metadata?.title && (
+                          <h3 className="font-semibold text-lg mb-2">{script.metadata.title}</h3>
+                        )}
+                        {script.metadata?.description && (
+                          <p className="text-gray-300 mb-3 italic">{script.metadata.description}</p>
+                        )}
                         <p className="whitespace-pre-wrap">{script.content}</p>
-                        <p className="text-sm text-gray-500 mt-2">
-                          Similitud: {Math.round(script.similarity * 100)}%
-                        </p>
+                        <div className="flex flex-wrap gap-2 text-sm text-gray-400 mt-2">
+                          <p>Similitud: {Math.round(script.similarity * 100)}%</p>
+                          {script.metadata?.total_chunks > 1 && (
+                            <p>• Fragmento {script.metadata.chunk_index + 1} de {script.metadata.total_chunks}</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -195,7 +221,7 @@ const ScriptEmbeddingsPage = () => {
         </div>
         
         {/* Lista de scripts */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-gray-800 p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">Scripts Existentes</h2>
           {loading ? (
             <p>Cargando scripts...</p>
@@ -204,13 +230,22 @@ const ScriptEmbeddingsPage = () => {
           ) : (
             <div className="space-y-4">
               {scripts.map((script) => (
-                <div key={script.id} className="border p-4 rounded-lg">
+                <div key={script.id} className="border border-gray-700 bg-gray-700 p-4 rounded-lg hover:bg-gray-600">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
+                      {script.metadata?.title && (
+                        <h3 className="font-semibold text-lg mb-2">{script.metadata.title}</h3>
+                      )}
+                      {script.metadata?.description && (
+                        <p className="text-gray-300 mb-3 italic">{script.metadata.description}</p>
+                      )}
                       <p className="whitespace-pre-wrap">{script.content}</p>
-                      <p className="text-sm text-gray-500 mt-2">
-                        Creado: {new Date(script.created_at).toLocaleString()}
-                      </p>
+                      <div className="flex flex-wrap gap-2 text-sm text-gray-400 mt-2">
+                        <p>Creado: {new Date(script.created_at).toLocaleString()}</p>
+                        {script.metadata?.total_chunks > 1 && (
+                          <p>• Fragmento {script.metadata.chunk_index + 1} de {script.metadata.total_chunks}</p>
+                        )}
+                      </div>
                     </div>
                     <button
                       onClick={() => handleDeleteScript(script.id)}
