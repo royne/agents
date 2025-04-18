@@ -1,8 +1,12 @@
 import DashboardLayout from '../components/layout/DashboardLayout';
 import { useApiKey } from '../hooks/useApiKey';
+import { useAppContext } from '../contexts/AppContext';
+import Link from 'next/link';
+import { FaDatabase, FaLock } from 'react-icons/fa';
 
 export default function Settings() {
   const { apiKey, saveApiKey, clearApiKey } = useApiKey();
+  const { isAdmin } = useAppContext();
 
   return (
     <DashboardLayout>
@@ -83,7 +87,37 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Nuevas tarjetas se agregarán automáticamente aquí */}
+        {/* Sección de administración - Solo visible para administradores */}
+        <h2 className="text-2xl font-bold mt-8 mb-4">Herramientas de administración</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Tarjeta de Administración de Embeddings */}
+          <div className={`bg-gray-800 rounded-lg shadow-lg p-6 ${isAdmin() ? 'hover:bg-gray-750' : 'opacity-70'} transition-colors relative`}>
+            {!isAdmin() && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center z-10">
+                <div className="bg-gray-900 p-3 rounded-lg shadow-lg flex items-center space-x-2">
+                  <FaLock className="text-yellow-500" />
+                  <span className="text-white text-sm">Solo administradores</span>
+                </div>
+              </div>
+            )}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Administrar Embeddings</h2>
+              <FaDatabase className={`${isAdmin() ? 'text-blue-400' : 'text-gray-500'}`} />
+            </div>
+            <p className="text-sm text-gray-400 mb-4">Gestiona los embeddings para el sistema RAG</p>
+            {isAdmin() ? (
+              <Link href="/scripts/embeddings">
+                <div className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded text-center cursor-pointer">
+                  Administrar Embeddings
+                </div>
+              </Link>
+            ) : (
+              <div className="bg-gray-700 text-gray-500 font-medium py-2 px-4 rounded text-center cursor-not-allowed">
+                Acceso restringido
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

@@ -15,9 +15,9 @@ const router = useRouter();
 }
 
 interface AuthWrapperProps {
-  Component: React.ComponentType<any>; // O el tipo que necesites
-  pageProps: any; // O el tipo que necesites
-  router: NextRouter; // Asegúrate de que el tipo sea NextRouter
+  Component: React.ComponentType<any>;
+  pageProps: any;
+  router: NextRouter;
 }
 
 function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {

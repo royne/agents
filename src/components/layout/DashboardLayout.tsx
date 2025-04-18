@@ -5,13 +5,13 @@ import { useAppContext } from '../../contexts/AppContext';
 import Link from 'next/link';
 
 const menuItems = [
-  { name: 'MultiChat', icon: FaComments, path: '/chat' },
+  { name: 'Agentes', icon: FaComments, path: '/agents' },
   { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability' },
   { name: 'Calculadora de Precios', icon: FaDollarSign, path: '/calculator' },
   { name: 'Logística', icon: FaTruck, path: '/logistics' },
-  { name: 'Agentes', icon: FaRobot, path: '/agents' },
   { name: 'Manager DB', icon: FaDatabase, path: '/dbmanager' },
-  { name: 'Configuración', icon: FaCog, path: '/settings' }
+  { name: 'Master Chat', icon: FaRobot, path: '/chat' },
+  { name: 'Configuración', icon: FaCog, path: '/settings' },
 ];
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {

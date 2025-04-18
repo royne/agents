@@ -80,6 +80,14 @@ export interface DailyExpenses {
   updated_at?: Date;
 };
 
+export interface ScriptEmbeddingRecord {
+  id: string;
+  content: string;
+  embedding: number[];
+  metadata: Record<string, any>;
+  created_at: Date;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -127,6 +135,27 @@ export interface Database {
         Row: DailyExpenses;
         Insert: Omit<DailyExpenses, 'created_at' | 'updated_at'>;
         Update: Partial<Omit<DailyExpenses, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      script_embeddings: {
+        Row: ScriptEmbeddingRecord;
+        Insert: Omit<ScriptEmbeddingRecord, 'id' | 'created_at'>;
+        Update: Partial<Omit<ScriptEmbeddingRecord, 'id' | 'created_at'>>;
+      };
+    };
+    Functions: {
+      match_scripts: {
+        Args: {
+          query_embedding: number[];
+          match_threshold: number;
+          match_count: number;
+        };
+        Returns: Array<{
+          id: string;
+          content: string;
+          similarity: number;
+          metadata: Record<string, any>;
+          created_at: string;
+        }>;
       };
     };
   };
