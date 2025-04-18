@@ -36,22 +36,16 @@ const modules = [
     path: '/dbmanager'
   },
   {
-    name: 'Master Chat',
-    icon: FaRobot,
-    description: 'Chat con RAG',
-    path: '/chat'
-  },
-  {
-    name: 'Manager DB',
-    icon: FaDatabase,
-    description: 'Gestión de base de datos',
-    path: '/dbmanager'
-  },
-  {
     name: 'Configuración',
     icon: FaCog,
     description: 'Configuración del sistema',
     path: '/settings'
+  },
+  {
+    name: 'Master Chat',
+    icon: FaRobot,
+    description: 'Chat con RAG',
+    path: '/chat'
   }
 ];
 
