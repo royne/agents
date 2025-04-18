@@ -5,11 +5,11 @@ import { useAppContext } from '../../contexts/AppContext';
 import Link from 'next/link';
 
 const menuItems = [
-  { name: 'MultiChat', icon: FaComments, path: '/chat' },
+  { name: 'Agentes', icon: FaComments, path: '/agents' },
   { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability' },
   { name: 'Logística', icon: FaTruck, path: '/logistics' },
   { name: 'Manager DB', icon: FaDatabase, path: '/dbmanager' },
-  { name: 'Agentes', icon: FaRobot, path: '/agents' },
+  { name: 'Master Chat', icon: FaRobot, path: '/chat' },
   { name: 'Configuración', icon: FaCog, path: '/settings' },
 ];
 

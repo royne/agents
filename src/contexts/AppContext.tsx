@@ -1,6 +1,5 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { USERS } from '../data/users';
 import { supabase } from '../lib/supabase';
 
 type AppContextType = {
@@ -8,10 +7,12 @@ type AppContextType = {
   authData: { 
     isAuthenticated: boolean;
     company_id?: string;
+    role?: string;
   } | null;
   setApiKey: (key: string) => void;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  isAdmin: () => boolean;
 };
 
 const AppContext = createContext<AppContextType>({} as AppContextType);
@@ -21,6 +22,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [authData, setAuthData] = useState<{ 
     isAuthenticated: boolean;
     company_id?: string;
+    role?: string;
   } | null>(null);
   const router = useRouter();
 
@@ -31,13 +33,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (session) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('company_id')
+          .select('company_id, role')
           .eq('user_id', session.user.id)
           .single();
 
         const authData = {
           isAuthenticated: true,
-          company_id: profile?.company_id
+          company_id: profile?.company_id,
+          role: profile?.role
         };
         
         localStorage.setItem('auth_data', JSON.stringify(authData));
@@ -61,13 +64,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (data?.user) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('company_id')
+        .select('company_id, role')
         .eq('user_id', data.user.id)
         .single();
 
       const authData = {
         isAuthenticated: true,
-        company_id: profile?.company_id
+        company_id: profile?.company_id,
+        role: profile?.role
       };
       
       localStorage.setItem('auth_data', JSON.stringify(authData));
@@ -84,8 +88,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     router.push('/auth/login');
   };
 
+  // Función para verificar si el usuario es administrador
+  const isAdmin = (): boolean => {
+    return authData?.role === 'admin';
+  };
+
   return (
-    <AppContext.Provider value={{ apiKey, authData, setApiKey, login, logout }}>
+    <AppContext.Provider value={{ apiKey, authData, setApiKey, login, logout, isAdmin }}>
       {children}
     </AppContext.Provider>
   );

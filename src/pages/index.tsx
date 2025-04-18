@@ -1,14 +1,15 @@
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase, FaLock } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useAppContext } from '../contexts/AppContext';
 
 const modules = [
   {
-    name: 'MultiChat',
+    name: 'Agentes',
     icon: FaComments,
     description: 'Chat con múltiples agentes IA',
-    path: '/chat'
+    path: '/agents'
   },
   {
     name: 'Rentabilidad',
@@ -29,10 +30,10 @@ const modules = [
     path: '/dbmanager'
   },
   {
-    name: 'Agentes',
+    name: 'Master Chat',
     icon: FaRobot,
-    description: 'Administración de agentes IA',
-    path: '/agents'
+    description: 'Chat con RAG',
+    path: '/chat'
   },
   {
     name: 'Configuración',
@@ -44,17 +45,31 @@ const modules = [
 
 export default function Dashboard() {
   const router = useRouter();
+  const { isAdmin } = useAppContext();
 
   return (
     <DashboardLayout>
       <div>
         <h1 className="text-2xl mb-8">Bienvenido al Panel de Control</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {modules.map((module) => (
-            <Link key={module.path} href={module.path}>
-              <div className="bg-gray-800 p-6 rounded-lg shadow-md cursor-pointer hover:bg-gray-700 transform hover:-translate-y-0.5 transition-all duration-200">
+          {modules.map((module) => {
+            // Verificar si es el módulo de chat con RAG
+            const isRagModule = module.path === '/chat';
+            const isDisabled = isRagModule && !isAdmin();
+            
+            // Componente de tarjeta
+            const card = (
+              <div className={`bg-gray-800 p-6 rounded-lg shadow-md ${!isDisabled ? 'cursor-pointer hover:bg-gray-700 transform hover:-translate-y-0.5' : 'opacity-70'} transition-all duration-200 relative`}>
+                {isDisabled && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center z-10">
+                    <div className="bg-gray-900 p-3 rounded-lg shadow-lg flex items-center space-x-2">
+                      <FaLock className="text-yellow-500" />
+                      <span className="text-white text-sm">Solo administradores</span>
+                    </div>
+                  </div>
+                )}
                 <div className="flex flex-col gap-4 items-center">
-                  <module.icon className="w-8 h-8 text-blue-500" />
+                  <module.icon className={`w-8 h-8 ${isDisabled ? 'text-gray-500' : 'text-blue-500'}`} />
                   <h2 className="text-xl font-bold">
                     {module.name}
                   </h2>
@@ -63,8 +78,19 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
-            </Link>
-          ))}
+            );
+            
+            // Envolver en Link solo si no está deshabilitado
+            return isDisabled ? (
+              <div key={module.path} title="Esta función solo está disponible para administradores">
+                {card}
+              </div>
+            ) : (
+              <Link key={module.path} href={module.path}>
+                {card}
+              </Link>
+            );
+          })}
         </div>
       </div>
     </DashboardLayout>

@@ -1,4 +1,5 @@
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import AdminRoute from '../../components/auth/AdminRoute';
 
 const ManageScriptsPage = () => {
   return (
@@ -19,4 +20,12 @@ const ManageScriptsPage = () => {
   );
 };
 
-export default ManageScriptsPage;
+const ProtectedManageScriptsPage = () => {
+  return (
+    <AdminRoute>
+      <ManageScriptsPage />
+    </AdminRoute>
+  );
+};
+
+export default ProtectedManageScriptsPage;

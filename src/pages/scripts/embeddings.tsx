@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { embeddingService } from '../../services/embeddings/embeddingService';
 import { ScriptEmbedding } from '../../types/embeddings';
+import AdminRoute from '../../components/auth/AdminRoute';
 
 const ScriptEmbeddingsPage = () => {
   const [scripts, setScripts] = useState<ScriptEmbedding[]>([]);
@@ -264,4 +265,12 @@ const ScriptEmbeddingsPage = () => {
   );
 };
 
-export default ScriptEmbeddingsPage;
+const ProtectedScriptEmbeddingsPage = () => {
+  return (
+    <AdminRoute>
+      <ScriptEmbeddingsPage />
+    </AdminRoute>
+  );
+};
+
+export default ProtectedScriptEmbeddingsPage;
