@@ -21,7 +21,7 @@ interface AuthWrapperProps {
 }
 
 function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
-  const { authData } = useAppContext();
+  const { authData, themeConfig } = useAppContext();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,12 +42,23 @@ function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
 
     checkAuth();
   }, [router, authData]);
+  
+  // Efecto para inicializar el tema
+  useEffect(() => {
+    if (themeConfig) {
+      // Aplicar el tema al documento
+      document.documentElement.style.setProperty('--primary-color', themeConfig.primaryColor);
+      document.documentElement.classList.toggle('dark-theme', themeConfig.useDarkMode);
+      document.documentElement.classList.toggle('custom-theme', !themeConfig.useDarkMode);
+    }
+  }, [themeConfig]);
 
-  if (loading) return <div className="min-h-screen bg-gray-900"></div>;
+  if (loading) return <div className="min-h-screen bg-theme-primary"></div>;
 
   return (
-    <div className="min-h-screen max-h-screen bg-gray-900 text-gray-100 border border-transparent overflow-hidden">
+    <div className="min-h-screen max-h-screen bg-theme-primary text-theme-primary border border-transparent overflow-hidden">
       <Component {...pageProps} />
     </div>
   );
+
 }

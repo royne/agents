@@ -14,7 +14,7 @@ export default function InputArea({ value, onChange, onKeyPress, className }: In
       onChange={onChange}
       onKeyPress={onKeyPress}
       placeholder="Escribe tu mensaje o sube una imagen..."
-      className={`flex-1 p-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+      className={`flex-1 p-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary-color focus:border-primary-color resize-none text-theme-primary ${
         className || ''
       }`}
       rows={1}

@@ -65,21 +65,21 @@ export default function Dashboard() {
             
             // Componente de tarjeta
             const card = (
-              <div className={`bg-gray-800 p-6 rounded-lg shadow-md ${!isDisabled ? 'cursor-pointer hover:bg-gray-700 transform hover:-translate-y-0.5' : 'opacity-70'} transition-all duration-200 relative`}>
+              <div className={`bg-theme-component p-6 rounded-lg shadow-md ${!isDisabled ? 'cursor-pointer hover:bg-theme-component-hover transform hover:-translate-y-0.5' : 'opacity-70'} transition-all duration-200 relative card`}>
                 {isDisabled && (
                   <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center z-10">
-                    <div className="bg-gray-900 p-3 rounded-lg shadow-lg flex items-center space-x-2">
+                    <div className="bg-theme-component p-3 rounded-lg shadow-lg flex items-center space-x-2">
                       <FaLock className="text-yellow-500" />
                       <span className="text-white text-sm">Solo administradores</span>
                     </div>
                   </div>
                 )}
                 <div className="flex flex-col gap-4 items-center">
-                  <module.icon className={`w-8 h-8 ${isDisabled ? 'text-gray-500' : 'text-blue-500'}`} />
-                  <h2 className="text-xl font-bold">
+                  <module.icon className={`w-8 h-8 ${isDisabled ? 'text-theme-tertiary' : 'text-primary-color card-icon'}`} />
+                  <h2 className="text-xl font-bold text-theme-primary">
                     {module.name}
                   </h2>
-                  <p className="text-gray-100 text-center">
+                  <p className="text-theme-secondary text-center">
                     {module.description}
                   </p>
                 </div>

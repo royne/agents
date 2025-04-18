@@ -285,10 +285,7 @@ const SalesGrafic = ({ periodDays = 1 }: SalesGraficProps) => {
     // Calcular el balance
     const balance = ventasValue - gastosValue;
     
-    // Añadir console.log para depuración
-    console.log('Tooltip payload:', payload);
-    console.log('ventasData:', ventasData);
-    console.log('ventasCount:', ventasCount);
+    // Información del tooltip
     
     return (
       <div className="bg-gray-800 border border-gray-600 p-2 rounded shadow-lg">

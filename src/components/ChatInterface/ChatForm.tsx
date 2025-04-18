@@ -27,9 +27,9 @@ export const ChatForm = ({
   };
 
   return (
-    <form onSubmit={onSubmit} className="p-4 bg-gray-700 rounded-b-xl border-t border-gray-600">
+    <form onSubmit={onSubmit} className="p-4 bg-theme-component-hover rounded-b-xl border-t border-theme-color">
       <div className="flex gap-2">
-        <label className="cursor-pointer text-gray-300 hover:text-blue-400 transition-colors">
+        <label className="cursor-pointer text-theme-secondary hover:text-primary-color transition-colors">
           <PhotoIcon className="h-7 w-7" />
           <input
             type="file"
@@ -42,23 +42,23 @@ export const ChatForm = ({
           value={inputText}
           onChange={(e) => onInputChange(e.target.value)}
           onKeyPress={handleKeyPress}
-          className="bg-gray-600 border-gray-500 text-white placeholder-gray-400"
+          className="bg-theme-component border-theme-color text-theme-primary placeholder-theme-tertiary"
         />
         <button
           type="submit"
           disabled={isLoading}
-          className={`p-3 ${isLoading ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500'
+          className={`p-3 ${isLoading ? 'bg-theme-component-active cursor-not-allowed' : 'bg-primary-color hover:opacity-90 btn-primary'
             } text-white rounded-lg transition-colors shadow-lg`}
         >
           {isLoading ? (
-            <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <div className="h-5 w-5 border-2 border-theme-primary border-t-transparent rounded-full animate-spin" />
           ) : (
             <PaperAirplaneIcon className="h-5 w-5" />
           )}
         </button>
       </div>
       {selectedImage && (
-        <div className="mt-2 text-sm text-blue-300">
+        <div className="mt-2 text-sm text-primary-color">
           {selectedImage.name}
         </div>
       )}

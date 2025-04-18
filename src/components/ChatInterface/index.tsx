@@ -30,8 +30,8 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col h-[90vh] bg-gray-800 rounded-xl shadow-xl">
-      <div className="bg-gray-700 rounded-t-xl">
+    <div className="flex flex-col h-[90vh] bg-theme-component rounded-xl shadow-xl">
+      <div className="bg-theme-component-hover rounded-t-xl">
         <AgentSelector
           agents={AGENTS}
           onSelect={(agent) => {

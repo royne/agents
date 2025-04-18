@@ -1,3 +1,306 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --primary-color: #3B82F6;
+}
+
+/* Tema oscuro (predeterminado) */
+.dark-theme {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2d2d2d;
+  --bg-component: #1f2937;
+  --bg-component-hover: #374151;
+  --bg-component-active: #4b5563;
+  --text-primary: #ffffff;
+  --text-secondary: #d1d5db;
+  --text-tertiary: #9ca3af;
+  --border-color: #374151;
+  --assistant-bubble: rgba(59, 130, 246, 0.3);
+}
+
+/* Tema personalizado (basado en el color primario) */
+.custom-theme {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f3f4f6;
+  --bg-tertiary: #e5e7eb;
+  --bg-component: #f0f0f4;
+  --bg-component-hover: #e8e8ec;
+  --bg-component-active: #e0e0e4;
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-tertiary: #4b5563;
+  --border-color: #d1d5db;
+  --modal-overlay: rgba(0, 0, 0, 0.3);
+  --assistant-bubble: rgba(59, 130, 246, 0.15);
+}
+
+/* Aplicar variables al tema */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Clases de utilidad para usar las variables de color */
+.bg-theme-primary {
+  background-color: var(--bg-primary) !important;
+}
+
+.bg-theme-secondary {
+  background-color: var(--bg-secondary) !important;
+}
+
+.bg-theme-tertiary {
+  background-color: var(--bg-tertiary) !important;
+}
+
+.bg-theme-component {
+  background-color: var(--bg-component) !important;
+}
+
+.hover\:bg-theme-component-hover:hover {
+  background-color: var(--bg-component-hover) !important;
+}
+
+.bg-theme-component-active {
+  background-color: var(--bg-component-active) !important;
+}
+
+.text-theme-primary {
+  color: var(--text-primary) !important;
+}
+
+.text-theme-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-theme-tertiary {
+  color: var(--text-tertiary) !important;
+}
+
+.border-theme-color {
+  border-color: var(--border-color) !important;
+}
+
+.bg-primary-color {
+  background-color: var(--primary-color) !important;
+}
+
+.text-primary-color {
+  color: var(--primary-color) !important;
+}
+
+.border-primary-color {
+  border-color: var(--primary-color) !important;
+}
+
+/* Sobreescribir clases específicas de Tailwind */
+.custom-theme .bg-gray-800,
+.custom-theme .bg-gray-700,
+.custom-theme .bg-gray-900,
+.custom-theme .bg-gray-850,
+.custom-theme .bg-black {
+  background-color: var(--bg-component) !important;
+}
+
+.custom-theme .hover\:bg-gray-700:hover,
+.custom-theme .hover\:bg-gray-750:hover,
+.custom-theme .hover\:bg-gray-800:hover {
+  background-color: var(--bg-component-hover) !important;
+}
+
+.custom-theme .border-gray-700,
+.custom-theme .border-gray-600,
+.custom-theme .border-gray-800 {
+  border-color: var(--border-color) !important;
+}
+
+/* Correcciones de texto para modo claro */
+.custom-theme .text-white,
+.custom-theme .text-gray-100,
+.custom-theme .text-gray-200 {
+  color: var(--text-primary) !important;
+}
+
+.custom-theme .text-gray-300,
+.custom-theme .text-gray-400 {
+  color: var(--text-secondary) !important;
+}
+
+.custom-theme .text-gray-500,
+.custom-theme .text-gray-600 {
+  color: var(--text-tertiary) !important;
+}
+
+/* Correcciones para inputs */
+.custom-theme input,
+.custom-theme textarea,
+.custom-theme select {
+  background-color: var(--bg-component-hover) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Correcciones para tarjetas y componentes */
+.custom-theme .card,
+.custom-theme .message-card,
+.custom-theme .agent-selector {
+  background-color: var(--bg-component) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Estilos específicos para modales en modo claro */
+.custom-theme .fixed.inset-0.bg-black.bg-opacity-50 {
+  background-color: var(--modal-overlay) !important;
+}
+
+.custom-theme .bg-theme-component {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* Asegurar que los iconos y elementos activos usen el color primario */
+.active-item {
+  color: var(--primary-color) !important;
+}
+
+/* Iconos en tarjetas y componentes */
+.card-icon,
+.feature-icon,
+.menu-icon,
+.text-blue-400,
+.text-blue-500,
+.text-blue-600,
+.text-indigo-400,
+.text-indigo-500,
+.text-indigo-600 {
+  color: var(--primary-color) !important;
+}
+
+/* Asegurar que los botones usen el color primario */
+.btn-primary,
+.bg-blue-500,
+.bg-blue-600,
+.bg-indigo-500,
+.bg-indigo-600 {
+  background-color: var(--primary-color) !important;
+}
+
+.btn-primary:hover,
+.hover\:bg-blue-600:hover,
+.hover\:bg-blue-700:hover,
+.hover\:bg-indigo-600:hover,
+.hover\:bg-indigo-700:hover {
+  background-color: var(--primary-color) !important;
+  filter: brightness(90%);
+}
+
+/* Asegurar que los bordes usen el color primario */
+.border-blue-500,
+.border-blue-600,
+.border-indigo-500,
+.border-indigo-600,
+.focus\:border-blue-500:focus,
+.focus\:border-indigo-500:focus {
+  border-color: var(--primary-color) !important;
+}
+
+/* Estilos para el texto en modo claro */
+.custom-theme .prose-dark {
+  color: var(--text-primary);
+}
+
+/* Estilos para el texto del usuario según el tema */
+/* Modo oscuro (por defecto) */
+.dark-theme .user-message {
+  color: white !important;
+}
+
+.dark-theme .prose-user {
+  color: white !important;
+}
+
+.dark-theme .prose-user * {
+  color: white !important;
+}
+
+/* Modo claro */
+.custom-theme .user-message {
+  color: #111827 !important;
+}
+
+.custom-theme .prose-user {
+  color: #111827 !important;
+}
+
+.custom-theme .prose-user * {
+  color: #111827 !important;
+}
+
+.custom-theme .prose-user a {
+  color: var(--primary-color) !important;
+}
+
+.custom-theme .prose-user code {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+  color: #111827 !important;
+}
+
+.custom-theme .user-message .text-theme-tertiary {
+  color: #4b5563 !important;
+}
+
+/* Estilos para las burbujas de mensajes */
+.bg-assistant-bubble {
+  background-color: var(--assistant-bubble) !important;
+}
+
+/* Asegurar que las burbujas tengan fondo en modo claro */
+.custom-theme .bg-assistant-bubble {
+  background-color: var(--assistant-bubble) !important;
+  border: 1px solid rgba(59, 130, 246, 0.2) !important;
+}
+
+.custom-theme .user-message {
+  background-color: var(--primary-color) !important;
+}
+
+/* Ajustar el color de la burbuja del asistente según el color primario */
+:root {
+  --assistant-bubble-color: var(--assistant-bubble);
+}
+
+/* Actualizar el color de la burbuja del asistente cuando cambia el color primario */
+.assistant-message {
+  border: 1px solid rgba(59, 130, 246, 0.2) !important;
+}
+
+.custom-theme .prose-dark a {
+  color: var(--primary-color);
+}
+
+.custom-theme .prose-dark strong {
+  color: var(--text-primary);
+}
+
+.custom-theme .prose-dark code {
+  color: var(--text-primary);
+  background-color: var(--bg-component-hover);
+}
+
+.custom-theme .prose-dark pre {
+  background-color: var(--bg-component-hover);
+  color: var(--text-primary);
+}
+
+.custom-theme .prose-dark h1,
+.custom-theme .prose-dark h2,
+.custom-theme .prose-dark h3,
+.custom-theme .prose-dark h4,
+.custom-theme .prose-dark h5,
+.custom-theme .prose-dark h6 {
+  color: var(--text-primary);
+}

@@ -141,15 +141,6 @@ export const embeddingService = {
       
       const results = data || [];
       
-      if (results.length > 0) {
-        console.log('Resultados:');
-        results.forEach((script, index) => {
-          console.log(`  ${index + 1}. Similitud: ${Math.round(script.similarity * 100)}%, ID: ${script.id.substring(0, 8)}...`);
-        });
-      } else {
-        console.log('No se encontraron scripts similares');
-      }
-      
       return results;
     } catch (error) {
       console.error('Error al buscar scripts similares:', error);

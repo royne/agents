@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
@@ -16,26 +16,45 @@ const menuItems = [
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
-  const { logout } = useAppContext();
+  const { logout, themeConfig } = useAppContext();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // Aplicar el color primario a elementos con la clase .btn-primary
+  useEffect(() => {
+    const applyThemeToComponents = () => {
+      // Aplicar a botones con clase bg-blue-600
+      document.querySelectorAll('.bg-blue-600').forEach(el => {
+        (el as HTMLElement).style.backgroundColor = themeConfig.primaryColor;
+        el.classList.add('btn-primary');
+      });
+      
+      // Aplicar a elementos con clase focus:border-blue-500
+      document.querySelectorAll('.focus\\:border-blue-500').forEach(el => {
+        el.classList.add('focus:border-primary-color');
+      });
+    };
+    
+    // Ejecutar después de que el DOM se haya actualizado
+    setTimeout(applyThemeToComponents, 100);
+  }, [themeConfig.primaryColor]);
 
   return (
-    <div className="h-screen flex overflow-hidden bg-gray-900">
+    <div className="h-screen flex overflow-hidden bg-theme-primary">
       {/* Sidebar para escritorio/tablet - Oculto en móviles */}
       <div 
         className={`${
           isSidebarOpen ? 'w-64' : 'w-16'
-        } bg-gray-800 transition-all duration-300 fixed h-screen z-50 hidden md:block`}
+        } bg-theme-component transition-all duration-300 fixed h-screen z-50 hidden md:block`}
         onMouseEnter={() => setIsSidebarOpen(true)}
         onMouseLeave={() => setIsSidebarOpen(false)}
       >
         <div className="p-4 flex flex-col h-full justify-between overflow-y-auto">
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <div className='flex items-center px-2'><FaRobot /></div>
+              <div className='flex items-center px-2 text-primary-color'><FaRobot /></div>
               {isSidebarOpen && (
                 <Link href={'/'}>
-                  <span className="text-white font-bold text-xl">Dashboard</span>
+                  <span className="text-theme-primary font-bold text-xl">Dashboard</span>
                 </Link>
               )}
             </div>
@@ -44,13 +63,13 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
               {menuItems.map((item) => (
                 <Link key={item.path} href={item.path}>
                   <div
-                    className={`flex items-center py-3 px-2 rounded hover:bg-gray-700 transition-colors cursor-pointer ${
-                      router.pathname === item.path ? 'bg-gray-700' : ''
+                    className={`flex items-center py-3 px-2 rounded hover:bg-theme-component-hover transition-colors cursor-pointer ${
+                      router.pathname === item.path ? 'bg-theme-component-active' : ''
                     }`}
                   >
-                    <item.icon className="text-gray-300 text-xl" />
+                    <item.icon className={`${router.pathname === item.path ? 'text-primary-color active-item' : 'text-theme-secondary'} text-xl`} />
                     {isSidebarOpen && (
-                      <span className="text-gray-300 ml-3 whitespace-nowrap">
+                      <span className={`${router.pathname === item.path ? 'text-primary-color active-item' : 'text-theme-secondary'} ml-3 whitespace-nowrap`}>
                         {item.name}
                       </span>
                     )}
@@ -60,13 +79,13 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
             </nav>
           </div>
 
-          <div className="border-t border-gray-700 pt-4">
+          <div className="border-t border-theme-color pt-4">
             <button 
               onClick={() => {
                 router.push('/auth/login');
                 logout();
               }}
-              className="w-full flex items-center p-3 rounded hover:bg-gray-700 transition-colors text-red-400"
+              className="w-full flex items-center p-3 rounded hover:bg-theme-component-hover transition-colors text-red-400"
             >
               <FaSignOutAlt className="text-xl" />
               {isSidebarOpen && (
@@ -78,13 +97,13 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       </div>
 
       {/* Barra de navegación inferior para móviles */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-800 z-50">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-theme-component z-50">
         <div className="flex justify-around items-center">
           {menuItems.map((item) => (
             <Link key={item.path} href={item.path}>
               <div
                 className={`flex items-center justify-center py-3 px-3 ${
-                  router.pathname === item.path ? 'text-white' : 'text-gray-400'
+                  router.pathname === item.path ? 'text-primary-color' : 'text-theme-secondary'
                 }`}
               >
                 <item.icon className="text-xl" />
@@ -105,7 +124,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
       {/* Main Content - Ajustado para móviles */}
       <main 
-        className={`flex-1 bg-gray-900 p-8 overflow-y-auto h-screen transition-all duration-300
+        className={`flex-1 bg-theme-primary p-8 overflow-y-auto h-screen transition-all duration-300
                    md:ml-16 ${isSidebarOpen ? 'md:ml-64' : ''} pb-16 md:pb-8`}
       >
         {children}

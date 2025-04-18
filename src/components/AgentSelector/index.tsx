@@ -41,7 +41,7 @@ export default function AgentSelector({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full p-3 bg-gray-700 rounded-t-lg hover:bg-gray-600 transition-colors"
+        className="flex items-center justify-between w-full p-3 bg-theme-component-hover rounded-t-lg hover:bg-theme-component-active transition-colors text-theme-primary agent-selector"
       >
         <span>{selectedAgent.name}</span>
         <svg className={`w-5 h-5 transform transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,7 +50,7 @@ export default function AgentSelector({
       </button>
       
       {isOpen && (
-        <div className="p-3 absolute w-full bg-gray-800 rounded-b-lg shadow-lg z-10">
+        <div className="p-3 absolute w-full bg-theme-component rounded-b-lg shadow-lg z-10 agent-selector">
           {agents.map((agent) => (
             <div
               key={agent.id}
@@ -59,14 +59,14 @@ export default function AgentSelector({
                 onSelect(agent);
                 setIsOpen(false);
               }}
-              className="hover:bg-gray-700 cursor-pointer border-t border-gray-600"
+              className="hover:bg-theme-component-hover cursor-pointer border-t border-theme-color p-2 rounded my-1"
             >
-              <h3 className="font-medium">{agent.name}</h3>
-              <p className="text-sm text-gray-400">{agent.description}</p>
-              <span className="text-xs text-blue-400">{agent.model}</span>
+              <h3 className="font-medium text-theme-primary">{agent.name}</h3>
+              <p className="text-sm text-theme-tertiary">{agent.description}</p>
+              <span className="text-xs text-primary-color">{agent.model}</span>
             </div>
           ))}
-          <div className="border-t border-gray-600">
+          <div className="border-t border-theme-color mt-2">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -76,8 +76,8 @@ export default function AgentSelector({
               disabled={!hasMessages}
               className={`w-full p-3 text-left ${
                 hasMessages 
-                  ? 'text-blue-400 hover:bg-gray-700 cursor-pointer' 
-                  : 'text-gray-500 cursor-not-allowed'
+                  ? 'text-primary-color hover:bg-theme-component-hover cursor-pointer' 
+                  : 'text-theme-tertiary cursor-not-allowed'
               }`}
             >
               <div className="flex items-center">
@@ -108,13 +108,13 @@ export default function AgentSelector({
                 </div>
               </button>
               {showExportMenu && hasMessages && (
-                <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg z-20">
+                <div className="absolute right-0 mt-2 w-48 bg-theme-component rounded-lg shadow-lg z-20">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleExport('json');
                     }}
-                    className="w-full p-2 text-left text-blue-400 hover:bg-gray-700"
+                    className="w-full p-2 text-left text-primary-color hover:bg-theme-component-hover rounded my-1"
                   >
                     Exportar como JSON
                   </button>
@@ -123,7 +123,7 @@ export default function AgentSelector({
                       e.stopPropagation();
                       handleExport('txt');
                     }}
-                    className="w-full p-2 text-left text-blue-400 hover:bg-gray-700"
+                    className="w-full p-2 text-left text-primary-color hover:bg-theme-component-hover rounded my-1"
                   >
                     Exportar como TXT
                   </button>
@@ -132,7 +132,7 @@ export default function AgentSelector({
                       e.stopPropagation();
                       handleExport('md');
                     }}
-                    className="w-full p-2 text-left text-blue-400 hover:bg-gray-700"
+                    className="w-full p-2 text-left text-primary-color hover:bg-theme-component-hover rounded my-1"
                   >
                     Exportar como Markdown
                   </button>

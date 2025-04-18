@@ -34,10 +34,10 @@ export default function RAGChatInterface() {
     }
   };
 
-  // Exportar chat como archivo de texto
-  const handleExportChat = () => {
+  // Exportar chat en diferentes formatos
+  const handleExportChat = (format: 'json' | 'txt' | 'md') => {
     if (messages.length === 0) return;
-    chatExportService.exportChat(messages, 'txt', 'rag');
+    chatExportService.exportChat(messages, format, 'rag');
   };
 
   return (
@@ -56,13 +56,39 @@ export default function RAGChatInterface() {
             >
               Guardar
             </button>
-            <button 
-              onClick={handleExportChat}
-              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-sm rounded-lg transition-colors"
-              title="Descargar como archivo de texto"
-            >
-              Exportar
-            </button>
+            <div className="relative group">
+              <button 
+                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-sm rounded-lg transition-colors flex items-center"
+                title="Exportar conversación"
+              >
+                Exportar
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg overflow-hidden z-10 hidden group-hover:block">
+                <div className="py-1">
+                  <button
+                    onClick={() => handleExportChat('txt')}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-700 transition-colors"
+                  >
+                    Texto plano (.txt)
+                  </button>
+                  <button
+                    onClick={() => handleExportChat('md')}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-700 transition-colors"
+                  >
+                    Markdown (.md)
+                  </button>
+                  <button
+                    onClick={() => handleExportChat('json')}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-700 transition-colors"
+                  >
+                    JSON (.json)
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

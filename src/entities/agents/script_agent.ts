@@ -52,22 +52,20 @@ export async function enrichWithRAG(messages: Message[]): Promise<Message[]> {
     const lastUserMessageIndex = messages.findLastIndex(msg => msg.role === 'user');
     
     if (lastUserMessageIndex === -1) {
-      console.log('No se encontró ningún mensaje del usuario para enriquecer');
+      // No se encontró ningún mensaje del usuario para enriquecer
       return messages;
     }
     
     const userQuery = messages[lastUserMessageIndex].content;
-    console.log(`Buscando scripts similares para la consulta: "${userQuery.substring(0, 50)}..."`);
+
     
     // Buscar scripts similares
     const similarScripts = await embeddingService.searchSimilarScripts(userQuery);
     
     if (similarScripts.length === 0) {
-      console.log('No se encontraron scripts similares');
+
       return messages;
     }
-    
-    console.log(`Se encontraron ${similarScripts.length} scripts similares`);
     
     // Ordenar por similitud (de mayor a menor)
     const sortedScripts = [...similarScripts].sort((a, b) => b.similarity - a.similarity);
@@ -94,7 +92,6 @@ Por favor, utiliza estos ejemplos como referencia para generar una respuesta que
       content: context
     });
     
-    console.log('Mensajes enriquecidos con RAG correctamente', enrichedMessages);
     return enrichedMessages;
   } catch (error) {
     console.error('Error al enriquecer mensajes con RAG:', error);
