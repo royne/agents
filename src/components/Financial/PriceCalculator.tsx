@@ -3,6 +3,7 @@ import ProductInputSection from './PriceCalculatorComponents/ProductInputSection
 import MarginsSection from './PriceCalculatorComponents/MarginsSection';
 import SummarySection from './PriceCalculatorComponents/SummarySection';
 import ChartSection from './PriceCalculatorComponents/ChartSection';
+import ProjectionSection from './PriceCalculatorComponents/ProjectionSection';
 
 const PriceCalculator = () => {
   const {
@@ -75,6 +76,18 @@ const PriceCalculator = () => {
           formatCurrency={formatCurrency}
         />
       </div>
+      
+      {/* Sección de proyección */}
+      {productCost > 0 && (
+        <ProjectionSection 
+          productName={productName}
+          productCost={productCost}
+          sellingPrice={calculatedValues.selectedMargin?.sellingPrice || 0}
+          totalCost={totalCost}
+          profit={calculatedValues.selectedMargin?.profit || 0}
+          formatCurrency={formatCurrency}
+        />
+      )}
     </div>
   );
 };

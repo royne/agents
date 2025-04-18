@@ -28,7 +28,7 @@ const SummarySection = ({
   formatCurrency
 }: SummarySectionProps) => {
   return (
-    <div className="bg-gray-800 p-4 rounded-lg lg:col-span-1">
+    <div className="bg-gray-900 p-4 rounded-lg lg:col-span-1">
       <h2 className="text-xl font-bold mb-4">Resumen</h2>
       
       {productCost > 0 ? (

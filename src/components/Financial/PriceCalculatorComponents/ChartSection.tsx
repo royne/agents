@@ -30,7 +30,7 @@ const ChartSection = ({
     const data = payload[0].payload;
     
     return (
-      <div className="bg-gray-800 border border-gray-600 p-2 rounded shadow-lg">
+      <div className="bg-gray-900 border border-gray-600 p-2 rounded shadow-lg">
         <p className="text-gray-300 mb-1">{data.name}</p>
         <p className="text-blue-400 font-bold">{formatCurrency(data.valor)}</p>
         <p className="text-gray-400 text-xs">
@@ -51,7 +51,7 @@ const ChartSection = ({
   };
 
   return (
-    <div className="bg-gray-800 p-4 rounded-lg lg:col-span-2">
+    <div className="bg-gray-900 p-4 rounded-lg lg:col-span-2">
       <h2 className="text-xl font-bold mb-4">Composición del Precio</h2>
       
       {chartData.length > 0 ? (

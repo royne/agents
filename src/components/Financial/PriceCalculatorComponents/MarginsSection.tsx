@@ -22,7 +22,7 @@ const MarginsSection = ({
   formatCurrency
 }: MarginsSectionProps) => {
   return (
-    <div className="bg-gray-800 p-4 rounded-lg mb-6">
+    <div className="bg-gray-900 p-4 rounded-lg mb-6">
       <h2 className="text-xl font-bold mb-4">Márgenes de Rentabilidad</h2>
       
       <div className="flex flex-wrap gap-2 mb-4">

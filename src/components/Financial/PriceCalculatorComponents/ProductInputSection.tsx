@@ -23,7 +23,7 @@ const ProductInputSection = ({
   handleConfigChange
 }: ProductInputSectionProps) => {
   return (
-    <div className="bg-gray-800 p-4 rounded-lg mb-6">
+    <div className="bg-gray-900 p-4 rounded-lg mb-6">
       <h2 className="text-xl font-bold mb-4">Datos del Producto</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

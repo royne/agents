@@ -214,7 +214,8 @@ export const usePriceCalculator = () => {
       return {
         realCPA: 0,
         totalFreight: 0,
-        breakeven: 0
+        breakeven: 0,
+        selectedMargin: null
       };
     }
 
@@ -263,7 +264,8 @@ export const usePriceCalculator = () => {
     return {
       realCPA: adjustedCPA,
       totalFreight,
-      breakeven
+      breakeven,
+      selectedMargin: selectedMarginItem
     };
   };
   
