@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
 import Link from 'next/link';
@@ -7,10 +7,11 @@ import Link from 'next/link';
 const menuItems = [
   { name: 'MultiChat', icon: FaComments, path: '/chat' },
   { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability' },
+  { name: 'Calculadora de Precios', icon: FaDollarSign, path: '/calculator' },
   { name: 'Logística', icon: FaTruck, path: '/logistics' },
-  { name: 'Manager DB', icon: FaDatabase, path: '/dbmanager' },
   { name: 'Agentes', icon: FaRobot, path: '/agents' },
-  { name: 'Configuración', icon: FaCog, path: '/settings' },
+  { name: 'Manager DB', icon: FaDatabase, path: '/dbmanager' },
+  { name: 'Configuración', icon: FaCog, path: '/settings' }
 ];
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {

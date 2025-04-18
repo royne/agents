@@ -1,5 +1,5 @@
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase, FaDollarSign } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 
@@ -17,22 +17,28 @@ const modules = [
     path: '/profitability'
   },
   {
+    name: 'Calculadora de Precios',
+    icon: FaDollarSign,
+    description: 'Calculadora de precios',
+    path: '/calculator'
+  },
+  {
     name: 'Logística',
     icon: FaTruck,
     description: 'Gestión de logística y envíos',
     path: '/logistics'
   },
   {
-    name: 'Manager DB',
-    icon: FaDatabase,
-    description: 'Gestión de base de datos',
-    path: '/dbmanager'
-  },
-  {
     name: 'Agentes',
     icon: FaRobot,
     description: 'Administración de agentes IA',
     path: '/agents'
+  },
+  {
+    name: 'Manager DB',
+    icon: FaDatabase,
+    description: 'Gestión de base de datos',
+    path: '/dbmanager'
   },
   {
     name: 'Configuración',
