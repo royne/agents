@@ -8,7 +8,7 @@ const menuItems = [
   { name: 'Agentes', icon: FaComments, path: '/agents' },
   { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability' },
   { name: 'Calculadora de Precios', icon: FaDollarSign, path: '/calculator' },
-  { name: 'Logística', icon: FaTruck, path: '/logistics' },
+  { name: 'Logística', icon: FaTruck, path: '/logistic' },
   { name: 'Manager DB', icon: FaDatabase, path: '/dbmanager' },
   { name: 'Master Chat', icon: FaRobot, path: '/chat' },
   { name: 'Configuración', icon: FaCog, path: '/settings' },

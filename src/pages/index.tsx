@@ -27,7 +27,7 @@ const modules = [
     name: 'Logística',
     icon: FaTruck,
     description: 'Gestión de logística y envíos',
-    path: '/logistics'
+    path: '/logistic'
   },
   {
     name: 'Manager DB',
