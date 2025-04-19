@@ -30,6 +30,12 @@ const modules = [
     path: '/logistic'
   },
   {
+    name: 'Análisis de Datos',
+    icon: FaDatabase,
+    description: 'Análisis de archivos Excel',
+    path: '/data-analysis'
+  },
+  {
     name: 'Manager DB',
     icon: FaDatabase,
     description: 'Gestión de base de datos',
