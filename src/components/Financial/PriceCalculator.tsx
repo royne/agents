@@ -83,9 +83,13 @@ const PriceCalculator = () => {
           productName={productName}
           productCost={productCost}
           sellingPrice={calculatedValues.selectedMargin?.sellingPrice || 0}
+          landingPrice={calculatedValues.selectedMargin?.landingPrice || 0}
           totalCost={totalCost}
           profit={calculatedValues.selectedMargin?.profit || 0}
           formatCurrency={formatCurrency}
+          totalFreight={calculatedValues.totalFreight || 0}
+          realCPA={calculatedValues.realCPA || 0}
+          configs={configs}
         />
       )}
     </div>
