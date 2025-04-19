@@ -1,8 +1,7 @@
 import { OpenAIEmbeddings } from '@langchain/openai';
 import { supabase } from '../../lib/supabase';
 import { ScriptEmbedding } from '../../types/embeddings';
-import { Database } from '../../types/database';
-import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
+import { hybridChunkText } from './hibridChunker';
 
 // Asegurarse de que la clave de API esté disponible
 const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
@@ -22,16 +21,8 @@ export const embeddingService = {
    * @returns Array de fragmentos de texto
    */
   async splitTextIntoChunks(text: string): Promise<string[]> {
-    // Configurar el divisor de texto
-    const textSplitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 1000,       // Tamaño máximo de cada fragmento
-      chunkOverlap: 200,     // Superposición entre fragmentos para mantener contexto
-      separators: ['\n\n', '\n', '. ', ' ', ''],  // Separadores en orden de preferencia
-    });
-    
-    // Dividir el texto en fragmentos
-    const chunks = await textSplitter.splitText(text);
-    return chunks;
+    // Importar el chunker híbrido
+    return await hybridChunkText(text, 600, 150);
   },
   
   /**
@@ -56,6 +47,7 @@ export const embeddingService = {
         ...metadata,
         title: title,                // Título del documento
         description: this.generateDescription(content), // Descripción generada
+        category: metadata.category || 'General', // Categoría del documento
         original_content: content,  // Contenido original completo
         total_chunks: chunks.length, // Número total de fragmentos
         created_at: new Date().toISOString() // Fecha de creación
@@ -67,7 +59,6 @@ export const embeddingService = {
         const chunkMetadata = {
           ...baseMetadata,
           chunk_index: i,
-          chunk_content: chunk,
           chunk_title: `${title} - Parte ${i+1}/${chunks.length}` // Título específico para el fragmento
         };
         
@@ -127,7 +118,7 @@ export const embeddingService = {
       const { data, error } = await supabase
         .rpc('match_scripts', {
           query_embedding: queryEmbedding,
-          match_threshold: 0.2,
+          match_threshold: 0.3,
           match_count: limit
         }) as {
           data: ScriptEmbedding[] | null,
@@ -141,6 +132,10 @@ export const embeddingService = {
       
       const results = data || [];
       
+      for (const result of results) {
+        console.log(`🔍 Similitud: ${result.similarity.toFixed(3)} - Chunk: ${result.content.substring(0, 80)}...`);
+      }
+
       return results;
     } catch (error) {
       console.error('Error al buscar scripts similares:', error);
