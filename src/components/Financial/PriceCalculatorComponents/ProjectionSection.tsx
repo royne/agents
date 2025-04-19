@@ -1,28 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartOptions,
-  ChartData,
-} from 'chart.js';
-
-// Registrar los componentes necesarios para el gráfico
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
 import { PriceConfig } from '../../../hooks/usePriceCalculator';
 
@@ -71,9 +47,9 @@ const ProjectionSection: React.FC<ProjectionSectionProps> = ({
   // Datos de entrada para la proyección
   const [adsSpent, setAdsSpent] = useState<number>(1000); // Gasto en anuncios
   const [unitsSold, setUnitsSold] = useState<number>(10); // Unidades vendidas día anterior
-  const [projectedUnits, setProjectedUnits] = useState<number>(20); // Unidades proyectadas
-  const [projectionPeriod, setProjectionPeriod] = useState<number>(30); // Período de proyección en días
-  const [dailyGrowth, setDailyGrowth] = useState<number>(0); // Crecimiento diario
+  const [projectedUnits, setProjectedUnits] = useState<number>(100); // Unidades proyectadas
+  const [projectionPeriod, setProjectionPeriod] = useState<number>(7); // Período de proyección en días
+  const [dailyGrowth, setDailyGrowth] = useState<number>(5); // Crecimiento diario
   
   // Datos para la proyección
   const [projectionData, setProjectionData] = useState<ProjectionDataType>({
@@ -214,166 +190,7 @@ const ProjectionSection: React.FC<ProjectionSectionProps> = ({
     } as any);
   }, [projectedUnits, projectionPeriod, dailyGrowth, adsSpent, unitsSold, productCost, sellingPrice, totalCost, profit, adMetrics, totalFreight, realCPA]);
 
-  // Configuración del gráfico de línea
-  const chartData: ChartData<'line'> = {
-    labels: projectionData.labels,
-    datasets: [
-      {
-        label: 'Venta Proyectada',
-        data: projectionData.revenue,
-        borderColor: 'rgb(37, 99, 235)',
-        backgroundColor: 'rgba(37, 99, 235, 0.5)',
-        borderWidth: 3,
-      },
-      {
-        label: 'Costo Producto',
-        data: projectionData.costs,
-        borderColor: 'rgb(220, 38, 38)',
-        backgroundColor: 'rgba(220, 38, 38, 0.5)',
-        borderWidth: 3,
-      },
-      {
-        label: 'Gasto Ads',
-        data: projectionData.adCosts || [],
-        borderColor: 'rgb(217, 119, 6)',
-        backgroundColor: 'rgba(217, 119, 6, 0.5)',
-        borderWidth: 3,
-      },
-      {
-        label: 'Flete',
-        data: projectionData.freightCosts || [],
-        borderColor: 'rgb(139, 92, 246)',
-        backgroundColor: 'rgba(139, 92, 246, 0.5)',
-        borderWidth: 3,
-      },
-      {
-        label: 'Utilidad',
-        data: projectionData.profit,
-        borderColor: 'rgb(5, 150, 105)',
-        backgroundColor: 'rgba(5, 150, 105, 0.5)',
-        borderWidth: 3,
-      },
-    ],
-  };
 
-  // Detectar si estamos en modo oscuro
-  const isDarkMode = document.documentElement.classList.contains('dark');
-
-  const chartOptions: ChartOptions<'line'> = {
-    responsive: true,
-    color: '#FFFFFF',
-    plugins: {
-      legend: {
-        position: 'top' as const,
-        labels: {
-          color: '#FFFFFF', // Blanco para modo oscuro
-          font: {
-            weight: 'bold',
-            size: 13
-          },
-          padding: 15,
-          boxWidth: 20
-        }
-      },
-      title: {
-        display: true,
-        text: `Proyección diaria de ventas - ${productName || 'Producto'}`,
-        color: '#FFFFFF', // Blanco para modo oscuro
-        font: {
-          weight: 'bold',
-          size: 18
-        },
-        padding: {
-          bottom: 20
-        }
-      },
-      tooltip: {
-        callbacks: {
-          label: function(context: any) {
-            let label = context.dataset.label || '';
-            if (label) {
-              label += ': ';
-            }
-            if (context.parsed.y !== null) {
-              label += formatCurrency(context.parsed.y);
-            }
-            return label;
-          }
-        },
-        backgroundColor: 'rgba(17, 24, 39, 0.95)',
-        titleColor: '#FFFFFF', // Blanco para modo oscuro
-        bodyColor: '#FFFFFF', // Blanco para modo oscuro
-        borderColor: '#4B5563', // Borde gris
-        borderWidth: 1,
-        padding: 10,
-        titleFont: {
-          weight: 'bold',
-          size: 14
-        },
-        bodyFont: {
-          weight: 'bold',
-          size: 13
-        },
-        boxPadding: 5
-      }
-    },
-    scales: {
-      x: {
-        ticks: {
-          color: '#FFFFFF', // Blanco para modo oscuro
-          font: {
-            weight: 'bold',
-            size: 12
-          }
-        },
-        grid: {
-          color: 'rgba(75, 85, 99, 0.3)' // Líneas de cuadrícula grises con transparencia
-        },
-        title: {
-          display: true,
-          text: 'Periodo',
-          color: '#FFFFFF',
-          font: {
-            weight: 'bold',
-            size: 14
-          },
-          padding: {
-            top: 10
-          }
-        },
-        border: {
-          color: '#4B5563'
-        }
-      },
-      y: {
-        ticks: {
-          color: '#FFFFFF', // Blanco para modo oscuro
-          font: {
-            weight: 'bold',
-            size: 12
-          }
-        },
-        grid: {
-          color: 'rgba(75, 85, 99, 0.3)' // Líneas de cuadrícula grises con transparencia
-        },
-        title: {
-          display: true,
-          text: 'Valores ($)',
-          color: '#FFFFFF',
-          font: {
-            weight: 'bold',
-            size: 14
-          },
-          padding: {
-            bottom: 10
-          }
-        },
-        border: {
-          color: '#4B5563'
-        }
-      }
-    }
-  };
 
   // Calcular el punto de equilibrio (unidades necesarias para cubrir costos)
   const breakEvenUnits: number = adMetrics.unitProfit > 0 ? Math.ceil(totalCost / adMetrics.unitProfit) : 0;
@@ -441,11 +258,11 @@ const ProjectionSection: React.FC<ProjectionSectionProps> = ({
                 onChange={(e) => setProjectionPeriod(parseInt(e.target.value))}
                 className="w-full p-2 border border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
+                <option value={1}>1 día</option>
+                <option value={3}>3 días</option>
                 <option value={7}>7 días</option>
                 <option value={15}>15 días</option>
                 <option value={30}>30 días</option>
-                <option value={60}>60 días</option>
-                <option value={90}>90 días</option>
               </select>
             </div>
           </div>
@@ -506,10 +323,7 @@ const ProjectionSection: React.FC<ProjectionSectionProps> = ({
             />
           </div>
           
-          {/* Gráfico de proyección */}
-          <div className="mb-6">
-            <Line options={chartOptions} data={chartData} height={80} />
-          </div>
+
           
           {/* Tabla de resumen */}
           <div className="overflow-x-auto">
