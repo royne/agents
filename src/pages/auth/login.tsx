@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
-import { FaRobot, FaEnvelope, FaLock } from 'react-icons/fa';
+import { FaEnvelope, FaLock } from 'react-icons/fa';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,9 +29,15 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-theme-primary px-4">
       <div className="bg-theme-component p-8 rounded-xl shadow-lg max-w-md w-full">
         <div className="flex flex-col items-center mb-8">
-          {/* Robot animado */}
-          <div className="bg-theme-primary p-6 rounded-full mb-6 shadow-inner">
-            <FaRobot className="text-6xl text-primary-color animate-pulse" />
+          {/* Logo Unlocked */}
+          <div className="bg-theme-primary p-6 rounded-full mb-6 shadow-inner flex items-center justify-center">
+            <Image 
+              src="/unlocked.png" 
+              alt="Unlocked Ecom" 
+              width={80} 
+              height={80} 
+              className="animate-pulse" 
+            />
           </div>
           <h1 className="text-3xl font-bold text-theme-primary">Bienvenido</h1>
           <p className="text-theme-secondary mt-2">Inicia sesión para continuar</p>
@@ -79,9 +86,12 @@ export default function LoginPage() {
         </form>
         
         <div className="mt-8 text-center">
-          <span className="text-sm text-theme-secondary">
+          <div className="text-sm text-theme-secondary">
+            Powered by <strong className="text-primary-color">Unlocked Ecom</strong>
+          </div>
+          <div className="text-xs text-theme-secondary mt-1">
             Desarrollado por <strong className="text-primary-color">RAC</strong>
-          </span>
+          </div>
         </div>
       </div>
     </div>

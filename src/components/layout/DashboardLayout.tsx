@@ -3,6 +3,7 @@ import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatab
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const menuItems = [
   { name: 'Agentes', icon: FaComments, path: '/agents' },
@@ -17,7 +18,7 @@ const menuItems = [
 
 // Elementos que se mostrarán en la barra de navegación móvil
 const mobileMenuItems = [
-  { name: 'Dashboard', icon: FaRobot, path: '/' },
+  { name: 'Dashboard', icon: () => <Image src="/unlocked.png" alt="Unlocked" width={20} height={20} />, path: '/' },
   { name: 'Agentes', icon: FaComments, path: '/agents' },
   { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability' },
 ];
@@ -59,10 +60,12 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
         <div className="p-4 flex flex-col h-full justify-between overflow-y-auto">
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <div className='flex items-center px-2 text-primary-color'><FaRobot /></div>
+              <div className='flex items-center px-2'>
+                <Image src="/unlocked.png" alt="Unlocked Ecom" width={32} height={32} />
+              </div>
               {isSidebarOpen && (
                 <Link href={'/'}>
-                  <span className="text-theme-primary font-bold text-xl">Dashboard</span>
+                  <span className="text-theme-primary font-bold text-xl">Unlocked</span>
                 </Link>
               )}
             </div>
@@ -133,9 +136,23 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       {/* Main Content - Ajustado para móviles */}
       <main 
         className={`flex-1 bg-theme-primary p-8 overflow-y-auto h-screen transition-all duration-300
-                   md:ml-16 ${isSidebarOpen ? 'md:ml-64' : ''} pb-16 md:pb-8`}
+                   md:ml-16 ${isSidebarOpen ? 'md:ml-64' : ''} pb-16 md:pb-8 flex flex-col`}
       >
-        {children}
+        <div className="flex-grow">
+          {children}
+        </div>
+        
+        {/* Footer con créditos */}
+        <div className="mt-auto pt-4 text-center text-theme-secondary">
+          <div className="flex flex-col justify-center items-center">
+            <div className="text-sm font-medium">
+              Powered by <span className="text-primary-color font-semibold">Unlocked Ecom</span>
+            </div>
+            <div className="text-xs mt-1 opacity-70">
+              Desarrollado por <span className="text-primary-color">RAC</span>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   );

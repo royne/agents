@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRouter } from 'next/router';
-import { FaRobot } from 'react-icons/fa';
 import { useAppContext } from '../../contexts/AppContext';
+import Image from 'next/image';
 
 interface WelcomeBannerProps {
   userName?: string;
@@ -30,7 +30,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ userName }) => {
             {getCurrentGreeting()}, <span className="text-primary-color">{displayName}</span> 👋
           </h1>
           <p className="text-theme-secondary text-lg">
-            Bienvenido a tu panel de control. ¿Qué deseas hacer hoy?
+            Bienvenido a <span className="font-semibold text-primary-color">Unlocked Ecom</span>. ¿Qué deseas hacer hoy?
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <button 
@@ -48,7 +48,14 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ userName }) => {
           </div>
         </div>
         <div className="flex items-center justify-center bg-theme-component p-6 rounded-full shadow-inner">
-          <FaRobot className="text-6xl text-primary-color animate-pulse" />
+          <div className="relative w-24 h-24 animate-pulse">
+            <Image 
+              src="/unlocked.png" 
+              alt="Unlocked Ecom" 
+              fill 
+              className="object-contain" 
+            />
+          </div>
         </div>
       </div>
     </div>
