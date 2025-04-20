@@ -1,6 +1,10 @@
 import React from 'react';
 import { OrderAnalysisResult } from '../../services/data-analysis/ExcelAnalysisService';
 import { scrollbarStyles } from '../../utils/scrollStyles';
+import CarrierDistributionChart from '../charts/CarrierDistributionChart';
+import StatusDistributionChart from '../charts/StatusDistributionChart';
+import RegionDistributionChart from '../charts/RegionDistributionChart';
+import FinancialMetricsChart from '../charts/FinancialMetricsChart';
 
 interface OrdersAnalysisViewerProps {
   data: any[];
@@ -84,10 +88,46 @@ const OrdersAnalysisViewer: React.FC<OrdersAnalysisViewerProps> = ({ data, summa
         </div>
       </div>
 
-      {/* Distribuciones */}
+      {/* Visualizaciones gráficas */}
       <div className="bg-theme-primary p-6 rounded-lg shadow mt-6">
         <h3 className="text-xl font-semibold mb-4 text-center">
-          Distribución de Órdenes
+          Análisis Gráfico de Órdenes
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Gráfico de métricas financieras */}
+          <FinancialMetricsChart 
+            totalProfit={summary.totalProfit - summary.totalReturnCost}
+            totalShippingCost={summary.totalShippingCost}
+            totalReturnCost={summary.totalReturnCost}
+            profitWithoutReturns={summary.totalProfit}
+          />
+          
+          {/* Gráfico de distribución por estado */}
+          <StatusDistributionChart 
+            statusDistribution={summary.statusDistribution || {}}
+          />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Gráfico de distribución por transportadora */}
+          <CarrierDistributionChart 
+            carrierDistribution={summary.carrierDistribution || {}}
+            carrierShippingCosts={summary.carrierShippingCosts}
+            carrierReturnCosts={summary.carrierReturnCosts}
+          />
+          
+          {/* Gráfico de distribución por región */}
+          <RegionDistributionChart 
+            regionDistribution={summary.regionDistribution || {}}
+          />
+        </div>
+      </div>
+      
+      {/* Tablas de distribución (versión texto) */}
+      <div className="bg-theme-primary p-6 rounded-lg shadow mt-6">
+        <h3 className="text-xl font-semibold mb-4 text-center">
+          Detalle de Distribuciones
         </h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
