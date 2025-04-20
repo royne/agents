@@ -2,7 +2,8 @@ import React, { useState, useRef } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { FaFileExcel, FaUpload, FaBoxOpen, FaShoppingCart, FaChartBar } from 'react-icons/fa';
 import ExcelDataViewer from '../../components/data-analysis/ExcelDataViewer';
-import ExcelAnalysisService, { requiredOrderFields } from '../../services/data-analysis/ExcelAnalysisService';
+import ExcelAnalysisService from '../../services/data-analysis/ExcelAnalysisService';
+import { requiredOrderFields } from '../../services/data-analysis/OrdersAnalysisService';
 
 const ExcelAnalysis = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -51,8 +52,6 @@ const ExcelAnalysis = () => {
         // Para órdenes, filtrar por los campos específicos
         console.log('Procesando por órdenes:', jsonData);
         
-        // Normalizar los datos directamente usando el servicio
-        jsonData = ExcelAnalysisService.normalizeColumnNames(jsonData, true);
       } else {
         // Procesamiento para productos (implementación futura)
         console.log('Procesando por productos:', jsonData);
@@ -153,69 +152,15 @@ const ExcelAnalysis = () => {
                 Análisis de Datos ({analysisType === 'orders' ? 'Órdenes' : 'Productos'})
               </h2>
               
-              {/* Componente de visualización de datos */}
               <ExcelDataViewer data={excelData} analysisType={analysisType} />
             </div>
             
-            <div className="bg-theme-component p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 flex items-center">
-                <FaFileExcel className="mr-2 text-primary-color" /> 
-                Datos Cargados ({excelData.length} filas)
-              </h2>
-              <div className="overflow-x-auto">
-                <table className="w-full bg-theme-primary rounded-md">
-                  <thead>
-                    <tr>
-                      {analysisType === 'orders' ? (
-                        // Encabezados específicos para órdenes
-                        requiredOrderFields.map((field, index) => (
-                          <th key={index} className="px-4 py-2 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">
-                            {field === 'numeroGuia' ? 'Número Guía' :
-                             field === 'tipoEnvio' ? 'Tipo de Envío' :
-                             field === 'valorCompra' ? 'Valor de Compra' :
-                             field === 'precioFlete' ? 'Precio Flete' :
-                             field === 'costoDevolucionFlete' ? 'Costo Devolución' :
-                             field.charAt(0).toUpperCase() + field.slice(1)}
-                          </th>
-                        ))
-                      ) : (
-                        // Encabezados para productos o datos genéricos
-                        excelData.length > 0 && 
-                        Object.keys(excelData[0]).map((header, index) => (
-                          <th key={index} className="px-4 py-2 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">
-                            {header}
-                          </th>
-                        ))
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {excelData.slice(0, 10).map((row, rowIndex) => (
-                      <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-theme-component-hover' : 'bg-theme-primary'}>
-                        {analysisType === 'orders' ? (
-                          // Celdas para órdenes (solo campos requeridos)
-                          requiredOrderFields.map((field, cellIndex) => (
-                            <td key={cellIndex} className="px-4 py-2 whitespace-nowrap text-sm text-theme-primary">
-                              {row[field]?.toString() || '-'}
-                            </td>
-                          ))
-                        ) : (
-                          // Celdas para productos o datos genéricos
-                          Object.values(row).map((cell, cellIndex) => (
-                            <td key={cellIndex} className="px-4 py-2 whitespace-nowrap text-sm text-theme-primary">
-                              {cell?.toString() || '-'}
-                            </td>
-                          ))
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {excelData.length > 10 && (
-                  <div className="mt-2 text-sm text-theme-secondary text-right">
-                    Mostrando 10 de {excelData.length} filas
-                  </div>
-                )}
+            <div className="mt-8">
+              <h3 className="text-xl font-semibold mb-4">Análisis de datos</h3>
+              <div className="bg-theme-primary p-6 rounded-lg shadow">
+                <p className="text-center text-theme-secondary">
+                  Próximamente: Visualizaciones gráficas de los datos
+                </p>
               </div>
             </div>
           </div>
