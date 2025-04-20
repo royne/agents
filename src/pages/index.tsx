@@ -1,8 +1,9 @@
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase, FaLock, FaDollarSign } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase, FaLock, FaDollarSign, FaBrain, FaChartPie } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAppContext } from '../contexts/AppContext';
+import WelcomeBanner from '../components/dashboard/WelcomeBanner';
 
 const modules = [
   {
@@ -31,7 +32,7 @@ const modules = [
   },
   {
     name: 'Análisis de Datos',
-    icon: FaDatabase,
+    icon: FaBrain,
     description: 'Análisis de archivos Excel',
     path: '/data-analysis'
   },
@@ -62,14 +63,15 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div>
-        <h1 className="text-2xl mb-8">Bienvenido al Panel de Control</h1>
+        <WelcomeBanner />
+        
+        <h2 className="text-2xl font-bold mb-6 border-l-4 border-primary-color pl-3">Módulos Disponibles</h2>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {modules.map((module) => {
-            // Verificar si es el módulo de chat con RAG
             const isRagModule = module.path === '/chat';
             const isDisabled = isRagModule && !isAdmin();
             
-            // Componente de tarjeta
             const card = (
               <div className={`bg-theme-component p-6 rounded-lg shadow-md ${!isDisabled ? 'cursor-pointer hover:bg-theme-component-hover transform hover:-translate-y-0.5' : 'opacity-70'} transition-all duration-200 relative card`}>
                 {isDisabled && (
@@ -92,7 +94,6 @@ export default function Dashboard() {
               </div>
             );
             
-            // Envolver en Link solo si no está deshabilitado
             return isDisabled ? (
               <div key={module.path} title="Esta función solo está disponible para administradores">
                 {card}

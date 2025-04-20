@@ -1,6 +1,6 @@
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Link from 'next/link';
-import { FaFileExcel, FaChartBar } from 'react-icons/fa';
+import { FaFileExcel, FaChartBar, FaBrain } from 'react-icons/fa';
 
 export default function DataAnalysis() {
   return (
@@ -15,7 +15,7 @@ export default function DataAnalysis() {
           <Link href="/data-analysis/analysis">
             <div className="bg-theme-component p-6 rounded-lg shadow-md cursor-pointer hover:bg-theme-component-hover transform hover:-translate-y-0.5 transition-all duration-200 relative">
               <div className="flex flex-col gap-4 items-center">
-                <FaFileExcel className="w-8 h-8 text-primary-color" />
+                <FaBrain className="w-8 h-8 text-primary-color" />
                 <h2 className="text-xl font-bold text-theme-primary">
                   Análisis de Excel
                 </h2>

@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { FaFileExcel, FaUpload, FaBoxOpen, FaShoppingCart, FaChartBar } from 'react-icons/fa';
+import { FaFileExcel, FaUpload, FaBoxOpen, FaShoppingCart, FaChartBar, FaBrain } from 'react-icons/fa';
 import ExcelDataViewer from '../../components/data-analysis/ExcelDataViewer';
 import ExcelAnalysisService from '../../services/data-analysis/ExcelAnalysisService';
 import { requiredOrderFields } from '../../services/data-analysis/OrdersAnalysisService';
@@ -75,7 +75,7 @@ const ExcelAnalysis = () => {
   return (
     <DashboardLayout>
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Análisis de Archivos Excel</h1>
+        <h1 className="text-2xl mb-8"><FaBrain className="inline-block mr-2 text-primary-color" /> Análisis de Archivos Excel</h1>
 
         <div className="bg-theme-component p-6 rounded-lg shadow-md mb-6">
           <h2 className="text-xl font-semibold mb-4 flex items-center">

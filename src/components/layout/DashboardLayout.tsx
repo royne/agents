@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
 import Link from 'next/link';
@@ -9,10 +9,17 @@ const menuItems = [
   { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability' },
   { name: 'Calculadora de Precios', icon: FaDollarSign, path: '/calculator' },
   { name: 'Logística', icon: FaTruck, path: '/logistic' },
-  { name: 'Análisis de Datos', icon: FaDatabase, path: '/data-analysis' },
+  { name: 'Análisis de Datos', icon: FaBrain, path: '/data-analysis' },
   { name: 'Manager DB', icon: FaDatabase, path: '/dbmanager' },
   { name: 'Master Chat', icon: FaRobot, path: '/chat' },
   { name: 'Configuración', icon: FaCog, path: '/settings' },
+];
+
+// Elementos que se mostrarán en la barra de navegación móvil
+const mobileMenuItems = [
+  { name: 'Dashboard', icon: FaRobot, path: '/' },
+  { name: 'Agentes', icon: FaComments, path: '/agents' },
+  { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability' },
 ];
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -100,7 +107,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       {/* Barra de navegación inferior para móviles */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-theme-component z-50">
         <div className="flex justify-around items-center">
-          {menuItems.map((item) => (
+          {mobileMenuItems.map((item) => (
             <Link key={item.path} href={item.path}>
               <div
                 className={`flex items-center justify-center py-3 px-3 ${
