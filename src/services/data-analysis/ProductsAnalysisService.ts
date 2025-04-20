@@ -14,14 +14,36 @@ export interface ProductData {
 
 // Mapeo de nombres de columnas del Excel a los campos normalizados para productos
 export const productColumnMapping: Record<string, string> = {
-  // Campos para productos
-  'producto': 'nombre', 'product': 'nombre', 'nombre': 'nombre', 'name': 'nombre', 'item': 'nombre',
-  'categoria': 'categoria', 'category': 'categoria', 'tipo': 'categoria', 'type': 'categoria',
-  'cantidad': 'cantidad', 'quantity': 'cantidad', 'qty': 'cantidad', 'unidades': 'cantidad',
-  'precio': 'precio', 'price': 'precio', 'valor_venta': 'precio',
-  'costo': 'costo', 'cost': 'costo', 'precio_costo': 'costo',
-  'margen': 'margen', 'margin': 'margen', 'utilidad': 'margen'
+  // Campos para productos - Usando los nombres exactos proporcionados
+  'PRODUCTO': 'nombre', 'PRODUCTO ID': 'id', 'producto': 'nombre', 'product': 'nombre', 'nombre': 'nombre', 'name': 'nombre', 'item': 'nombre',
+  'VARIACION': 'variacion', 'variacion': 'variacion', 'variation': 'variacion', 'variant': 'variacion',
+  'CANTIDAD': 'cantidad', 'cantidad': 'cantidad', 'quantity': 'cantidad', 'qty': 'cantidad',
+  'TOTAL DE LA ORDEN': 'precio', 'precio': 'precio', 'price': 'precio', 'valor_venta': 'precio',
+  'PRECIO PROVEEDOR': 'costo', 'costo': 'costo', 'cost': 'costo', 'precio_costo': 'costo',
+  'GANANCIA': 'margen', 'ganancia': 'margen', 'margen': 'margen', 'margin': 'margen', 'utilidad': 'margen',
+  'FECHA': 'fecha', 'fecha': 'fecha', 'date': 'fecha', 'created_at': 'fecha', 'fecha_venta': 'fecha'
 };
+
+// Tipos para las visualizaciones
+export interface ProductProfitData {
+  name: string;
+  profit: number;
+  quantity: number;
+  totalValue: number;
+}
+
+export interface VariationData {
+  name: string;
+  value: number;
+  profit: number;
+}
+
+export interface TrendData {
+  date: string;
+  profit: number;
+  sales: number;
+  products?: { name: string; quantity: number }[];
+}
 
 // Tipos para los resultados del análisis de productos
 export interface ProductAnalysisResult {
@@ -33,6 +55,10 @@ export interface ProductAnalysisResult {
   averageMargin: number;
   categoryField: string | null;
   productsByCategory: Record<string, number>;
+  productsByDepartment: Record<string, number>;
+  productProfitData: ProductProfitData[];
+  variationData: VariationData[];
+  trendData: TrendData[];
 }
 
 /**
@@ -53,13 +79,76 @@ class ProductsAnalysisService extends BaseExcelService {
     if (!data || data.length === 0) return null;
     
     // Buscar campos que puedan contener información de categoría
-    const possibleCategoryFields = ['categoria', 'category', 'tipo', 'type'];
+    const possibleCategoryFields = [
+      'categoria', 'category', 'tipo', 'type', 'departamento', 'department',
+      'seccion', 'section', 'grupo', 'group', 'linea', 'line'
+    ];
     
     // Verificar si alguno de estos campos existe en los datos
     const item = data[0];
+    
+    // Primero buscar coincidencias exactas
     for (const field of possibleCategoryFields) {
       if (item[field] !== undefined) {
+        console.log(`Campo de categoría encontrado: ${field}`);
         return field;
+      }
+    }
+    
+    // Si no hay coincidencias exactas, buscar campos que contengan palabras clave
+    const keywordsToFind = ['categ', 'depart', 'tipo', 'type', 'secc', 'group', 'line'];
+    
+    for (const key of Object.keys(item)) {
+      const lowerKey = key.toLowerCase();
+      if (keywordsToFind.some(keyword => lowerKey.includes(keyword))) {
+        console.log(`Campo de categoría encontrado por palabra clave: ${key}`);
+        return key;
+      }
+    }
+    
+    // Si no se encuentra ninguna categoría, crear una categoría artificial basada en el nombre
+    if (item['nombre'] !== undefined) {
+      console.log('Usando nombre de producto como categoría');
+      return 'nombre';
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Encuentra el campo de departamento destino en los datos
+   */
+  private findDepartmentField(data: any[]): string | null {
+    if (!data || data.length === 0) return null;
+    
+    const item = data[0];
+    
+    // Buscar específicamente el campo DEPARTAMENTO DESTINO
+    if (item['DEPARTAMENTO DESTINO'] !== undefined) {
+      console.log('Campo de departamento destino encontrado: DEPARTAMENTO DESTINO');
+      return 'DEPARTAMENTO DESTINO';
+    }
+    
+    // Buscar otras variantes posibles
+    const possibleFields = [
+      'departamento destino', 'Departamento Destino', 'departamento_destino',
+      'DepartamentoDestino', 'DEPTO DESTINO', 'depto_destino', 'destino'
+    ];
+    
+    for (const field of possibleFields) {
+      if (item[field] !== undefined) {
+        console.log(`Campo de departamento destino encontrado: ${field}`);
+        return field;
+      }
+    }
+    
+    // Buscar campos que contengan 'destino' o 'departamento'
+    for (const key of Object.keys(item)) {
+      const lowerKey = key.toLowerCase();
+      if (lowerKey.includes('destino') || 
+          (lowerKey.includes('depart') && lowerKey.includes('dest'))) {
+        console.log(`Campo de departamento destino encontrado por palabra clave: ${key}`);
+        return key;
       }
     }
     
@@ -79,7 +168,11 @@ class ProductsAnalysisService extends BaseExcelService {
         totalProfit: 0,
         averageMargin: 0,
         categoryField: null,
-        productsByCategory: {}
+        productsByCategory: {},
+        productsByDepartment: {},
+        productProfitData: [],
+        variationData: [],
+        trendData: []
       };
     }
     
@@ -95,6 +188,10 @@ class ProductsAnalysisService extends BaseExcelService {
     // Encontrar el campo de categoría
     const categoryField = this.findCategoryField(normalizedData);
     const productsByCategory: Record<string, number> = {};
+    
+    // Encontrar el campo de departamento destino
+    const departmentField = this.findDepartmentField(normalizedData);
+    const productsByDepartment: Record<string, number> = {};
     
     // Conjunto para contar productos únicos (por nombre)
     const uniqueProducts = new Set<string>();
@@ -130,8 +227,26 @@ class ProductsAnalysisService extends BaseExcelService {
         }
       }
       
-      // Calcular margen
-      if (product.precio && product.costo) {
+      // Sumar ganancia directamente si está disponible
+      if (product.margen) {
+        const value = this.extractNumber(product.margen);
+        if (!isNaN(value)) {
+          // Asumimos que es la ganancia directa
+          totalProfit += value;
+          
+          // Calcular margen si tenemos precio
+          if (product.precio) {
+            const price = this.extractNumber(product.precio);
+            if (!isNaN(price) && price > 0) {
+              const margin = (value / price) * 100;
+              marginSum += margin;
+            }
+          }
+        }
+      }
+      
+      // Calcular margen si no está disponible directamente
+      if (totalProfit === 0 && product.precio && product.costo) {
         const price = this.extractNumber(product.precio);
         const cost = this.extractNumber(product.costo);
         
@@ -139,30 +254,195 @@ class ProductsAnalysisService extends BaseExcelService {
           const margin = ((price - cost) / price) * 100;
           marginSum += margin;
         }
-      } else if (product.margen) {
-        const margin = this.extractNumber(product.margen);
-        if (!isNaN(margin)) {
-          marginSum += margin;
-        }
       }
       
       // Agrupar por categoría
       if (categoryField && product[categoryField]) {
-        const category = String(product[categoryField] || 'Sin categoría');
+        let category = String(product[categoryField] || 'Sin categoría');
+        
+        // Si estamos usando el nombre como categoría, extraer la primera palabra
+        if (categoryField === 'nombre') {
+          // Limpiar el nombre (quitar números al inicio)
+          category = category.replace(/^[\d\s\-_.:#]+\s*/g, '');
+          // Tomar solo la primera palabra como categoría
+          const firstWord = category.split(' ')[0];
+          if (firstWord && firstWord.length > 3) { // Solo si la palabra tiene más de 3 caracteres
+            category = firstWord;
+          }
+        }
+        
+        // Asegurarse de que la categoría no esté vacía
+        if (category.trim() === '') {
+          category = 'Sin categoría';
+        }
+        
         productsByCategory[category] = (productsByCategory[category] || 0) + 1;
+      }
+      
+      // Agrupar por departamento destino
+      if (departmentField && product[departmentField]) {
+        let department = String(product[departmentField] || 'Sin departamento');
+        
+        // Limpiar y normalizar el nombre del departamento
+        department = department.trim();
+        
+        // Convertir a título case (primera letra de cada palabra en mayúscula)
+        department = department.toLowerCase().split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+        
+        // Asegurarse de que el departamento no esté vacío
+        if (department === '') {
+          department = 'Sin departamento';
+        }
+        
+        productsByDepartment[department] = (productsByDepartment[department] || 0) + 1;
       }
     });
     
-    // Calcular ganancia total
-    totalProfit = totalValue - totalCost;
+    // Calcular ganancia total solo si no se ha calculado directamente
+    if (totalProfit === 0) {
+      totalProfit = totalValue - totalCost;
+    }
     
     // Calcular margen promedio
-    const averageMargin = normalizedData.length > 0 ? marginSum / normalizedData.length : 0;
+    // Si no tenemos margen calculado pero tenemos ganancia y valor, calculamos el margen global
+    if (marginSum === 0 && totalProfit > 0 && totalValue > 0) {
+      marginSum = (totalProfit / totalValue) * 100;
+    }
+    
+    // Convertir a decimal para la interfaz (se multiplicará por 100 en la visualización)
+    const averageMargin = normalizedData.length > 0 ? marginSum / normalizedData.length / 100 : 0;
     
     // Ordenar las categorías por cantidad (descendente)
     const sortedProductsByCategory = Object.fromEntries(
       Object.entries(productsByCategory).sort(([, a], [, b]) => b - a)
     );
+    
+    // Ordenar los departamentos por cantidad (descendente)
+    const sortedProductsByDepartment = Object.fromEntries(
+      Object.entries(productsByDepartment).sort(([, a], [, b]) => b - a)
+    );
+    
+    // Procesar datos para las visualizaciones
+    
+    // 1. Datos de rentabilidad por producto
+    const productMap = new Map<string, ProductProfitData>();
+    normalizedData.forEach(product => {
+      if (product.nombre) {
+        const name = String(product.nombre);
+        const profit = this.extractNumber(product.margen) || 0;
+        const quantity = this.extractNumber(product.cantidad) || 0;
+        const value = this.extractNumber(product.precio) || 0;
+        
+        if (!productMap.has(name)) {
+          productMap.set(name, { name, profit: 0, quantity: 0, totalValue: 0 });
+        }
+        
+        const productData = productMap.get(name)!;
+        productData.profit += profit;
+        productData.quantity += quantity;
+        productData.totalValue += value;
+      }
+    });
+    const productProfitData = Array.from(productMap.values());
+    
+    // 2. Datos de variaciones
+    const variationMap = new Map<string, VariationData>();
+    let hasVariationData = false;
+    
+    normalizedData.forEach(product => {
+      if (product.variacion && String(product.variacion).trim() !== '') {
+        hasVariationData = true;
+        const name = String(product.variacion);
+        const value = this.extractNumber(product.precio) || 0;
+        const profit = this.extractNumber(product.margen) || 0;
+        
+        if (!variationMap.has(name)) {
+          variationMap.set(name, { name, value: 0, profit: 0 });
+        }
+        
+        const variationData = variationMap.get(name)!;
+        variationData.value += value;
+        variationData.profit += profit;
+      }
+    });
+    
+    // Solo crear el array de variaciones si realmente hay datos
+    const variationData = hasVariationData ? Array.from(variationMap.values()) : [];
+    
+    // 3. Datos de tendencias
+    const trendMap = new Map<string, TrendData>();
+    
+    normalizedData.forEach(product => {
+      if (product.fecha) {
+        // Formatear fecha como YYYY-MM-DD
+        let dateStr: string;
+        
+        try {
+          // Usar un enfoque simple: convertir a fecha y formatear
+          const date = new Date(product.fecha);
+          
+          // Verificar si la fecha es válida
+          if (!isNaN(date.getTime())) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            dateStr = `${year}-${month}-${day}`;
+          } else {
+            // Si la fecha no es válida, usar un identificador genérico
+            dateStr = 'fecha-' + String(product.fecha).substring(0, 10);
+          }
+        } catch (e) {
+          // En caso de error, usar un valor genérico
+          dateStr = 'fecha-' + String(product.fecha).substring(0, 10);
+        }
+        
+        if (!trendMap.has(dateStr)) {
+          trendMap.set(dateStr, { date: dateStr, profit: 0, sales: 0, products: [] });
+        }
+        
+        const trendData = trendMap.get(dateStr)!;
+        trendData.profit += this.extractNumber(product.margen) || 0;
+        const quantity = this.extractNumber(product.cantidad) || 0;
+        trendData.sales += quantity;
+        
+        // Agregar información del producto vendido en este día
+        if (product.nombre && trendData.products) {
+          const productName = String(product.nombre);
+          // Limpiar el nombre del producto (quitar números al inicio si existen)
+          const cleanName = productName.replace(/^[\d\s\-_.:#]+\s*/g, '');
+          
+          // Asegurar que la cantidad sea al menos 1 si no está especificada
+          const safeQuantity = quantity > 0 ? quantity : 1;
+          
+          // Buscar si ya existe este producto en el array
+          const existingProduct = trendData.products.find(p => p.name === cleanName);
+          
+          if (existingProduct) {
+            // Si ya existe, incrementar la cantidad
+            existingProduct.quantity += safeQuantity;
+          } else {
+            // Si no existe, agregar nuevo producto
+            trendData.products.push({
+              name: cleanName,
+              quantity: safeQuantity
+            });
+          }
+        }
+      }
+    });
+    // Ordenar los datos de tendencia por fecha
+    const trendData = Array.from(trendMap.values())
+      .sort((a, b) => a.date.localeCompare(b.date));
+      
+    // Depurar los datos de productos por día
+    console.log('Datos de productos por día:', 
+      trendData.map(day => ({
+        date: day.date,
+        sales: day.sales,
+        productCount: day.products?.length || 0
+      })));
     
     const result: ProductAnalysisResult = {
       uniqueProductsCount: uniqueProducts.size,
@@ -172,7 +452,11 @@ class ProductsAnalysisService extends BaseExcelService {
       totalProfit,
       averageMargin,
       categoryField,
-      productsByCategory: sortedProductsByCategory
+      productsByCategory: sortedProductsByCategory,
+      productsByDepartment: sortedProductsByDepartment,
+      productProfitData,
+      variationData,
+      trendData
     };
     
     console.log('Resultado del análisis de productos:', result);
