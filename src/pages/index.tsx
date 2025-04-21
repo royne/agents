@@ -71,23 +71,9 @@ export default function Dashboard() {
       <div>
         <WelcomeBanner />
         
-        {/* Sección de branding Unlocked Ecom */}
         <div className="bg-theme-component p-6 rounded-lg shadow-md mb-10">
           <div className="flex flex-col">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-primary-color mb-4">Unlocked Ecom</h2>
-              <p className="text-theme-secondary mb-3">
-                Plataforma integral para la gestión de tu negocio de e-commerce, optimizada para maximizar tu rentabilidad y eficiencia operativa.
-              </p>
-              <p className="text-theme-secondary">
-                Desarrollada exclusivamente para <span className="font-semibold text-primary-color">Unlocked Ecom</span>, esta herramienta te permite analizar datos, gestionar precios y optimizar tu logística en un solo lugar.
-              </p>
-            </div>
-            
-            {/* Sección de cita de mentor */}
-            <div className="mt-6 pt-6 border-t border-theme-component-hover">
-              <MentorQuote />
-            </div>
+            <MentorQuote />
           </div>
         </div>
         

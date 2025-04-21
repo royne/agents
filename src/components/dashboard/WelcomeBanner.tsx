@@ -35,13 +35,13 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ userName }) => {
           <div className="mt-4 flex flex-wrap gap-3">
             <button 
               onClick={() => router.push('/agents')} 
-              className="px-4 py-2 bg-primary-color text-white rounded-md hover:bg-primary-color/80 transition-all"
+              className="px-3 py-1.5 bg-primary-color text-white rounded-md hover:bg-primary-color/80 transition-all text-sm"
             >
               Iniciar Chat
             </button>
             <button 
               onClick={() => router.push('/data-analysis')} 
-              className="px-4 py-2 border border-primary-color text-primary-color rounded-md hover:bg-primary-color/10 transition-all"
+              className="px-3 py-1.5 border border-primary-color text-primary-color rounded-md hover:bg-primary-color/10 transition-all text-sm"
             >
               Analizar Datos
             </button>

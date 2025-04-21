@@ -9,6 +9,7 @@ type ThemeConfig = {
 
 type AppContextType = {
   apiKey: string | null;
+  openaiApiKey: string | null;
   authData: { 
     isAuthenticated: boolean;
     company_id?: string;
@@ -16,6 +17,7 @@ type AppContextType = {
   } | null;
   themeConfig: ThemeConfig;
   setApiKey: (key: string) => void;
+  setOpenaiApiKey: (key: string) => void;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAdmin: () => boolean;
@@ -26,6 +28,7 @@ const AppContext = createContext<AppContextType>({} as AppContextType);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [apiKey, setApiKey] = useState<string | null>(null);
+  const [openaiApiKey, setOpenaiApiKey] = useState<string | null>(null);
   const [authData, setAuthData] = useState<{ 
     isAuthenticated: boolean;
     company_id?: string;
@@ -63,9 +66,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // Cargar la API key de Groq
     const storedApiKey = localStorage.getItem('groq_api_key');
     if (storedApiKey) {
       setApiKey(storedApiKey);
+    }
+    
+    // Cargar la API key de OpenAI
+    const storedOpenaiApiKey = localStorage.getItem('openai_api_key');
+    if (storedOpenaiApiKey) {
+      setOpenaiApiKey(storedOpenaiApiKey);
     }
     
     // Cargar la configuración del tema desde localStorage
@@ -216,9 +226,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider value={{ 
       apiKey, 
+      openaiApiKey,
       authData, 
       themeConfig,
       setApiKey, 
+      setOpenaiApiKey,
       login, 
       logout, 
       isAdmin,
