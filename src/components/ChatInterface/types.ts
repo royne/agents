@@ -4,6 +4,8 @@ export interface Message {
   isUser: boolean;
   timestamp: Date;
   image?: string;
+  isSystemMessage?: boolean;
+  isError?: boolean;
 }
 
 export interface Agent {

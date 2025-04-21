@@ -8,6 +8,8 @@ interface Message {
   isUser: boolean;
   timestamp: Date;
   image?: string;
+  isSystemMessage?: boolean;
+  isError?: boolean;
 }
 
 interface MessageListProps {
@@ -25,6 +27,8 @@ const MessageItem = ({ message, isLast, lastMessageRef }: {
       isUser={message.isUser}
       timestamp={message.timestamp}
       image={message.image}
+      isSystemMessage={message.isSystemMessage}
+      isError={message.isError}
     />
   </div>
 );

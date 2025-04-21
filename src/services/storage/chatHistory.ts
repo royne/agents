@@ -9,6 +9,10 @@ export interface ChatSession {
 }
 
 const CHAT_HISTORY_KEY = 'chat_history';
+// Límite aproximado de tokens para Groq (ajustar según el modelo específico)
+const MAX_CONTEXT_TOKENS = 8000;
+// Tokens a mantener cuando se reduce el contexto (aproximadamente 75% del máximo)
+const REDUCED_CONTEXT_TOKENS = 6000;
 
 export const chatHistoryService = {
   saveChatSession(agentId: string, messages: UIMessage[]): void {
@@ -62,5 +66,68 @@ export const chatHistoryService = {
       isUser: msg.role === 'user',
       timestamp: new Date()
     }));
+  },
+
+  /**
+   * Estima el número de tokens en un texto
+   * Esta es una estimación aproximada basada en que un token es aproximadamente 4 caracteres en inglés
+   * Para español, usamos un factor un poco menor (3.5 caracteres por token)
+   */
+  estimateTokens(text: string): number {
+    return Math.ceil(text.length / 3.5);
+  },
+
+  /**
+   * Estima el número total de tokens en un conjunto de mensajes
+   */
+  estimateMessagesTokens(messages: ApiMessage[]): number {
+    // Cada mensaje tiene un overhead aproximado de 4 tokens por la metadata (role, etc)
+    const overheadPerMessage = 4;
+    
+    return messages.reduce((total, message) => {
+      return total + this.estimateTokens(message.content) + overheadPerMessage;
+    }, 0);
+  },
+
+  /**
+   * Reduce el contexto de los mensajes si es necesario para evitar exceder el límite de tokens
+   * Mantiene el mensaje del sistema y elimina los mensajes más antiguos
+   */
+  reduceContextIfNeeded(messages: ApiMessage[], systemPrompt: ApiMessage): ApiMessage[] {
+    // Siempre mantener el mensaje del sistema
+    if (messages.length <= 1) return messages;
+
+    const estimatedTokens = this.estimateMessagesTokens(messages);
+    
+    // Si estamos por debajo del límite, no hacemos nada
+    if (estimatedTokens <= MAX_CONTEXT_TOKENS) {
+      return messages;
+    }
+
+    console.log(`Reduciendo contexto. Tokens estimados: ${estimatedTokens}, límite: ${MAX_CONTEXT_TOKENS}`);
+    
+    // Comenzamos con el mensaje del sistema
+    const reducedMessages: ApiMessage[] = [systemPrompt];
+    let currentTokens = this.estimateTokens(systemPrompt.content) + 4; // 4 por el overhead
+    
+    // Añadimos mensajes desde el más reciente hasta que nos acercamos al límite reducido
+    const userAssistantMessages = messages.slice(1); // Excluimos el mensaje del sistema
+    
+    for (let i = userAssistantMessages.length - 1; i >= 0; i--) {
+      const msg = userAssistantMessages[i];
+      const msgTokens = this.estimateTokens(msg.content) + 4;
+      
+      if (currentTokens + msgTokens <= REDUCED_CONTEXT_TOKENS) {
+        reducedMessages.unshift(msg);
+        currentTokens += msgTokens;
+      } else {
+        // Si el siguiente mensaje excede el límite, paramos
+        break;
+      }
+    }
+
+    console.log(`Contexto reducido. Mensajes originales: ${messages.length}, mensajes reducidos: ${reducedMessages.length}`);
+    
+    return reducedMessages;
   }
 };

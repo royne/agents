@@ -1,4 +1,5 @@
 import type { Message, Role } from '../../types/groq';
+import { chatHistoryService } from '../storage/chatHistory';
 
 interface RawMessage {
   role: string;
@@ -17,7 +18,8 @@ export function extractMessages(messages: RawMessage[], systemPrompt: Message): 
     }
   }
 
-  return safeMessages;
+  // Aplicar reducción de contexto si es necesario
+  return chatHistoryService.reduceContextIfNeeded(safeMessages, systemPrompt);
 }
 
 function isValidRole(role: string): role is Role {
