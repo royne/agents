@@ -16,8 +16,16 @@ const mentorQuotes = [
     author: "Juan Naicipa"
   },
   {
-    quote: "lol.",
-    author: "Royne chaves"
+    quote: "Dele prioridad a lo que le genere plata, lo que no le genere plata para la m****.",
+    author: "Jose Naicipa"
+  },
+  {
+    quote: "Vea, no hay manera que usted salga adelante sin terquedad. ¿Por qué está en este negocio? Y aquí mucha gente que le dice, 'No, es que el dropshipping no funciona, el dropshipping no sé qué... Adivine qué, usted está aquí por terquedad y esa terquedad es la que tienen los emprendedores y empresarios.",
+    author: "Jose Naicipa"
+  },
+  {
+    quote: "Si usted quiere volverse un crack en este negocio, aprenda las métricas. En general, si usted quiere interpretar algo en la vida, los números le dicen todo",
+    author: "Jose Naicipa"
   },
   {
     quote: "El angulo de venta es el rey.",
