@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import SimpleMapComponent from '../../components/maps/SimpleMapComponent';
 
 // Definición de las transportadoras con sus propiedades
 interface Transportadora {
@@ -15,21 +16,21 @@ const transportadoras: Transportadora[] = [
   {
     id: 'veloces',
     nombre: 'Veloces',
-    color: '#E94CAF', // Color fucsia
+    color: '#E94CAF',
     urlRastreo: 'https://tracking.veloces.app/',
-  },
-  {
-    id: 'coordinadora',
-    nombre: 'Coordinadora',
-    color: '#FF5733',
-    urlRastreo: 'https://coordinadora.com/rastreo/rastreo-de-guia/',
-    bloqueaIframe: true,
   },
   {
     id: 'interrapidisimo',
     nombre: 'Inter Rapidísimo',
-    color: '#3366CC',
+    color: '#032B44',
     urlRastreo: 'https://www.interrapidisimo.com/sigue-tu-envio/',
+  },
+  {
+    id: 'coordinadora',
+    nombre: 'Coordinadora',
+    color: '#3366CC',
+    urlRastreo: 'https://coordinadora.com/rastreo/rastreo-de-guia/',
+    bloqueaIframe: true,
   },
   {
     id: 'tcc',
@@ -92,6 +93,12 @@ export default function Logistics() {
     <DashboardLayout>
       <div className="flex flex-col space-y-6">
         <h1 className="text-3xl font-bold">Logística</h1>
+        
+        {/* Componente de mapa */}
+        <div className="mb-6 bg-gray-800 rounded-xl p-4">
+          <h2 className="text-xl font-semibold mb-4">Buscar Ubicación</h2>
+          <SimpleMapComponent className="w-full" />
+        </div>
         
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Panel izquierdo con tarjetas y iframe */}
@@ -176,7 +183,7 @@ export default function Logistics() {
           </div>
           
           {/* Panel derecho para notas */}
-          <div className="w-full lg:w-1/3">
+          <div className="w-full lg:w-1/3 flex flex-col gap-6">
             <div className="bg-gray-800 rounded-xl p-4 h-full">
               <h2 className="text-xl font-semibold mb-4">Notas de Seguimiento</h2>
               <textarea
@@ -188,6 +195,7 @@ export default function Logistics() {
             </div>
           </div>
         </div>
+
       </div>
     </DashboardLayout>
   );
