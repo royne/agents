@@ -2,10 +2,10 @@ import { supabase } from '../../lib/supabase';
 import type { Agent } from '../../types/database';
 
 export const agentDatabaseService = {
-  async createAgent(agent: Omit<Agent, 'id' | 'created_at' | 'updated_at'>): Promise<Agent | null> {
+  async createAgent(agent: Omit<Agent, 'id' | 'created_at' | 'updated_at'>, company_id: string): Promise<Agent | null> {
     const { data, error } = await supabase
       .from('agents')
-      .insert(agent)
+      .insert({ ...agent, company_id })
       .select()
       .single();
 
@@ -17,10 +17,11 @@ export const agentDatabaseService = {
     return data;
   },
 
-  async updateAgent(id: string, updates: Partial<Omit<Agent, 'id' | 'created_at' | 'updated_at'>>): Promise<Agent | null> {
+  async updateAgent(id: string, updates: Partial<Omit<Agent, 'id' | 'created_at' | 'updated_at'>>, company_id?: string): Promise<Agent | null> {
+    const updateData = company_id ? { ...updates, company_id } : updates;
     const { data, error } = await supabase
       .from('agents')
-      .update(updates)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
@@ -33,12 +34,17 @@ export const agentDatabaseService = {
     return data;
   },
 
-  async getAgent(id: string): Promise<Agent | null> {
-    const { data, error } = await supabase
+  async getAgent(id: string, company_id?: string): Promise<Agent | null> {
+    let query = supabase
       .from('agents')
       .select('*')
-      .eq('id', id)
-      .single();
+      .eq('id', id);
+      
+    if (company_id) {
+      query = query.eq('company_id', company_id);
+    }
+    
+    const { data, error } = await query.single();
 
     if (error) {
       console.error('Error getting agent:', error);
@@ -48,10 +54,11 @@ export const agentDatabaseService = {
     return data;
   },
 
-  async getAllAgents(): Promise<Agent[]> {
+  async getAllAgents(company_id: string): Promise<Agent[]> {
     const { data, error } = await supabase
       .from('agents')
       .select('*')
+      .eq('company_id', company_id)
       .order('name');
 
     if (error) {
