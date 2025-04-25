@@ -87,6 +87,7 @@ export default function SalesTracking() {
       const salePayload: Partial<Sale> = {
         amount: currentSale.amount,
         advertisement_id: currentSale.advertisement_id,
+        order_dropi: currentSale.order_dropi,
         date: currentSale.date instanceof Date 
           ? currentSale.date 
           : currentSale.date 
@@ -160,7 +161,7 @@ export default function SalesTracking() {
             
             return {
               id: sale.id,
-              name: `$ ${sale.amount.toLocaleString('es-CO', { maximumFractionDigits: 0 })}  (${new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long'}).format(new Date(sale.date))})  - AD: ${ad?.name ?? 'N/A'} - Campaña ${campaign?.name ?? 'N/A'}`
+              name: `$ ${sale.amount.toLocaleString('es-CO', { maximumFractionDigits: 0 })}  (${new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long'}).format(new Date(sale.date))})  ${sale.order_dropi ? `- Orden: ${sale.order_dropi}` : ''} - AD: ${ad?.name ?? 'N/A'} - Campaña ${campaign?.name ?? 'N/A'}`
             };
           })}
           onDelete={handleDelete}
@@ -196,6 +197,16 @@ export default function SalesTracking() {
                     value={currentSale.amount || ''}
                     onChange={(e) => setCurrentSale({...currentSale, amount: parseFloat(e.target.value)})}
                     required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Orden Dropi</label>
+                  <input
+                    type="text"
+                    placeholder="Número de orden de Dropi"
+                    className="w-full p-2 rounded bg-gray-700 text-white"
+                    value={currentSale.order_dropi || ''}
+                    onChange={(e) => setCurrentSale({...currentSale, order_dropi: e.target.value})}
                   />
                 </div>
                 <div>
