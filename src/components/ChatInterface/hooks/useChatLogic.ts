@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Message } from '../types';
 import { chatHistoryService } from '../../../services/storage/chatHistory';
+import { useAppContext } from '../../../contexts/AppContext';
 
 export const useChatLogic = (apiKey: string) => {
+  const { authData } = useAppContext();
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedAgentId, setSelectedAgentId] = useState('research');
   const [inputText, setInputText] = useState('');
@@ -43,7 +45,8 @@ export const useChatLogic = (apiKey: string) => {
         },
         body: JSON.stringify({
           messages: apiMessages,
-          agentId: selectedAgentId
+          agentId: selectedAgentId,
+          company_id: authData?.company_id
         })
       });
 

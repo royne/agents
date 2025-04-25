@@ -5,32 +5,68 @@ import { Groq } from 'groq-sdk';
 import { agentsData } from './agents-data';
 import type { Message } from '../../../types/groq';
 import { enrichWithRAG } from '../../../entities/agents/script_agent';
+import { agentDatabaseService } from '../../../services/database/agentService';
+import { basePayload } from '../../../entities/agents/agent';
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
   const apiKey = req.headers['x-api-key'];
+  const { company_id } = req.body;
 
   if (!apiKey || typeof apiKey !== 'string') {
     return res.status(401).json({ error: 'API Key is required' });
   }
 
-  const agentInfo = agentConfig[id as keyof typeof agentConfig];
+  // Verificar si es un agente predefinido o personalizado
+  const isDefaultAgent = Object.keys(agentConfig).includes(id as string);
+  let agent;
 
-  if (!agentInfo) {
-    return res.status(404).json({ error: 'Agent not found' });
-  }
+  if (isDefaultAgent) {
+    // Es un agente predefinido
+    const agentInfo = agentConfig[id as keyof typeof agentConfig];
+    if (!agentInfo) {
+      return res.status(404).json({ error: 'Agent not found' });
+    }
 
-  const agent = agentsData[id as keyof typeof agentsData];
-  if (!agent) {
-    return res.status(500).json({ error: 'Agent data not found' });
+    agent = agentsData[id as keyof typeof agentsData];
+    if (!agent) {
+      return res.status(500).json({ error: 'Agent data not found' });
+    }
+  } else {
+    // Es un agente personalizado
+    try {
+      const customAgent = await agentDatabaseService.getAgent(id as string);
+      if (!customAgent) {
+        return res.status(404).json({ error: 'Custom agent not found' });
+      }
+
+      // Crear un objeto de agente compatible con la estructura esperada
+      agent = {
+        systemPrompt: {
+          role: "system" as const,
+          content: customAgent.system_prompt || ''
+        },
+        basePayload: {
+          ...basePayload,
+          model: customAgent.model || 'deepseek-r1-distill-llama-70b',
+          temperature: 0.5,
+          max_tokens: 1024,
+          stream: false,
+          reasoning_format: "hidden"
+        }
+      };
+    } catch (error) {
+      console.error('Error al obtener agente personalizado:', error);
+      return res.status(500).json({ error: 'Error al obtener agente personalizado' });
+    }
   }
 
   const groq = new Groq({ apiKey });
   const { messages } = req.body;
   let safeMessages = extractMessages(messages, agent.systemPrompt) as Message[];
 
-  // Enriquecer con RAG si es el agente de scripts
-  if (id === 'script') {
+  // Enriquecer con RAG solo si es el agente de scripts predefinido
+  if (id === 'script' && isDefaultAgent) {
     try {
       const enrichedMessages = await enrichWithRAG(safeMessages);
       safeMessages = enrichedMessages;
