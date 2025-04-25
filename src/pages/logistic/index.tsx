@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import SimpleMapComponent from '../../components/maps/SimpleMapComponent';
+import TransportadoraFinder from '../../components/Logistics/TransportadoraFinder';
 
 // Definición de las transportadoras con sus propiedades
 interface Transportadora {
@@ -94,10 +95,24 @@ export default function Logistics() {
       <div className="flex flex-col space-y-6">
         <h1 className="text-3xl font-bold">Logística</h1>
         
-        {/* Componente de mapa */}
-        <div className="mb-6 bg-gray-800 rounded-xl p-4">
-          <h2 className="text-xl font-semibold mb-4">Buscar Ubicación</h2>
-          <SimpleMapComponent className="w-full" />
+        {/* Componentes de mapa y notas */}
+        <div className="flex flex-col md:flex-row gap-6 mb-6">
+          {/* Mapa */}
+          <div className="w-full md:w-1/2 bg-gray-800 rounded-xl p-4">
+            <h2 className="text-xl font-semibold mb-4">Buscar Ubicación</h2>
+            <SimpleMapComponent className="w-full" />
+          </div>
+          
+          {/* Panel para notas */}
+          <div className="w-full md:w-1/2 bg-gray-800 rounded-xl p-4">
+            <h2 className="text-xl font-semibold mb-4">Notas de Seguimiento</h2>
+            <textarea
+              className="w-full h-[300px] bg-gray-700 text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Escribe aquí tus notas sobre los envíos..."
+              value={notas}
+              onChange={(e) => setNotas(e.target.value)}
+            />
+          </div>
         </div>
         
         <div className="flex flex-col lg:flex-row gap-6">
@@ -182,16 +197,10 @@ export default function Logistics() {
             </div>
           </div>
           
-          {/* Panel derecho para notas */}
+          {/* Panel derecho para buscador de transportadoras */}
           <div className="w-full lg:w-1/3 flex flex-col gap-6">
             <div className="bg-gray-800 rounded-xl p-4 h-full">
-              <h2 className="text-xl font-semibold mb-4">Notas de Seguimiento</h2>
-              <textarea
-                className="w-full h-[500px] bg-gray-700 text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Escribe aquí tus notas sobre los envíos..."
-                value={notas}
-                onChange={(e) => setNotas(e.target.value)}
-              />
+              <TransportadoraFinder />
             </div>
           </div>
         </div>
