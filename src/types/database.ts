@@ -88,6 +88,25 @@ export interface ScriptEmbeddingRecord {
   created_at: Date;
 }
 
+export interface BaseCarrier {
+  id: string;
+  name: string;
+  city: string;
+  state: string;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
+export interface UserCarrier {
+  id: string;
+  name: string;
+  city: string;
+  state: string;
+  base_id?: string;
+  created_at?: Date;
+  updated_at?: Date
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -110,6 +129,16 @@ export interface Database {
         Row: Agent;
         Insert: Omit<Agent, 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Agent, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      base_carriers: {
+        Row: BaseCarrier;
+        Insert: Omit<BaseCarrier, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<BaseCarrier, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      user_carriers: {
+        Row: UserCarrier;
+        Insert: Omit<UserCarrier, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<UserCarrier, 'id' | 'created_at' | 'updated_at'>>;
       };
       products: {
         Row: Product;

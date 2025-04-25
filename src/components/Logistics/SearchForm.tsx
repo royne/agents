@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { FaSearch } from 'react-icons/fa';
 
 interface SearchFormProps {
-  searchType: 'ciudad' | 'departamento';
   onSearch: (searchTerm: string) => void;
 }
 
-const SearchForm: React.FC<SearchFormProps> = ({ searchType, onSearch }) => {
+const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -22,7 +21,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ searchType, onSearch }) => {
         type="text"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        placeholder={`Buscar por ${searchType === 'ciudad' ? 'ciudad' : 'departamento'}...`}
+        placeholder="Buscar por ciudad..."
         className="flex-grow p-3 bg-gray-700 text-white rounded-l-lg border-r-0 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
       <button

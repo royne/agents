@@ -2,61 +2,63 @@ import React, { useState, useEffect } from 'react';
 import { FaEdit, FaCheck, FaTimes } from 'react-icons/fa';
 
 // Interfaz para los resultados de búsqueda
-interface TransportadoraResult {
+interface CarrierResult {
   id: string;
-  transportadora: string;
-  ciudad: string;
-  departamento: string;
+  name: string;
+  city: string;
+  state: string;
+  // Indica si el resultado es de la tabla base_carriers
+  isBaseCarrier?: boolean;
+  // ID de la transportadora base si se encontró en base_carriers
+  base_id?: string;
 }
 
-// Lista de transportadoras disponibles
-const transportadorasOptions = [
-  { id: 'veloces', nombre: 'Veloces' },
-  { id: 'interrapidisimo', nombre: 'Inter Rapidísimo' },
-  { id: 'coordinadora', nombre: 'Coordinadora' },
-  { id: 'tcc', nombre: 'TCC' },
-  { id: 'servientrega', nombre: 'Servientrega' },
-  { id: 'envia', nombre: 'Envía' },
-  { id: 'deprisa', nombre: 'Deprisa' },
-  { id: 'fedex', nombre: 'FedEx' },
-  { id: 'dhl', nombre: 'DHL' }
+// Lista de transportadoras disponibles con nombres exactamente como aparecen en la base de datos
+const carrierOptions = [
+  { id: 'VELOCES', nombre: 'VELOCES' },
+  { id: 'INTERRAPIDISIMO', nombre: 'INTERRAPIDISIMO' },
+  { id: 'COORDINADORA', nombre: 'COORDINADORA' },
+  { id: 'TCC', nombre: 'TCC' },
+  { id: 'ENVIA', nombre: 'ENVIA' },
+  { id: 'DEPRISA', nombre: 'DEPRISA' },
+  { id: 'DOMINA', nombre: 'DOMINA' },
+  { id: 'WILLOG', nombre: 'WILLOG' },
+  { id: 'FUTURA', nombre: 'FUTURA' }
 ];
 
 interface SearchResultsProps {
-  result: TransportadoraResult | null;
+  result: CarrierResult | null;
   loading: boolean;
   error: string | null;
-  searchType: 'ciudad' | 'departamento';
-  onSave: (data: { transportadora: string; ciudad: string; departamento: string }) => void;
+  onSave: (data: { name: string; city: string; state: string }) => void;
 }
 
 const SearchResults: React.FC<SearchResultsProps> = ({ 
   result, 
   loading, 
   error, 
-  searchType,
   onSave
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    transportadora: '',
-    ciudad: '',
-    departamento: ''
+    name: '',
+    city: '',
+    state: ''
   });
 
   // Inicializar el formulario cuando hay un resultado
   React.useEffect(() => {
     if (result) {
       setFormData({
-        transportadora: result.transportadora,
-        ciudad: result.ciudad,
-        departamento: result.departamento
+        name: result.name,
+        city: result.city,
+        state: result.state
       });
     } else {
       setFormData({
-        transportadora: '',
-        ciudad: '',
-        departamento: ''
+        name: '',
+        city: '',
+        state: ''
       });
     }
   }, [result]);
@@ -91,14 +93,14 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Transportadora</label>
             <select
-              name="transportadora"
-              value={formData.transportadora}
+              name="name"
+              value={formData.name}
               onChange={handleInputChange}
               className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
             >
               <option value="">Selecciona una transportadora</option>
-              {transportadorasOptions.map(option => (
+              {carrierOptions.map(option => (
                 <option key={option.id} value={option.nombre}>
                   {option.nombre}
                 </option>
@@ -109,8 +111,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             <label className="block text-sm font-medium text-gray-300 mb-1">Ciudad</label>
             <input
               type="text"
-              name="ciudad"
-              value={formData.ciudad}
+              name="city"
+              value={formData.city}
               onChange={handleInputChange}
               className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600"
               required
@@ -120,8 +122,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             <label className="block text-sm font-medium text-gray-300 mb-1">Departamento</label>
             <input
               type="text"
-              name="departamento"
-              value={formData.departamento}
+              name="state"
+              value={formData.state}
               onChange={handleInputChange}
               className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600"
               required
@@ -147,7 +149,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       {!isEditing ? (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-2xl font-bold text-primary-color">{result.transportadora}</h3>
+            <h3 className="text-2xl font-bold text-primary-color">{result.name}</h3>
             <button
               onClick={() => setIsEditing(true)}
               className="bg-primary-color hover:bg-blue-700 text-white p-2 rounded-full transition-colors"
@@ -158,11 +160,11 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           <div className="grid grid-cols-2 gap-4 mt-4">
             <div className="bg-gray-700 p-4 rounded-lg">
               <p className="text-gray-400 text-sm">Ciudad</p>
-              <p className="text-xl font-medium text-white">{result.ciudad}</p>
+              <p className="text-xl font-medium text-white">{result.city}</p>
             </div>
             <div className="bg-gray-700 p-4 rounded-lg">
               <p className="text-gray-400 text-sm">Departamento</p>
-              <p className="text-xl font-medium text-white">{result.departamento}</p>
+              <p className="text-xl font-medium text-white">{result.state}</p>
             </div>
           </div>
         </div>
@@ -181,14 +183,14 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Transportadora</label>
             <select
-              name="transportadora"
-              value={formData.transportadora}
+              name="name"
+              value={formData.name}
               onChange={handleInputChange}
               className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
             >
               <option value="">Selecciona una transportadora</option>
-              {transportadorasOptions.map(option => (
+              {carrierOptions.map(option => (
                 <option key={option.id} value={option.nombre}>
                   {option.nombre}
                 </option>
@@ -199,8 +201,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             <label className="block text-sm font-medium text-gray-300 mb-1">Ciudad</label>
             <input
               type="text"
-              name="ciudad"
-              value={formData.ciudad}
+              name="city"
+              value={formData.city}
               onChange={handleInputChange}
               className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600"
               required
@@ -210,8 +212,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             <label className="block text-sm font-medium text-gray-300 mb-1">Departamento</label>
             <input
               type="text"
-              name="departamento"
-              value={formData.departamento}
+              name="state"
+              value={formData.state}
               onChange={handleInputChange}
               className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600"
               required
