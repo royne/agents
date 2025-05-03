@@ -32,14 +32,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!session && !isDevelopment) {
     return res.status(401).json({ error: 'No autorizado' });
   }
+  
+  // En desarrollo, consideramos al usuario como superadmin para facilitar las pruebas
+  let isAdmin = false;
+  let isSuperAdmin = false;
+  let adminCompanyId = null;
+  
+  if (isDevelopment) {
+    console.log('Modo desarrollo: asumiendo rol de superadmin');
+    isAdmin = true;
+    isSuperAdmin = true;
+  }
 
   try {
-    // Verificar que el usuario es admin o superadmin
-    let isAdmin = false;
-    let isSuperAdmin = false;
-    let adminCompanyId = null;
-    
-    if (session) {
+    // Verificar que el usuario es admin o superadmin si no estamos en modo desarrollo
+    if (session && !isDevelopment) {
       const { data: profile } = await supabase
         .from('profiles')
         .select('role, company_id')
@@ -134,7 +141,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         user_id: authData.user.id,
         company_id: companyId,
         role,
-        name
+        name,
+        email
       });
 
     if (profileError) {

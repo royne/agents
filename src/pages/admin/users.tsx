@@ -116,6 +116,7 @@ export default function UsersManagement() {
                   <thead>
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">Nombre</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">Rol</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">Empresa</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">Fecha de Creación</th>
@@ -126,6 +127,7 @@ export default function UsersManagement() {
                     {users.map((user) => (
                       <tr key={user.id} className="hover:bg-theme-component-hover transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap text-theme-primary">{user.email}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-theme-primary">{user.name || '-'}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <span className="mr-2">{getRoleIcon(user.role)}</span>

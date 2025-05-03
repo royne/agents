@@ -12,6 +12,8 @@ export interface Profile {
   user_id: string;
   company_id: string;
   role: 'superadmin' | 'admin' | 'user';
+  email?: string;
+  name?: string;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -19,7 +21,7 @@ export interface Profile {
 export interface UserCreateData {
   email: string;
   password: string;
-  name: string; // Nombre completo del usuario
+  name: string;
   role: 'superadmin' | 'admin' | 'user';
   company_id?: string;
   company_name?: string;
@@ -28,6 +30,7 @@ export interface UserCreateData {
 export interface UserWithProfile {
   id: string;
   email: string;
+  name?: string;
   role: string;
   company_id: string;
   company_name?: string;
@@ -117,13 +120,10 @@ export const adminService = {
       const combinedUsers = profiles.map(profile => {
         const company = companies?.find(c => c.id === profile.company_id);
         
-        // Para el usuario actual, usamos la información de la sesión
-        const isCurrentUser = session?.user.id === profile.user_id;
-        const email = isCurrentUser ? session?.user.email : 'Usuario';
-        
         return {
           id: profile.user_id,
-          email: email || 'Sin correo',
+          email: profile.email || 'Sin correo',
+          name: profile.name || '',
           role: profile.role || 'user',
           company_id: profile.company_id || '',
           company_name: company?.name || 'Sin empresa',
