@@ -1,0 +1,131 @@
+import { NextApiRequest, NextApiResponse } from 'next';
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
+import { Database } from '../../../types/database';
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Solo permitir método POST
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Método no permitido' });
+  }
+
+  // Crear cliente de Supabase en el servidor
+  const supabase = createPagesServerClient<Database>({ req, res });
+  
+  // Crear cliente de administración de Supabase
+  // Esto es necesario porque el cliente normal no tiene acceso a las funciones de administración
+  const adminSupabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || ''
+  );
+
+  // Verificar autenticación
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  console.log('Session:', session ? 'Existe' : 'No existe');
+  
+  // En desarrollo, permitimos continuar incluso sin sesión para facilitar las pruebas
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
+  if (!session && !isDevelopment) {
+    return res.status(401).json({ error: 'No autorizado' });
+  }
+
+  try {
+    // Verificar que el usuario es admin o superadmin
+    let isAdmin = false;
+    
+    if (session) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .single();
+      
+      console.log('Perfil:', profile);
+      isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin';
+    }
+    
+    // En desarrollo, permitimos continuar incluso sin ser admin
+    if (!isAdmin && !isDevelopment) {
+      return res.status(403).json({ error: 'Acceso denegado' });
+    }
+
+    // Obtener datos del usuario a crear
+    const { email, password, name, role, company_id, company_name } = req.body;
+
+    // Validar datos
+    if (!email || !password || !name || !role) {
+      return res.status(400).json({ error: 'Faltan datos requeridos' });
+    }
+
+    // Verificar si necesitamos crear una nueva compañía
+    let companyId = company_id;
+    
+    if (!companyId && company_name) {
+      const { data: newCompany, error: companyError } = await supabase
+        .from('companies')
+        .insert({ name: company_name })
+        .select()
+        .single();
+      
+      if (companyError) {
+        return res.status(500).json({ error: `Error al crear compañía: ${companyError.message}` });
+      }
+      
+      companyId = newCompany.id;
+    }
+    
+    if (!companyId) {
+      return res.status(400).json({ error: 'Se requiere una compañía' });
+    }
+
+    // Crear usuario usando la API de administración
+    // Esto no afecta la sesión actual
+    const { data: authData, error: authError } = await adminSupabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true
+    });
+
+    if (authError || !authData.user) {
+      return res.status(500).json({ 
+        error: `Error al crear usuario en Auth: ${authError?.message || 'Usuario no creado'}` 
+      });
+    }
+
+    // Crear perfil para el usuario
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        id: authData.user.id,
+        user_id: authData.user.id,
+        company_id: companyId,
+        role,
+        name
+      });
+
+    if (profileError) {
+      // Si falla la creación del perfil, intentar eliminar el usuario creado
+      await adminSupabase.auth.admin.deleteUser(authData.user.id);
+      return res.status(500).json({ 
+        error: `Error al crear perfil: ${profileError.message}` 
+      });
+    }
+
+    // Éxito
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Usuario creado correctamente', 
+      userId: authData.user.id 
+    });
+  } catch (err: any) {
+    console.error('Error en el proceso de creación de usuario:', err);
+    return res.status(500).json({ 
+      success: false, 
+      error: err.message || 'Error desconocido al crear usuario' 
+    });
+  }
+}

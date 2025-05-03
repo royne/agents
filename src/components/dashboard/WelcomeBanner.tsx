@@ -20,7 +20,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ userName }) => {
   };
 
   // Nombre para mostrar (si está disponible)
-  const displayName = userName || (authData?.role === 'admin' ? 'Admin' : 'Usuario');
+  const displayName = userName || authData?.name || (authData?.role === 'admin' ? 'Admin' : 'Usuario');
 
   return (
     <div className="bg-gradient-to-r from-primary-color/10 to-theme-component p-8 rounded-xl shadow-lg mb-10">

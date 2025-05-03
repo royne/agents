@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain, FaUsersCog } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
 import Link from 'next/link';
@@ -13,6 +13,7 @@ const menuItems = [
   { name: 'Análisis de Datos', icon: FaBrain, path: '/data-analysis' },
   { name: 'Manager DB', icon: FaDatabase, path: '/dbmanager' },
   { name: 'Master Chat', icon: FaRobot, path: '/chat' },
+  { name: 'Administración', icon: FaUsersCog, path: '/admin', adminOnly: true },
   { name: 'Configuración', icon: FaCog, path: '/settings' },
 ];
 
@@ -25,7 +26,7 @@ const mobileMenuItems = [
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
-  const { logout, themeConfig } = useAppContext();
+  const { logout, themeConfig, isAdmin } = useAppContext();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   // Aplicar el color primario a elementos con la clase .btn-primary
@@ -71,22 +72,29 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
             </div>
             
             <nav className="flex-1 mt-6">
-              {menuItems.map((item) => (
-                <Link key={item.path} href={item.path}>
-                  <div
-                    className={`flex items-center py-3 px-2 rounded hover:bg-theme-component-hover transition-colors cursor-pointer ${
-                      router.pathname === item.path ? 'bg-theme-component-active' : ''
-                    }`}
-                  >
-                    <item.icon className={`${router.pathname === item.path ? 'text-primary-color active-item' : 'text-theme-secondary'} text-xl`} />
-                    {isSidebarOpen && (
-                      <span className={`${router.pathname === item.path ? 'text-primary-color active-item' : 'text-theme-secondary'} ml-3 whitespace-nowrap`}>
-                        {item.name}
-                      </span>
-                    )}
-                  </div>
-                </Link>
-              ))}
+              {menuItems.map((item) => {
+                // No mostrar elementos marcados como adminOnly si el usuario no es admin
+                if (item.adminOnly && !isAdmin()) {
+                  return null;
+                }
+                
+                return (
+                  <Link key={item.path} href={item.path}>
+                    <div
+                      className={`flex items-center py-3 px-2 rounded hover:bg-theme-component-hover transition-colors cursor-pointer ${
+                        router.pathname === item.path || router.pathname.startsWith(item.path + '/') ? 'bg-theme-component-active' : ''
+                      }`}
+                    >
+                      <item.icon className={`${router.pathname === item.path || router.pathname.startsWith(item.path + '/') ? 'text-primary-color active-item' : 'text-theme-secondary'} text-xl`} />
+                      {isSidebarOpen && (
+                        <span className={`${router.pathname === item.path || router.pathname.startsWith(item.path + '/') ? 'text-primary-color active-item' : 'text-theme-secondary'} ml-3 whitespace-nowrap`}>
+                          {item.name}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
             </nav>
           </div>
 

@@ -14,6 +14,7 @@ type AppContextType = {
     isAuthenticated: boolean;
     company_id?: string;
     role?: string;
+    name?: string;
   } | null;
   themeConfig: ThemeConfig;
   setApiKey: (key: string) => void;
@@ -21,6 +22,7 @@ type AppContextType = {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAdmin: () => boolean;
+  isSuperAdmin: () => boolean;
   updateTheme: (config: Partial<ThemeConfig>) => void;
 };
 
@@ -33,6 +35,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     isAuthenticated: boolean;
     company_id?: string;
     role?: string;
+    name?: string;
   } | null>(null);
   const [themeConfig, setThemeConfig] = useState<ThemeConfig>({
     primaryColor: '#3B82F6', // Color azul predeterminado
@@ -47,14 +50,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (session) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('company_id, role')
+          .select('company_id, role, name')
           .eq('user_id', session.user.id)
           .single();
 
         const authData = {
           isAuthenticated: true,
           company_id: profile?.company_id,
-          role: profile?.role
+          role: profile?.role,
+          name: profile?.name
         };
         
         localStorage.setItem('auth_data', JSON.stringify(authData));
@@ -128,14 +132,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (data?.user) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('company_id, role')
+        .select('company_id, role, name')
         .eq('user_id', data.user.id)
         .single();
 
       const authData = {
         isAuthenticated: true,
         company_id: profile?.company_id,
-        role: profile?.role
+        role: profile?.role,
+        name: profile?.name
       };
       
       localStorage.setItem('auth_data', JSON.stringify(authData));
@@ -154,7 +159,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Función para verificar si el usuario es administrador
   const isAdmin = (): boolean => {
-    return authData?.role === 'admin';
+    return authData?.role === 'admin' || authData?.role === 'superadmin';
+  };
+  
+  // Función para verificar si el usuario es superadministrador
+  const isSuperAdmin = (): boolean => {
+    return authData?.role === 'superadmin';
   };
   
   // Función para actualizar la configuración del tema
@@ -234,6 +244,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       login, 
       logout, 
       isAdmin,
+      isSuperAdmin,
       updateTheme
     }}>
       {children}
