@@ -36,16 +36,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     // Verificar que el usuario es admin o superadmin
     let isAdmin = false;
+    let isSuperAdmin = false;
+    let adminCompanyId = null;
     
     if (session) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, company_id')
         .eq('user_id', session.user.id)
         .single();
       
       console.log('Perfil:', profile);
       isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin';
+      isSuperAdmin = profile?.role === 'superadmin';
+      adminCompanyId = profile?.company_id;
     }
     
     // En desarrollo, permitimos continuar incluso sin ser admin
@@ -61,25 +65,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Faltan datos requeridos' });
     }
 
-    // Verificar si necesitamos crear una nueva compañía
-    let companyId = company_id;
-    
-    if (!companyId && company_name) {
-      const { data: newCompany, error: companyError } = await supabase
-        .from('companies')
-        .insert({ name: company_name })
-        .select()
-        .single();
-      
-      if (companyError) {
-        return res.status(500).json({ error: `Error al crear compañía: ${companyError.message}` });
+    // Validar permisos según el rol del usuario que hace la solicitud
+    if (!isSuperAdmin) {
+      // Los administradores normales solo pueden crear usuarios normales
+      if (role !== 'user') {
+        return res.status(403).json({ error: 'No tienes permisos para crear usuarios con ese rol' });
       }
       
-      companyId = newCompany.id;
-    }
-    
-    if (!companyId) {
-      return res.status(400).json({ error: 'Se requiere una compañía' });
+      // Los administradores normales solo pueden crear usuarios para su propia compañía
+      if (company_id && company_id !== adminCompanyId) {
+        return res.status(403).json({ error: 'Solo puedes crear usuarios para tu propia compañía' });
+      }
+      
+      // Los administradores normales no pueden crear nuevas compañías
+      if (company_name) {
+        return res.status(403).json({ error: 'No tienes permisos para crear nuevas compañías' });
+      }
+      
+      // Usar la compañía del administrador
+      if (!adminCompanyId) {
+        return res.status(400).json({ error: 'No se pudo determinar tu compañía' });
+      }
+      
+      // Forzar el uso de la compañía del administrador
+      var companyId = adminCompanyId;
+    } else {
+      // Para superadmins, permitir crear o seleccionar compañía
+      var companyId = company_id;
+      
+      if (!companyId && company_name) {
+        const { data: newCompany, error: companyError } = await supabase
+          .from('companies')
+          .insert({ name: company_name })
+          .select()
+          .single();
+        
+        if (companyError) {
+          return res.status(500).json({ error: `Error al crear compañía: ${companyError.message}` });
+        }
+        
+        companyId = newCompany.id;
+      }
+      
+      if (!companyId) {
+        return res.status(400).json({ error: 'Se requiere una compañía' });
+      }
     }
 
     // Crear usuario usando la API de administración

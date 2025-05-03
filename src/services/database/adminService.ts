@@ -81,12 +81,17 @@ export const adminService = {
   },
 
   // Funciones para gestionar usuarios y perfiles
-  async getAllUsers(): Promise<UserWithProfile[]> {
+  async getAllUsers(companyId?: string): Promise<UserWithProfile[]> {
     try {
-      // 1. Obtener perfiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*');
+      // 1. Obtener perfiles, filtrando por compañía si se proporciona un ID
+      let query = supabase.from('profiles').select('*');
+      
+      // Si se proporciona un ID de compañía, filtrar por esa compañía
+      if (companyId) {
+        query = query.eq('company_id', companyId);
+      }
+      
+      const { data: profiles, error: profilesError } = await query;
 
       if (profilesError) {
         throw new Error(`Error al obtener perfiles: ${profilesError.message}`);

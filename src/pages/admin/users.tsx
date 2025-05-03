@@ -21,7 +21,13 @@ export default function UsersManagement() {
     try {
       setLoading(true);
       setError(null);
-      const usersList = await adminService.getAllUsers();
+      
+      // Si es superadmin, obtener todos los usuarios
+      // Si es admin normal, obtener solo los usuarios de su compañía
+      const usersList = isSuperAdmin()
+        ? await adminService.getAllUsers()
+        : await adminService.getAllUsers(authData?.company_id);
+        
       setUsers(usersList);
     } catch (err: any) {
       console.error('Error al cargar usuarios:', err);
@@ -60,7 +66,7 @@ export default function UsersManagement() {
   };
 
   return (
-    <ProtectedRoute superAdminOnly={true}>
+    <ProtectedRoute adminOnly={true}>
       <DashboardLayout>
         <Head>
           <title>Unlocked Ecom - Gestión de Usuarios</title>
@@ -133,27 +139,33 @@ export default function UsersManagement() {
                           {new Date(user.created_at).toLocaleDateString('es-ES')}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          {/* Botón de edición, disponible para todos */}
                           <button 
                             className="text-primary-color hover:text-blue-700 mr-3"
                             onClick={() => alert('Funcionalidad de edición en desarrollo')}
                           >
                             <FaEdit className="inline" /> Editar
                           </button>
-                          <button 
-                            className="text-red-500 hover:text-red-700"
-                            onClick={async () => {
-                              if (window.confirm(`¿Estás seguro de eliminar al usuario ${user.email}?`)) {
-                                const success = await adminService.deleteUser(user.id);
-                                if (success) {
-                                  fetchUsers();
-                                } else {
-                                  alert('Error al eliminar usuario');
+                          
+                          {/* Botón de eliminación, con restricciones */}
+                          {(isSuperAdmin() || 
+                           (user.role !== 'admin' && user.role !== 'superadmin')) && (
+                            <button 
+                              className="text-red-500 hover:text-red-700"
+                              onClick={async () => {
+                                if (window.confirm(`¿Estás seguro de eliminar al usuario ${user.email}?`)) {
+                                  const success = await adminService.deleteUser(user.id);
+                                  if (success) {
+                                    fetchUsers();
+                                  } else {
+                                    alert('Error al eliminar usuario');
+                                  }
                                 }
-                              }
-                            }}
-                          >
-                            <FaTrash className="inline" /> Eliminar
-                          </button>
+                              }}
+                            >
+                              <FaTrash className="inline" /> Eliminar
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}

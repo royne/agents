@@ -98,18 +98,30 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
         email,
         name,
         password,
-        role,
-        company_id: createNewCompany ? undefined : selectedCompanyId,
-        company_name: createNewCompany ? newCompanyName : undefined
+        role: isSuperAdmin ? role : 'user', // Los admin normales solo pueden crear usuarios normales
       };
       
-      // Validar compañía
-      if (!createNewCompany && !selectedCompanyId) {
-        throw new Error('Debe seleccionar una compañía');
-      }
-      
-      if (createNewCompany && !newCompanyName) {
-        throw new Error('Debe ingresar un nombre para la nueva compañía');
+      // Para superadmins, manejar la creación o selección de compañía
+      if (isSuperAdmin) {
+        if (createNewCompany) {
+          // Crear nueva compañía
+          if (!newCompanyName) {
+            throw new Error('Debe ingresar un nombre para la nueva compañía');
+          }
+          userData.company_name = newCompanyName;
+        } else {
+          // Seleccionar compañía existente
+          if (!selectedCompanyId) {
+            throw new Error('Debe seleccionar una compañía');
+          }
+          userData.company_id = selectedCompanyId;
+        }
+      } else {
+        // Para administradores normales, siempre usar su propia compañía
+        if (!adminCompanyId) {
+          throw new Error('No se pudo determinar la compañía del administrador');
+        }
+        userData.company_id = adminCompanyId;
       }
       
       // Crear usuario
@@ -235,55 +247,62 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
                   <FaBuilding className="inline mr-2" /> Compañía
                 </label>
                 
-                {/* Opción para crear nueva compañía o seleccionar existente */}
-                {isSuperAdmin && (
-                  <div className="flex items-center mb-2">
-                    <label className="inline-flex items-center mr-4">
-                      <input
-                        type="radio"
-                        checked={!createNewCompany}
-                        onChange={() => setCreateNewCompany(false)}
-                        className="form-radio text-primary-color"
-                      />
-                      <span className="ml-2 text-theme-secondary">Seleccionar existente</span>
-                    </label>
-                    <label className="inline-flex items-center">
-                      <input
-                        type="radio"
-                        checked={createNewCompany}
-                        onChange={() => setCreateNewCompany(true)}
-                        className="form-radio text-primary-color"
-                      />
-                      <span className="ml-2 text-theme-secondary">Crear nueva</span>
-                    </label>
-                  </div>
-                )}
-                
-                {/* Selector de compañía existente o campo para nueva */}
-                {createNewCompany ? (
-                  <div className="flex">
-                    <input
-                      type="text"
-                      value={newCompanyName}
-                      onChange={(e) => setNewCompanyName(e.target.value)}
-                      className="w-full px-4 py-2 border rounded-lg bg-theme-primary text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary-color"
-                      placeholder="Nombre de la nueva compañía"
-                    />
-                  </div>
+                {isSuperAdmin ? (
+                  <>
+                    {/* Opción para crear nueva compañía o seleccionar existente (solo superadmin) */}
+                    <div className="flex items-center mb-2">
+                      <label className="inline-flex items-center mr-4">
+                        <input
+                          type="radio"
+                          checked={!createNewCompany}
+                          onChange={() => setCreateNewCompany(false)}
+                          className="form-radio text-primary-color"
+                        />
+                        <span className="ml-2 text-theme-secondary">Seleccionar existente</span>
+                      </label>
+                      <label className="inline-flex items-center">
+                        <input
+                          type="radio"
+                          checked={createNewCompany}
+                          onChange={() => setCreateNewCompany(true)}
+                          className="form-radio text-primary-color"
+                        />
+                        <span className="ml-2 text-theme-secondary">Crear nueva</span>
+                      </label>
+                    </div>
+                    
+                    {/* Selector de compañía existente o campo para nueva (solo superadmin) */}
+                    {createNewCompany ? (
+                      <div className="flex">
+                        <input
+                          type="text"
+                          value={newCompanyName}
+                          onChange={(e) => setNewCompanyName(e.target.value)}
+                          className="w-full px-4 py-2 border rounded-lg bg-theme-primary text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary-color"
+                          placeholder="Nombre de la nueva compañía"
+                        />
+                      </div>
+                    ) : (
+                      <select
+                        value={selectedCompanyId}
+                        onChange={(e) => setSelectedCompanyId(e.target.value)}
+                        className="w-full px-4 py-2 border rounded-lg bg-theme-primary text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary-color"
+                      >
+                        <option value="">Seleccionar compañía</option>
+                        {companies.map((company) => (
+                          <option key={company.id} value={company.id}>
+                            {company.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </>
                 ) : (
-                  <select
-                    value={selectedCompanyId}
-                    onChange={(e) => setSelectedCompanyId(e.target.value)}
-                    className="w-full px-4 py-2 border rounded-lg bg-theme-primary text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary-color"
-                    disabled={!isSuperAdmin && !!adminCompanyId}
-                  >
-                    <option value="">Seleccionar compañía</option>
-                    {companies.map((company) => (
-                      <option key={company.id} value={company.id}>
-                        {company.name}
-                      </option>
-                    ))}
-                  </select>
+                  // Para administradores normales, mostrar solo su compañía (no editable)
+                  <div className="px-4 py-2 border rounded-lg bg-theme-component-hover text-theme-secondary">
+                    {companies.find(c => c.id === adminCompanyId)?.name || 'Tu compañía'}
+                    <input type="hidden" value={adminCompanyId} />
+                  </div>
                 )}
               </div>
             </>
