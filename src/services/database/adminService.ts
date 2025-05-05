@@ -140,14 +140,22 @@ export const adminService = {
 
   async createUser(userData: UserCreateData): Promise<{ success: boolean; message: string; userId?: string }> {
     try {
+      // Obtener el token de autenticación actual
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || '';
+      
       // Usar el endpoint de API para crear el usuario
       // Esto evita el problema de iniciar sesión automáticamente con el usuario recién creado
       const response = await fetch('/api/admin/create-user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Incluir token en el encabezado
         },
-        body: JSON.stringify(userData),
+        body: JSON.stringify({
+          ...userData,
+          _authToken: token // Incluir token en el cuerpo como respaldo
+        }),
         credentials: 'include', // Incluir cookies de sesión
       });
 

@@ -19,64 +19,117 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || ''
   );
 
-  // Verificar autenticación
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  console.log('Session:', session ? `Existe - User ID: ${session.user.id}` : 'No existe');
-  console.log('Cookies recibidas:', req.headers.cookie ? 'Sí' : 'No');
-  
   // Verificar si estamos en modo desarrollo o producción
   const isDevelopment = process.env.NODE_ENV === 'development';
   const isProduction = process.env.NODE_ENV === 'production';
+  
+  // Permitir bypass en desarrollo o si hay un flag especial
+  const allowBypass = isDevelopment || process.env.ALLOW_ADMIN_BYPASS === 'true';
   
   // Inicializar variables de control
   let isAdmin = false;
   let isSuperAdmin = false;
   let adminCompanyId = null;
+  let userId = null;
   
-  // Permitir bypass en desarrollo o si hay un flag especial
-  const allowBypass = isDevelopment;
+  // Verificar autenticación por varios métodos
+  let session = null;
   
+  // 1. Intentar obtener sesión del servidor
+  const sessionResult = await supabase.auth.getSession();
+  session = sessionResult.data.session;
+  
+  // 2. Si no hay sesión, intentar verificar el token de autorización del encabezado
   if (!session) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      if (token) {
+        try {
+          const { data } = await supabase.auth.getUser(token);
+          if (data.user) {
+            userId = data.user.id;
+            console.log('Autenticación por token en encabezado exitosa. User ID:', userId);
+          }
+        } catch (error) {
+          console.error('Error al verificar token en encabezado:', error);
+        }
+      }
+    }
+  }
+  
+  // 3. Si aún no hay sesión, intentar verificar el token en el cuerpo
+  if (!session && !userId) {
+    const authToken = req.body._authToken;
+    if (authToken) {
+      try {
+        const { data } = await supabase.auth.getUser(authToken);
+        if (data.user) {
+          userId = data.user.id;
+          console.log('Autenticación por token en cuerpo exitosa. User ID:', userId);
+        }
+      } catch (error) {
+        console.error('Error al verificar token en cuerpo:', error);
+      }
+    }
+  }
+  
+  // Registrar información de depuración
+  console.log('Session:', session ? `Existe - User ID: ${session.user.id}` : 'No existe');
+  console.log('User ID por token:', userId || 'No encontrado');
+  console.log('Cookies recibidas:', req.headers.cookie ? 'Sí' : 'No');
+  console.log('Headers de autorización:', req.headers.authorization ? 'Sí' : 'No');
+  console.log('Token en cuerpo:', req.body._authToken ? 'Sí' : 'No');
+  
+  // Determinar si hay autenticación válida
+  const isAuthenticated = !!session || !!userId;
+  
+  if (!isAuthenticated) {
     if (allowBypass) {
       // En desarrollo o con bypass habilitado, asumimos rol de superadmin
-      console.log('Sin sesión pero bypass permitido: asumiendo rol de superadmin');
+      console.log('Sin autenticación pero bypass permitido: asumiendo rol de superadmin');
       isAdmin = true;
       isSuperAdmin = true;
     } else {
-      // En producción sin bypass, requerimos sesión
-      console.log('Sin sesión en producción y sin bypass');
+      // En producción sin bypass, requerimos autenticación
+      console.log('Sin autenticación en producción y sin bypass');
       return res.status(401).json({ 
         error: 'No autorizado - Se requiere iniciar sesión',
         details: {
-          hasSession: false,
+          hasSession: !!session,
+          hasUserId: !!userId,
           environment: process.env.NODE_ENV,
-          allowBypass: allowBypass
+          allowBypass: allowBypass,
+          headers: Object.keys(req.headers),
+          bodyKeys: Object.keys(req.body)
         }
       });
     }
   }
 
   try {
-    // Verificar que el usuario es admin o superadmin si hay sesión
-    if (session) {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role, company_id')
-        .eq('user_id', session.user.id)
-        .single();
+    // Verificar que el usuario es admin o superadmin
+    if (isAuthenticated) {
+      // Determinar el ID de usuario a verificar
+      const userIdToCheck = session?.user?.id || userId;
       
-      console.log('Perfil:', profile, 'Error:', profileError);
-      
-      if (profileError) {
-        console.error('Error al obtener perfil:', profileError);
+      if (userIdToCheck) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role, company_id')
+          .eq('user_id', userIdToCheck)
+          .single();
+        
+        console.log('Perfil:', profile, 'Error:', profileError);
+        
+        if (profileError) {
+          console.error('Error al obtener perfil:', profileError);
+        }
+        
+        isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin';
+        isSuperAdmin = profile?.role === 'superadmin';
+        adminCompanyId = profile?.company_id;
       }
-      
-      isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin';
-      isSuperAdmin = profile?.role === 'superadmin';
-      adminCompanyId = profile?.company_id;
     }
     
     // Verificar permisos de administrador
@@ -85,12 +138,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         error: 'Acceso denegado - Se requieren permisos de administrador',
         details: {
           hasSession: !!session,
+          hasUserId: !!userId,
           isAdmin: isAdmin,
           isSuperAdmin: isSuperAdmin,
           environment: process.env.NODE_ENV,
           allowBypass: allowBypass
         }
       });
+    }
+    
+    // Eliminar el token de autenticación del cuerpo antes de procesar
+    if (req.body._authToken) {
+      delete req.body._authToken;
     }
 
     // Obtener datos del usuario a crear
