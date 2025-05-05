@@ -24,44 +24,73 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     data: { session },
   } = await supabase.auth.getSession();
 
-  console.log('Session:', session ? 'Existe' : 'No existe');
+  console.log('Session:', session ? `Existe - User ID: ${session.user.id}` : 'No existe');
+  console.log('Cookies recibidas:', req.headers.cookie ? 'Sí' : 'No');
   
-  // Verificar si estamos en modo desarrollo
+  // Verificar si estamos en modo desarrollo o producción
   const isDevelopment = process.env.NODE_ENV === 'development';
+  const isProduction = process.env.NODE_ENV === 'production';
   
   // Inicializar variables de control
   let isAdmin = false;
   let isSuperAdmin = false;
   let adminCompanyId = null;
   
-  // En desarrollo, podemos asumir rol de superadmin para pruebas
-  if (isDevelopment && !session) {
-    console.log('Modo desarrollo sin sesión: asumiendo rol de superadmin');
-    isAdmin = true;
-    isSuperAdmin = true;
-  } else if (!session) {
-    // En producción, requerimos sesión
-    return res.status(401).json({ error: 'No autorizado - Se requiere iniciar sesión' });
+  // Permitir bypass en desarrollo o si hay un flag especial
+  const allowBypass = isDevelopment;
+  
+  if (!session) {
+    if (allowBypass) {
+      // En desarrollo o con bypass habilitado, asumimos rol de superadmin
+      console.log('Sin sesión pero bypass permitido: asumiendo rol de superadmin');
+      isAdmin = true;
+      isSuperAdmin = true;
+    } else {
+      // En producción sin bypass, requerimos sesión
+      console.log('Sin sesión en producción y sin bypass');
+      return res.status(401).json({ 
+        error: 'No autorizado - Se requiere iniciar sesión',
+        details: {
+          hasSession: false,
+          environment: process.env.NODE_ENV,
+          allowBypass: allowBypass
+        }
+      });
+    }
   }
 
   try {
-    // Verificar que el usuario es admin o superadmin
+    // Verificar que el usuario es admin o superadmin si hay sesión
     if (session) {
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role, company_id')
         .eq('user_id', session.user.id)
         .single();
       
-      console.log('Perfil:', profile);
+      console.log('Perfil:', profile, 'Error:', profileError);
+      
+      if (profileError) {
+        console.error('Error al obtener perfil:', profileError);
+      }
+      
       isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin';
       isSuperAdmin = profile?.role === 'superadmin';
       adminCompanyId = profile?.company_id;
     }
     
     // Verificar permisos de administrador
-    if (!isAdmin && !isDevelopment) {
-      return res.status(403).json({ error: 'Acceso denegado - Se requieren permisos de administrador' });
+    if (!isAdmin && !allowBypass) {
+      return res.status(403).json({ 
+        error: 'Acceso denegado - Se requieren permisos de administrador',
+        details: {
+          hasSession: !!session,
+          isAdmin: isAdmin,
+          isSuperAdmin: isSuperAdmin,
+          environment: process.env.NODE_ENV,
+          allowBypass: allowBypass
+        }
+      });
     }
 
     // Obtener datos del usuario a crear

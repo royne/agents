@@ -148,6 +148,7 @@ export const adminService = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(userData),
+        credentials: 'include', // Incluir cookies de sesión
       });
 
       const result = await response.json();
