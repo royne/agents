@@ -26,27 +26,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   console.log('Session:', session ? 'Existe' : 'No existe');
   
-  // En desarrollo, permitimos continuar incluso sin sesión para facilitar las pruebas
+  // Verificar si estamos en modo desarrollo
   const isDevelopment = process.env.NODE_ENV === 'development';
   
-  if (!session && !isDevelopment) {
-    return res.status(401).json({ error: 'No autorizado' });
-  }
-  
-  // En desarrollo, consideramos al usuario como superadmin para facilitar las pruebas
+  // Inicializar variables de control
   let isAdmin = false;
   let isSuperAdmin = false;
   let adminCompanyId = null;
   
-  if (isDevelopment) {
-    console.log('Modo desarrollo: asumiendo rol de superadmin');
+  // En desarrollo, podemos asumir rol de superadmin para pruebas
+  if (isDevelopment && !session) {
+    console.log('Modo desarrollo sin sesión: asumiendo rol de superadmin');
     isAdmin = true;
     isSuperAdmin = true;
+  } else if (!session) {
+    // En producción, requerimos sesión
+    return res.status(401).json({ error: 'No autorizado - Se requiere iniciar sesión' });
   }
 
   try {
-    // Verificar que el usuario es admin o superadmin si no estamos en modo desarrollo
-    if (session && !isDevelopment) {
+    // Verificar que el usuario es admin o superadmin
+    if (session) {
       const { data: profile } = await supabase
         .from('profiles')
         .select('role, company_id')
@@ -59,9 +59,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       adminCompanyId = profile?.company_id;
     }
     
-    // En desarrollo, permitimos continuar incluso sin ser admin
+    // Verificar permisos de administrador
     if (!isAdmin && !isDevelopment) {
-      return res.status(403).json({ error: 'Acceso denegado' });
+      return res.status(403).json({ error: 'Acceso denegado - Se requieren permisos de administrador' });
     }
 
     // Obtener datos del usuario a crear
