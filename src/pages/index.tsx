@@ -1,6 +1,6 @@
 import React from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase, FaLock, FaDollarSign, FaBrain, FaChartPie } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase, FaLock, FaDollarSign, FaBrain, FaChartPie, FaCalendarAlt } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAppContext } from '../contexts/AppContext';
@@ -34,6 +34,12 @@ const modules = [
     path: '/logistic'
   },
   {
+    name: 'Planeación',
+    icon: FaCalendarAlt,
+    description: 'Gestión de tareas y calendario',
+    path: '/planning'
+  },
+  {
     name: 'Análisis de Datos',
     icon: FaBrain,
     description: 'Análisis de archivos Excel',
@@ -60,7 +66,6 @@ const modules = [
 ];
 
 export default function Dashboard() {
-  const router = useRouter();
   const { isAdmin } = useAppContext();
 
   return (
