@@ -43,7 +43,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSave, onCancel }) => {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full p-2 border border-theme-border rounded-md bg-theme-input text-theme-primary focus:ring-2 focus:ring-primary-color focus:border-primary-color"
+          className="w-full px-4 py-2 border rounded-lg bg-theme-primary text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary-color"
           placeholder="Escribe el título de la tarea..."
           required
         />
@@ -56,7 +56,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSave, onCancel }) => {
             id="task-priority"
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
-            className="w-full p-2 border border-theme-border rounded-md bg-theme-input text-theme-primary focus:ring-2 focus:ring-primary-color focus:border-primary-color"
+            className="w-full px-4 py-2 border rounded-lg bg-theme-primary text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary-color"
           >
             <option value="alta">Alta</option>
             <option value="media">Media</option>
@@ -71,7 +71,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSave, onCancel }) => {
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="w-full p-2 border border-theme-border rounded-md bg-theme-input text-theme-primary focus:ring-2 focus:ring-primary-color focus:border-primary-color"
+            className="w-full px-4 py-2 border rounded-lg bg-theme-primary text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary-color"
           />
         </div>
       </div>

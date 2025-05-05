@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Head from 'next/head';
 import { FaCalendarAlt, FaPlus, FaTasks } from 'react-icons/fa';
-import Link from 'next/link';
 import MonthlyCalendar from '../../components/planning/calendar/MonthlyCalendar';
 import ScheduleView from '../../components/planning/schedule/ScheduleView';
+import PageHeader from '../../components/common/PageHeader';
 
 
 
@@ -23,24 +23,16 @@ export default function CalendarPage() {
         <title>Unlocked Ecom - Calendario</title>
       </Head>
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl mb-2 border-l-4 border-primary-color pl-3">Calendario</h1>
-            <p className="text-theme-secondary">
-              Visualiza y gestiona tus eventos y tareas programadas.
-            </p>
-          </div>
-          <div className="flex space-x-2">
-            <Link href="/planning">
-              <button className="px-4 py-2 text-theme-secondary hover:text-theme-primary transition-colors">
-                Volver
-              </button>
-            </Link>
+        <PageHeader
+          title="Calendario"
+          description="Visualiza y gestiona tus eventos y tareas programadas."
+          backLink="/planning"
+          actions={
             <button className="px-4 py-2 bg-primary-color text-white rounded-md hover:bg-primary-color-dark flex items-center">
               <FaPlus className="mr-2" /> Nuevo Evento
             </button>
-          </div>
-        </div>
+          }
+        />
         
         {/* Selector de tipo de vista */}
         <div className="flex mb-4 bg-theme-component rounded-lg p-1 w-fit">

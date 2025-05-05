@@ -1,6 +1,9 @@
 import React from 'react';
-import { FaPlus } from 'react-icons/fa';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import ScheduleEvent, { Event } from './ScheduleEvent';
+import DraggableScheduleEvent from './DraggableScheduleEvent';
+import DroppableScheduleCell from './DroppableScheduleCell';
 
 interface Room {
   id: string;
@@ -20,6 +23,15 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
   currentDate,
   onAddEvent
 }) => {
+  // Función para manejar el movimiento de eventos
+  const handleEventMove = (event: Event, targetRoomId: string, targetHour: string) => {
+    // Aquí implementaríamos la lógica para mover el evento
+    // Por ahora, simplemente mostramos un mensaje en la consola
+    console.log(`Moviendo evento ${event.id} a sala ${targetRoomId} a las ${targetHour}`);
+    
+    // Si tuviéramos una función para actualizar eventos, la llamaríamos aquí
+    // updateEvent(event.id, { roomId: targetRoomId, startTime: newStartTime, endTime: newEndTime });
+  };
   // Generar las horas del día (de 6am a 6pm)
   const hours = Array.from({ length: 12 }, (_, i) => {
     const hour = i + 6; // Empezamos desde las 6am
@@ -58,9 +70,10 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
   };
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full border-collapse">
-        <thead>
+    <DndProvider backend={HTML5Backend}>
+      <div className="overflow-x-auto">
+        <table className="min-w-full border-collapse">
+          <thead>
           <tr className="bg-theme-component-hover">
             <th className="border border-theme-border p-2 text-left text-theme-secondary w-32">Salas</th>
             {hours.map(hour => (
@@ -88,7 +101,7 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                       className={`border border-theme-border p-0 relative`}
                       colSpan={duration}
                     >
-                      <ScheduleEvent event={event} duration={duration} />
+                      <DraggableScheduleEvent event={event} duration={duration} />
                     </td>
                   );
                 } 
@@ -99,14 +112,13 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                 // Celda vacía
                 else {
                   return (
-                    <td 
-                      key={`${room.id}-${hour}`} 
-                      className="border border-theme-border p-1 text-center relative group"
-                      onClick={() => onAddEvent && onAddEvent(room.id, hour)}
-                    >
-                      <div className="invisible group-hover:visible absolute inset-0 flex items-center justify-center bg-theme-component-hover bg-opacity-50">
-                        <FaPlus className="text-primary-color" />
-                      </div>
+                    <td key={`${room.id}-${hour}`}>
+                      <DroppableScheduleCell
+                        roomId={room.id}
+                        hour={hour}
+                        onDrop={handleEventMove}
+                        onAddEvent={onAddEvent}
+                      />
                     </td>
                   );
                 }
@@ -116,6 +128,7 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
         </tbody>
       </table>
     </div>
+    </DndProvider>
   );
 };
 

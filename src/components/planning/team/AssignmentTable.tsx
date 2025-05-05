@@ -92,7 +92,7 @@ const AssignmentTable: React.FC<AssignmentTableProps> = ({
                     <select
                       value={assignment.status}
                       onChange={(e) => onChangeStatus(assignment.id, e.target.value)}
-                      className="p-1 text-sm border border-theme-border rounded-md bg-theme-input text-theme-primary focus:ring-2 focus:ring-primary-color focus:border-primary-color"
+                      className="px-3 py-1 text-sm border rounded-lg bg-theme-primary text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary-color"
                     >
                       <option value="pendiente">Pendiente</option>
                       <option value="en progreso">En progreso</option>

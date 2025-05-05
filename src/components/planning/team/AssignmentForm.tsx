@@ -51,7 +51,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           type="text"
           value={newAssignment.title}
           onChange={(e) => setNewAssignment({...newAssignment, title: e.target.value})}
-          className="w-full p-2 border border-theme-border rounded-md bg-theme-input text-theme-primary focus:ring-2 focus:ring-primary-color focus:border-primary-color"
+          className="w-full px-4 py-2 border rounded-lg bg-theme-primary text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary-color"
           placeholder="Escribe el título de la tarea..."
           required
         />
@@ -64,7 +64,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             id="assignment-assignee"
             value={newAssignment.assignedTo}
             onChange={(e) => setNewAssignment({...newAssignment, assignedTo: e.target.value})}
-            className="w-full p-2 border border-theme-border rounded-md bg-theme-input text-theme-primary focus:ring-2 focus:ring-primary-color focus:border-primary-color"
+            className="w-full px-4 py-2 border rounded-lg bg-theme-primary text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary-color"
             required
           >
             <option value="">Seleccionar miembro</option>
@@ -80,7 +80,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             id="assignment-priority"
             value={newAssignment.priority}
             onChange={(e) => setNewAssignment({...newAssignment, priority: e.target.value})}
-            className="w-full p-2 border border-theme-border rounded-md bg-theme-input text-theme-primary focus:ring-2 focus:ring-primary-color focus:border-primary-color"
+            className="w-full px-4 py-2 border rounded-lg bg-theme-primary text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary-color"
           >
             <option value="alta">Alta</option>
             <option value="media">Media</option>
@@ -95,7 +95,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             type="date"
             value={newAssignment.dueDate}
             onChange={(e) => setNewAssignment({...newAssignment, dueDate: e.target.value})}
-            className="w-full p-2 border border-theme-border rounded-md bg-theme-input text-theme-primary focus:ring-2 focus:ring-primary-color focus:border-primary-color"
+            className="w-full px-4 py-2 border rounded-lg bg-theme-primary text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary-color"
           />
         </div>
       </div>
