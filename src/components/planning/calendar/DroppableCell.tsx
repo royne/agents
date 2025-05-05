@@ -51,11 +51,12 @@ const DroppableCell: React.FC<DroppableCellProps> = ({
   
   // Calcular clases CSS basadas en el estado
   const cellClasses = `
-    h-28 m-1 p-1 rounded-lg transition-all
-    ${isToday ? 'bg-primary-color bg-opacity-10' : 'bg-theme-component'}
-    ${isOver && canDrop ? 'bg-blue-100 dark:bg-blue-900 bg-opacity-50 scale-105 shadow-md' : ''}
+    h-28 m-1 p-1 rounded-lg transition-all duration-200
+    ${isToday ? 'bg-primary-color bg-opacity-10 dark:bg-primary-color dark:bg-opacity-20' : 'bg-theme-component'}
+    ${isOver && canDrop ? 'bg-primary-color bg-opacity-20 dark:bg-primary-color dark:bg-opacity-30 scale-105 shadow-md dark:shadow-gray-900' : ''}
     ${canDrop ? 'cursor-pointer' : ''}
-    hover:bg-theme-component-hover hover:shadow-sm
+    hover:bg-theme-component-hover hover:shadow-sm dark:hover:shadow-gray-900
+    border border-gray-200 dark:border-gray-700
     ${className}
   `;
 

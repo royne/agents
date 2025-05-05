@@ -47,11 +47,11 @@ const DraggableScheduleEvent: React.FC<DraggableScheduleEventProps> = ({
   return (
     <div
       ref={ref}
-      className={`absolute inset-0 p-1 ${event.color || 'bg-blue-500'} text-white rounded-md overflow-hidden`}
+      className={`absolute inset-0 p-2 ${event.color || 'bg-blue-500'} text-white rounded-md overflow-hidden shadow-md dark:shadow-gray-900 transition-all duration-200`}
       style={eventStyle}
     >
-      <div className="font-semibold text-sm truncate">{event.title}</div>
-      <div className="text-xs opacity-90">
+      <div className="font-semibold text-sm truncate mb-1">{event.title}</div>
+      <div className="text-xs text-white text-opacity-80">
         {event.startTime} - {event.endTime}
       </div>
     </div>

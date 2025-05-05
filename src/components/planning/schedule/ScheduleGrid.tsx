@@ -72,12 +72,12 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse">
+        <table className="min-w-full border-collapse rounded-lg overflow-hidden shadow-md dark:shadow-gray-800">
           <thead>
-          <tr className="bg-theme-component-hover">
-            <th className="border border-theme-border p-2 text-left text-theme-secondary w-32">Salas</th>
+          <tr className="bg-theme-component-hover bg-opacity-40 dark:bg-opacity-20">
+            <th className="border-b border-gray-200 dark:border-gray-700 border-opacity-50 dark:border-opacity-40 p-3 text-left text-theme-secondary font-semibold w-32">Salas</th>
             {hours.map(hour => (
-              <th key={hour} className="border border-theme-border p-2 text-center text-theme-secondary min-w-[80px]">
+              <th key={hour} className="border-b border-gray-200 dark:border-gray-700 border-opacity-50 dark:border-opacity-40 p-3 text-center text-theme-secondary font-semibold min-w-[80px]">
                 {hour}
               </th>
             ))}
@@ -85,8 +85,8 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
         </thead>
         <tbody>
           {rooms.map(room => (
-            <tr key={room.id} className="hover:bg-theme-component-hover">
-              <td className="border border-theme-border p-2 text-theme-primary font-medium">
+            <tr key={room.id} className="hover:bg-theme-component-hover transition-all duration-200">
+              <td className="border-r border-gray-200 dark:border-gray-700 p-3 text-theme-primary font-medium">
                 {room.name}
               </td>
               {hours.map((hour, hourIndex) => {
@@ -98,7 +98,7 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                   return (
                     <td 
                       key={`${room.id}-${hour}`} 
-                      className={`border border-theme-border p-0 relative`}
+                      className={`p-0 relative`}
                       colSpan={duration}
                     >
                       <DraggableScheduleEvent event={event} duration={duration} />
@@ -112,7 +112,7 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                 // Celda vacía
                 else {
                   return (
-                    <td key={`${room.id}-${hour}`}>
+                    <td key={`${room.id}-${hour}`} className="p-0">
                       <DroppableScheduleCell
                         roomId={room.id}
                         hour={hour}

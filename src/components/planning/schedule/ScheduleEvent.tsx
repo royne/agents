@@ -17,8 +17,11 @@ interface ScheduleEventProps {
 
 const ScheduleEvent: React.FC<ScheduleEventProps> = ({ event, duration }) => {
   return (
-    <div className={`${event.color} text-white p-1 h-full rounded-sm text-xs overflow-hidden`}>
-      {event.title}
+    <div className={`${event.color} text-white p-2 h-full rounded-md text-xs overflow-hidden shadow-md dark:shadow-gray-900 font-medium`}>
+      <div className="flex flex-col h-full">
+        <div className="font-semibold mb-1">{event.title}</div>
+        <div className="text-white text-opacity-80 text-[10px]">{event.startTime} - {event.endTime}</div>
+      </div>
     </div>
   );
 };

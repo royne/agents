@@ -1,7 +1,6 @@
 import React from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase, FaLock, FaDollarSign, FaBrain, FaChartPie, FaCalendarAlt } from 'react-icons/fa';
-import { useRouter } from 'next/router';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase, FaLock, FaDollarSign, FaBrain, FaCalendarAlt } from 'react-icons/fa';
 import Link from 'next/link';
 import { useAppContext } from '../contexts/AppContext';
 import WelcomeBanner from '../components/dashboard/WelcomeBanner';

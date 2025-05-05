@@ -32,7 +32,7 @@ export default function Profitability() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-full mx-auto">
         <PageHeader
           title={
             <>
