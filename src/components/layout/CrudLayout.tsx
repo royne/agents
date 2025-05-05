@@ -1,33 +1,45 @@
 import { useState } from 'react';
 import Link from 'next/link';
+import PageHeader from '../common/PageHeader';
 
 interface CrudLayoutProps {
-  title: string;
+  title: React.ReactNode;
   items: Array<{ id: string; name: string }>;
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
   hideAddButton?: boolean;
   children: React.ReactNode;
   additionalAttr?: Array<{ option: string; value: string }>;
+  backLink?: string;
+  showHeader?: boolean;
 }
 
 type ItemAttr = { [key: string]: string };
 const itemAttr = (item: ItemAttr, attr: string) => item[attr] || '-';
 
-export default function CrudLayout({ title, items, onDelete, onEdit, hideAddButton, additionalAttr, children }: CrudLayoutProps) {
+export default function CrudLayout({ title, items, onDelete, onEdit, hideAddButton, additionalAttr, children, backLink, showHeader = true }: CrudLayoutProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-theme-primary">{title}</h1>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-primary-color hover:opacity-90 text-white px-4 py-2 rounded btn-primary"
-        >
-          Nuevo
-        </button>
-      </div>
+      {showHeader && (
+        <PageHeader
+          title={title}
+          description="Gestiona la información de forma eficiente."
+          backLink={backLink}
+          actions={
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-primary-color hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center shadow-sm hover:shadow-md transition-all"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Nuevo
+            </button>
+          }
+        />
+      )}
 
       <div className="bg-theme-component rounded-lg shadow overflow-hidden">
         <table className="w-full">

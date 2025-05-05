@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { FaUsers, FaEdit, FaTrash, FaUserPlus, FaUserShield, FaUser, FaSync } from 'react-icons/fa';
 import Head from 'next/head';
-import Link from 'next/link';
 import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import { useAppContext } from '../../contexts/AppContext';
 import UserFormModal from '../../components/admin/UserFormModal';
 import { adminService, UserWithProfile } from '../../services/database/adminService';
+import PageHeader from '../../components/common/PageHeader';
 
 
 
@@ -72,22 +72,16 @@ export default function UsersManagement() {
           <title>Unlocked Ecom - Gestión de Usuarios</title>
         </Head>
         <div>
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-theme-primary mb-2">
+          <PageHeader
+            title={
+              <>
                 <FaUsers className="inline-block mr-2 mb-1" />
                 Gestión de Usuarios
-              </h1>
-              <p className="text-theme-secondary">
-                Administra los usuarios y sus permisos en la plataforma.
-              </p>
-            </div>
-            <Link href="/admin">
-              <button className="px-4 py-2 bg-theme-component text-theme-secondary rounded-lg hover:bg-theme-component-hover transition-colors">
-                Volver al Panel
-              </button>
-            </Link>
-          </div>
+              </>
+            }
+            description="Administra los usuarios y sus permisos en la plataforma."
+            backLink="/admin"
+          />
 
           <div className="bg-theme-component p-6 rounded-lg shadow-md mb-6">
             <div className="flex justify-between items-center mb-4">

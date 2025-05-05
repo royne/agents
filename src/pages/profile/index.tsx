@@ -5,6 +5,7 @@ import MembershipCard from '../../components/profile/MembershipCard';
 import Head from 'next/head';
 import { FaUser } from 'react-icons/fa';
 import ProtectedRoute from '../../components/auth/ProtectedRoute';
+import PageHeader from '../../components/common/PageHeader';
 
 export default function ProfilePage() {
   return (
@@ -14,14 +15,15 @@ export default function ProfilePage() {
           <title>Unlocked Ecom - Mi Perfil</title>
         </Head>
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center mb-6">
-            <FaUser className="text-primary-color mr-3 text-2xl" />
-            <h1 className="text-3xl font-bold text-theme-primary">Mi Perfil</h1>
-          </div>
-          
-          <p className="text-theme-secondary mb-8">
-            Gestiona tu información personal y preferencias de cuenta.
-          </p>
+          <PageHeader
+            title={
+              <>
+                <FaUser className="inline-block mr-2 mb-1" />
+                Mi Perfil
+              </>
+            }
+            description="Gestiona tu información personal y preferencias de cuenta."
+          />
           
           <div className="grid grid-cols-1 gap-8 mb-8 w-full">
             <div className="w-full">

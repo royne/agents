@@ -7,6 +7,8 @@ import type { Sale, Campaign, Advertisement } from '../../types/database';
 import { useAppContext } from '../../contexts/AppContext';
 import SalesForm from '../../components/Financial/salesForm';
 import ExpensesForm from '../../components/Financial/expensesForm';
+import PageHeader from '../../components/common/PageHeader';
+import { FaDollarSign } from 'react-icons/fa';
 
 export default function Sales() {
   const [sales, setSales] = useState<Sale[]>([]);
@@ -86,7 +88,16 @@ export default function Sales() {
   return (
     <DashboardLayout>
       <div className="space-y-8 max-w-6xl mx-auto">
-        <h1 className='text-center'>CONTROL DE VENTAS Y GASTOS</h1>
+        <PageHeader
+          title={
+            <>
+              <FaDollarSign className="inline-block mr-2 mb-1" />
+              Control de Ventas y Gastos
+            </>
+          }
+          description="Registra las ventas y gastos asociados a tus campañas publicitarias."
+          backLink="/profitability"
+        />
         <ToggleSwitch />
 
         <div className="bg-gray-800 p-6 rounded-lg">

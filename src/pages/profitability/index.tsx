@@ -1,9 +1,10 @@
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { FaDollarSign, FaMoneyBillWave, FaStream } from 'react-icons/fa';
+import { FaDollarSign, FaMoneyBillWave, FaStream, FaChartLine } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import SalesGrafic from '../../components/Financial/salesGrafic';
 import { FaArrowTrendDown } from 'react-icons/fa6';
+import PageHeader from '../../components/common/PageHeader';
 
 const modules = [
   {
@@ -31,8 +32,16 @@ export default function Profitability() {
 
   return (
     <DashboardLayout>
-      <div>
-        <h1 className="text-2xl mb-8">Control diario</h1>
+      <div className="max-w-6xl mx-auto">
+        <PageHeader
+          title={
+            <>
+              <FaChartLine className="inline-block mr-2 mb-1" />
+              Control de Rentabilidad
+            </>
+          }
+          description="Monitorea y analiza las ventas, gastos y rentabilidad de tu negocio."
+        />
         <div className="mb-6">
           <SalesGrafic periodDays={14} />
         </div>

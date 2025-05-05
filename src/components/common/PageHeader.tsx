@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import Link from 'next/link';
 
 interface PageHeaderProps {
-  title: string;
+  title: ReactNode;
   description: string;
   backLink?: string;
   actions?: ReactNode;

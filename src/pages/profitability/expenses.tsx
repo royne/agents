@@ -8,6 +8,8 @@ import type { DailyExpenses, Campaign, Advertisement } from '../../types/databas
 import { useAppContext } from '../../contexts/AppContext';
 import { useFilters } from '../../hooks/useFilters';
 import DataFilters from '../../components/filters/DataFilters';
+import PageHeader from '../../components/common/PageHeader';
+import { FaArrowTrendDown } from 'react-icons/fa6';
 
 export default function Expenses() {
   const [expenses, setExpenses] = useState<DailyExpenses[]>([]);
@@ -56,6 +58,11 @@ export default function Expenses() {
     ads,
     campaigns
   });
+
+  const handleCreateNew = () => {
+    setCurrentExpense({});
+    setIsModalOpen(true);
+  };
 
   const handleEdit = (id: string) => {
     const expense = expenses.find(e => e.id === id);
@@ -119,7 +126,27 @@ export default function Expenses() {
   return (
     <DashboardLayout>
       <div className="space-y-8 max-w-6xl mx-auto">
-        <h1 className='text-center'>ANÁLISIS DE GASTOS</h1>
+        <PageHeader
+          title={
+            <>
+              <FaArrowTrendDown className="inline-block mr-2 mb-1" />
+              Análisis de Gastos
+            </>
+          }
+          description="Analiza y filtra tus gastos por campaña, anuncio y fecha."
+          backLink="/profitability"
+          actions={
+            <button
+              onClick={() => handleCreateNew()}
+              className="bg-primary-color hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center shadow-sm hover:shadow-md transition-all"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Nuevo
+            </button>
+          }
+        />
         
         {/* Filtros */}
         <DataFilters
@@ -159,6 +186,8 @@ export default function Expenses() {
         {/* Expenses table */}
         <CrudLayout
           title="Registro de Gastos Diarios"
+          backLink="/profitability"
+          showHeader={false}
           items={filteredExpenses.map(expense => {
             const ad = ads.find(a => a.id === expense.advertisement_id);
             const campaign = campaigns.find(c => c.id === ad?.campaign_id);

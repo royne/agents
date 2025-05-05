@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Head from 'next/head';
 import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import { useAppContext } from '../../contexts/AppContext';
+import PageHeader from '../../components/common/PageHeader';
 
 const adminModules = [
   {
@@ -47,8 +48,11 @@ export default function AdminDashboard() {
           <title>Unlocked Ecom - Panel de Administración</title>
         </Head>
         <div>
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-theme-primary mb-2">Panel de Administración</h1>
+          <PageHeader
+            title="Panel de Administración"
+            description="Accede a las diferentes herramientas de administración del sistema."
+          />
+          <div className="mb-6">
             <p className="text-theme-secondary">Gestiona todos los aspectos de la plataforma desde este panel centralizado.</p>
             {!isSuperAdmin() && isAdmin() && (
               <div className="mt-4 p-4 bg-yellow-100 text-yellow-800 rounded-lg">

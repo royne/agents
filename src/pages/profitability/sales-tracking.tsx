@@ -8,6 +8,8 @@ import type { Sale, Campaign, Advertisement } from '../../types/database';
 import { useAppContext } from '../../contexts/AppContext';
 import { useFilters } from '../../hooks/useFilters';
 import DataFilters from '../../components/filters/DataFilters';
+import PageHeader from '../../components/common/PageHeader';
+import { FaChartBar } from 'react-icons/fa';
 
 export default function SalesTracking() {
   const [sales, setSales] = useState<Sale[]>([]);
@@ -55,6 +57,11 @@ export default function SalesTracking() {
     setCampaigns(campaignsData);
     setAds(adsData);
     setLoading(false);
+  };
+
+  const handleCreateNew = () => {
+    setCurrentSale({});
+    setIsModalOpen(true);
   };
 
   const handleEdit = (id: string) => {
@@ -115,7 +122,27 @@ export default function SalesTracking() {
   return (
     <DashboardLayout>
       <div className="space-y-8 max-w-6xl mx-auto">
-        <h1 className='text-center'>ANÁLISIS DE VENTAS</h1>
+        <PageHeader
+          title={
+            <>
+              <FaChartBar className="inline-block mr-2 mb-1" />
+              Análisis de Ventas
+            </>
+          }
+          description="Analiza y filtra tus ventas por campaña, anuncio y fecha."
+          backLink="/profitability"
+          actions={
+            <button
+              onClick={() => handleCreateNew()}
+              className="bg-primary-color hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center shadow-sm hover:shadow-md transition-all"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Nuevo
+            </button>
+          }
+        />
         
         {/* Filtros */}
         <DataFilters
@@ -155,6 +182,8 @@ export default function SalesTracking() {
         {/* Tabla de ventas */}
         <CrudLayout
           title="Registro de Ventas"
+          backLink="/profitability"
+          showHeader={false}
           items={filteredSales.map(sale => {
             const ad = ads.find(a => a.id === sale.advertisement_id);
             const campaign = campaigns.find(c => c.id === ad?.campaign_id);

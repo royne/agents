@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { campaignDatabaseService } from '../../services/database/campaignService';
 import { productDatabaseService } from '../../services/database/productService';
 import type { Campaign, Product } from '../../types/database';
+import PageHeader from '../../components/common/PageHeader';
 import { useAppContext } from '../../contexts/AppContext';
 
 export default function CampaignPage() {
@@ -87,15 +88,22 @@ export default function CampaignPage() {
   return (
     <DashboardLayout>
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Campañas</h1>
-          <button
-            onClick={handleCreateNew}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-          >
-            Nueva
-          </button>
-        </div>
+        <PageHeader
+          title="Campañas"
+          description="Gestiona las campañas publicitarias de tus productos."
+          backLink="/dbmanager"
+          actions={
+            <button
+              onClick={handleCreateNew}
+              className="bg-primary-color hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center shadow-sm hover:shadow-md transition-all"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Nueva
+            </button>
+          }
+        />
 
         <div className="bg-gray-800 rounded-lg shadow overflow-hidden">
           <table className="w-full">

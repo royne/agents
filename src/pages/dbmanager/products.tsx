@@ -71,6 +71,7 @@ export default function ProductsPage() {
         items={products}
         onDelete={handleDelete}
         onEdit={handleEdit}
+        backLink="/dbmanager"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
