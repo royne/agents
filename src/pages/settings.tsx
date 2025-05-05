@@ -2,8 +2,9 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 import { useApiKey } from '../hooks/useApiKey';
 import { useAppContext } from '../contexts/AppContext';
 import Link from 'next/link';
-import { FaDatabase, FaLock, FaTruck } from 'react-icons/fa';
+import { FaUser, FaEdit } from 'react-icons/fa';
 import ThemeSettings from '../components/settings/ThemeSettings';
+import UserProfile from '../components/profile/UserProfile';
 
 export default function Settings() {
   const { apiKey, saveApiKey, clearApiKey, openaiApiKey, saveOpenaiApiKey, clearOpenaiApiKey } = useApiKey();
@@ -140,6 +141,26 @@ export default function Settings() {
         <h2 className="text-2xl font-bold mt-8 mb-4">Personalización</h2>
         <div className="grid grid-cols-1 gap-4 mb-8">
           <ThemeSettings />
+        </div>
+
+        {/* Sección de perfil de usuario */}
+        <h2 className="text-2xl font-bold mt-8 mb-4">Perfil de Usuario</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 w-full">
+          <div className="w-full">
+            <UserProfile showEditButton={false} />
+          </div>
+          <div className="bg-theme-component rounded-lg shadow-lg p-6 hover:bg-theme-component-hover transition-colors w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-theme-primary">Gestionar mi perfil</h2>
+              <FaUser className="text-primary-color" />
+            </div>
+            <p className="text-sm text-theme-tertiary mb-4">Actualiza tu información personal y preferencias de cuenta</p>
+            <Link href="/profile">
+              <div className="bg-primary-color hover:opacity-90 text-white font-medium py-2 px-4 rounded text-center cursor-pointer btn-primary flex items-center justify-center">
+                <FaEdit className="mr-2" /> Editar Perfil
+              </div>
+            </Link>
+          </div>
         </div>
       </div>
     </DashboardLayout>
