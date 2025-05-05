@@ -13,7 +13,7 @@ const menuItems = [
   { name: 'Análisis de Datos', icon: FaBrain, path: '/data-analysis' },
   { name: 'Manager DB', icon: FaDatabase, path: '/dbmanager' },
   { name: 'Master Chat', icon: FaRobot, path: '/chat' },
-  { name: 'Administración', icon: FaUsersCog, path: '/admin', adminOnly: true },
+  { name: 'Administración', icon: FaUsersCog, path: '/admin', adminOnly: true, showForAllAdmins: true },
   { name: 'Configuración', icon: FaCog, path: '/settings' },
 ];
 
@@ -74,7 +74,8 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
             <nav className="flex-1 mt-6">
               {menuItems.map((item) => {
                 // No mostrar elementos marcados como adminOnly si el usuario no es admin
-                if (item.adminOnly && !isAdmin()) {
+                // Si showForAllAdmins es true, mostrar para cualquier tipo de admin
+                if (item.adminOnly && !isAdmin() && !item.showForAllAdmins) {
                   return null;
                 }
                 

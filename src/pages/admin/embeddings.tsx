@@ -116,7 +116,6 @@ const ScriptEmbeddingsPage = () => {
   };
 
   return (
-    <DashboardLayout>
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">Administrar Scripts para RAG</h1>
         
@@ -261,16 +260,17 @@ const ScriptEmbeddingsPage = () => {
           )}
         </div>
       </div>
-    </DashboardLayout>
   );
 };
 
-const ProtectedScriptEmbeddingsPage = () => {
+const EmbeddingsPage = () => {
   return (
     <AdminRoute>
-      <ScriptEmbeddingsPage />
+      <DashboardLayout>
+        <ScriptEmbeddingsPage />
+      </DashboardLayout>
     </AdminRoute>
   );
 };
 
-export default ProtectedScriptEmbeddingsPage;
+export default EmbeddingsPage;

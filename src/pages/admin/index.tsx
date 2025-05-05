@@ -12,21 +12,21 @@ const adminModules = [
     icon: FaUsers,
     description: 'Administrar usuarios y permisos',
     path: '/admin/users',
-    superAdminOnly: true
+    superAdminOnly: false 
   },
   {
-    name: 'Base de Datos',
+    name: 'Embeddings',
     icon: FaDatabase,
-    description: 'Gestión avanzada de base de datos',
-    path: '/admin/database',
-    superAdminOnly: false
+    description: 'Gestionar scripts para el sistema RAG',
+    path: '/admin/embeddings',
+    superAdminOnly: true
   },
   {
     name: 'Transportadoras',
     icon: FaTruck,
-    description: 'Gestión de transportadoras',
+    description: 'Importar y gestionar transportadoras',
     path: '/admin/carriers',
-    superAdminOnly: false
+    superAdminOnly: true
   },
   {
     name: 'Seguridad',
@@ -38,7 +38,7 @@ const adminModules = [
 ];
 
 export default function AdminDashboard() {
-  const { isSuperAdmin } = useAppContext();
+  const { isAdmin, isSuperAdmin } = useAppContext();
 
   return (
     <ProtectedRoute adminOnly={true}>
@@ -50,6 +50,12 @@ export default function AdminDashboard() {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-theme-primary mb-2">Panel de Administración</h1>
             <p className="text-theme-secondary">Gestiona todos los aspectos de la plataforma desde este panel centralizado.</p>
+            {!isSuperAdmin() && isAdmin() && (
+              <div className="mt-4 p-4 bg-yellow-100 text-yellow-800 rounded-lg">
+                <p className="font-medium">Acceso limitado</p>
+                <p className="text-sm">Algunas funciones están disponibles solo para super administradores.</p>
+              </div>
+            )}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -61,21 +67,26 @@ export default function AdminDashboard() {
               
               return (
                 <Link key={module.path} href={module.path}>
-                  <div className="bg-theme-component p-6 rounded-lg shadow-md cursor-pointer hover:bg-theme-component-hover transform hover:-translate-y-0.5 transition-all duration-200">
-                    <div className="flex flex-col gap-4 items-center">
-                      <module.icon className="w-8 h-8 text-primary-color" />
-                      <h2 className="text-xl font-bold text-theme-primary">
-                        {module.name}
-                      </h2>
-                      <p className="text-theme-secondary text-center">
-                        {module.description}
-                      </p>
-                      {module.superAdminOnly && (
-                        <div className="mt-2 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
-                          Solo SuperAdmin
-                        </div>
-                      )}
-                    </div>
+                  <div className="bg-theme-component p-6 rounded-lg shadow-md cursor-pointer hover:bg-theme-component-hover transform hover:-translate-y-0.5 transition-all duration-200 h-full">
+                  <div className="flex flex-col gap-4 items-center h-full">
+                    <module.icon className="w-8 h-8 text-primary-color" />
+                    <h2 className="text-xl font-bold text-theme-primary">
+                      {module.name}
+                    </h2>
+                    <p className="text-theme-secondary text-center">
+                      {module.description}
+                    </p>
+                    <div className="flex-grow"></div>
+                    {module.superAdminOnly ? (
+                      <div className="mt-2 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                        Solo SuperAdmin
+                      </div>
+                    ) : (
+                      <div className="mt-2 opacity-0 px-2 py-1 text-xs">
+                        Espaciador invisible
+                      </div>
+                    )}
+                  </div>
                   </div>
                 </Link>
               );
