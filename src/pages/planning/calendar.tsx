@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Head from 'next/head';
-import { FaCalendarAlt, FaPlus, FaTasks } from 'react-icons/fa';
+import { FaCalendarAlt, FaPlus, FaTasks, FaColumns } from 'react-icons/fa';
 import MonthlyCalendar from '../../components/planning/calendar/MonthlyCalendar';
 import ScheduleView from '../../components/planning/schedule/ScheduleView';
+import KanbanView from '../../components/planning/kanban/KanbanView';
 import PageHeader from '../../components/common/PageHeader';
 
 
 
 export default function CalendarPage() {
-  const [viewType, setViewType] = useState<'month' | 'schedule'>('schedule');
+  const [viewType, setViewType] = useState<'month' | 'schedule' | 'kanban'>('schedule');
   
   // Manejador para añadir un nuevo evento en una hora y sala específica
   const handleAddEvent = (roomId: string, hour: string) => {
@@ -35,7 +36,7 @@ export default function CalendarPage() {
         />
         
         {/* Selector de tipo de vista */}
-        <div className="flex mb-4 bg-theme-component rounded-lg p-1 w-fit">
+        <div className="flex flex-wrap mb-4 bg-theme-component rounded-lg p-1 w-fit">
           <button 
             className={`px-4 py-2 rounded-md flex items-center ${viewType === 'month' ? 'bg-primary-color text-white' : 'text-theme-secondary hover:text-theme-primary'}`}
             onClick={() => setViewType('month')}
@@ -48,12 +49,20 @@ export default function CalendarPage() {
           >
             <FaTasks className="mr-2" /> Vista Horario
           </button>
+          <button 
+            className={`px-4 py-2 rounded-md flex items-center ${viewType === 'kanban' ? 'bg-primary-color text-white' : 'text-theme-secondary hover:text-theme-primary'}`}
+            onClick={() => setViewType('kanban')}
+          >
+            <FaColumns className="mr-2" /> Vista Tablero
+          </button>
         </div>
 
         {viewType === 'month' ? (
           <MonthlyCalendar />
-        ) : (
+        ) : viewType === 'schedule' ? (
           <ScheduleView onAddEvent={handleAddEvent} />
+        ) : (
+          <KanbanView />
         )}
       </div>
     </DashboardLayout>
