@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
 
 export interface Assignment {
-  id: number;
+  id: string;
   title: string;
   assignedTo: string;
+  assignedToName?: string;
   status: string;
   dueDate: string;
   priority: string;
 }
 
+interface TeamMember {
+  id: string;
+  name: string;
+}
+
 interface AssignmentFormProps {
-  teamMembers: string[];
+  teamMembers: TeamMember[];
   onSave: (assignment: Omit<Assignment, 'id' | 'status'>) => void;
   onCancel: () => void;
 }
@@ -68,8 +74,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             required
           >
             <option value="">Seleccionar miembro</option>
-            {teamMembers.map((member, index) => (
-              <option key={index} value={member}>{member}</option>
+            {teamMembers.map((member) => (
+              <option key={member.id} value={member.id}>{member.name}</option>
             ))}
           </select>
         </div>

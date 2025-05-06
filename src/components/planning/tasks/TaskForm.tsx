@@ -16,6 +16,7 @@ export interface Task extends Omit<DBTask, 'status' | 'due_date' | 'start_date'>
   status: string;
   due_date?: string;
   start_date?: string;
+  is_assigned?: boolean;
 }
 
 interface TaskFormProps {

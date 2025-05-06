@@ -15,7 +15,7 @@ export class TaskService {
   }
 
   /**
-   * Obtiene todas las tareas personales del usuario actual
+   * Obtiene todas las tareas personales del usuario actual y las tareas que le han sido asignadas
    */
   async getUserTasks() {
     if (!this.userId) {
@@ -33,20 +33,129 @@ export class TaskService {
       console.error('Error al obtener perfil del usuario:', profileError);
       return [];
     }
-
-    // Ahora buscamos las tareas asociadas a este perfil
-    const { data, error } = await supabase
+    
+    const profileId = userProfile.id;
+    
+    // 1. Obtenemos las tareas asignadas al usuario actual (donde aparece como asignado)
+    const { data: assignedToUser, error: assignedToUserError } = await supabase
+      .from('task_assignees')
+      .select('task_id')
+      .eq('profile_id', profileId);
+      
+    if (assignedToUserError) {
+      console.error('Error al obtener tareas asignadas al usuario:', assignedToUserError);
+      // Continuamos sin las tareas asignadas
+    }
+    
+    // Creamos un conjunto de IDs de tareas asignadas al usuario
+    const assignedToUserTaskIds = new Set(
+      (assignedToUser || []).map(item => item.task_id)
+    );
+    
+    // 2. Obtenemos todas las tareas asignadas (para identificar cuáles no deben mostrarse)
+    const { data: allAssignments, error: allAssignmentsError } = await supabase
+      .from('task_assignees')
+      .select('task_id, profile_id');
+      
+    if (allAssignmentsError) {
+      console.error('Error al obtener todas las asignaciones:', allAssignmentsError);
+      // Continuamos sin esta información
+    }
+    
+    // Creamos un conjunto de IDs de tareas que han sido asignadas a alguien
+    // (estas no deben mostrarse al creador a menos que él sea el asignado)
+    const assignedTaskIds = new Set(
+      (allAssignments || []).map(item => item.task_id)
+    );
+    
+    // 3. Obtenemos todas las tareas del usuario
+    const { data: userTasks, error: userTasksError } = await supabase
       .from('tasks')
       .select('*')
-      .eq('profile_id', userProfile.id)
+      .eq('profile_id', profileId)
       .order('due_date', { ascending: true });
 
-    if (error) {
-      console.error('Error al obtener tareas del usuario:', error);
+    if (userTasksError) {
+      console.error('Error al obtener tareas del usuario:', userTasksError);
       return [];
     }
-
-    return data as Task[];
+    
+    if (!userTasks || userTasks.length === 0) {
+      // Si no hay tareas propias, obtenemos solo las asignadas
+      if (assignedToUserTaskIds.size === 0) {
+        return [];
+      }
+      
+      // Obtenemos los detalles de las tareas asignadas al usuario
+      const { data: assignedTasks, error: assignedTasksError } = await supabase
+        .from('tasks')
+        .select('*')
+        .in('id', Array.from(assignedToUserTaskIds))
+        .order('due_date', { ascending: true });
+        
+      if (assignedTasksError || !assignedTasks) {
+        console.error('Error al obtener detalles de tareas asignadas:', assignedTasksError);
+        return [];
+      }
+      
+      return assignedTasks.map(task => ({ ...task, is_assigned: true }));
+    }
+    
+    // 4. Filtramos las tareas propias: 
+    // - Incluimos las que NO están asignadas a nadie
+    // - Incluimos las que están asignadas al propio usuario
+    // - Excluimos las que están asignadas a otros usuarios
+    const filteredOwnTasks = userTasks.filter(task => {
+      // Si la tarea está asignada a alguien...
+      if (assignedTaskIds.has(task.id)) {
+        // ...la incluimos solo si está asignada al usuario actual
+        return assignedToUserTaskIds.has(task.id);
+      }
+      // Si no está asignada a nadie, la incluimos
+      return true;
+    });
+    
+    // 5. Obtenemos las tareas asignadas al usuario que no son propias
+    const assignedTaskIdsArray = Array.from(assignedToUserTaskIds);
+    
+    if (assignedTaskIdsArray.length === 0) {
+      // Si no hay tareas asignadas, devolvemos solo las tareas propias filtradas
+      return filteredOwnTasks.map(task => ({
+        ...task,
+        is_assigned: assignedToUserTaskIds.has(task.id)
+      }));
+    }
+    
+    // Obtenemos los detalles de las tareas asignadas al usuario
+    const { data: assignedTasks, error: assignedTasksError } = await supabase
+      .from('tasks')
+      .select('*')
+      .in('id', assignedTaskIdsArray)
+      .not('profile_id', 'eq', profileId) // Excluimos las que ya son propias
+      .order('due_date', { ascending: true });
+      
+    if (assignedTasksError) {
+      console.error('Error al obtener detalles de tareas asignadas:', assignedTasksError);
+      // Devolvemos solo las tareas propias filtradas
+      return filteredOwnTasks.map(task => ({
+        ...task,
+        is_assigned: assignedToUserTaskIds.has(task.id)
+      }));
+    }
+    
+    // 6. Combinamos las tareas propias filtradas y las asignadas
+    const ownTasksWithFlag = filteredOwnTasks.map(task => ({
+      ...task,
+      is_assigned: assignedToUserTaskIds.has(task.id)
+    }));
+    
+    const externalAssignedTasks = (assignedTasks || []).map(task => ({
+      ...task,
+      is_assigned: true
+    }));
+    
+    // Combinamos ambos arrays
+    return [...ownTasksWithFlag, ...externalAssignedTasks];
   }
 
   /**
@@ -197,11 +306,23 @@ export class TaskService {
     if (!this.userId) {
       throw new Error('Usuario no establecido');
     }
+    
+    // Obtener el ID del perfil del usuario que asigna la tarea
+    const { data: userProfile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', this.userId)
+      .single();
+      
+    if (profileError || !userProfile) {
+      console.error('Error al obtener perfil del usuario:', profileError);
+      throw new Error('No se pudo obtener el perfil del usuario');
+    }
 
     const assignee = {
       task_id: taskId,
       profile_id: profileId,
-      assigned_by: this.userId
+      assigned_by: userProfile.id
     };
 
     const { data, error } = await supabase

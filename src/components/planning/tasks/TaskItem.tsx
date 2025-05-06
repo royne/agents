@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaCheck, FaEdit, FaTrash, FaClock, FaCalendarAlt } from 'react-icons/fa';
+import { FaCheck, FaEdit, FaTrash, FaClock, FaCalendarAlt, FaUserPlus } from 'react-icons/fa';
 import { Task } from './TaskForm';
 
 interface TaskItemProps {
@@ -96,6 +96,12 @@ const TaskItem: React.FC<TaskItemProps> = ({
             <span className={`text-xs px-2 py-1 rounded-full ${getPriorityClasses(task.priority)}`}>
               {formatPriority(task.priority)}
             </span>
+            {task.is_assigned && (
+              <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 flex items-center">
+                <FaUserPlus className="mr-1" />
+                Asignada
+              </span>
+            )}
             {task.start_date && (
               <span className="text-xs flex items-center text-theme-secondary">
                 <FaCalendarAlt className="mr-1" /> 

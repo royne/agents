@@ -4,8 +4,8 @@ import { Assignment } from './AssignmentForm';
 
 interface AssignmentTableProps {
   assignments: Assignment[];
-  onChangeStatus: (id: number, newStatus: string) => void;
-  onDelete: (id: number) => void;
+  onChangeStatus: (id: string, newStatus: string) => void;
+  onDelete: (id: string) => void;
 }
 
 const AssignmentTable: React.FC<AssignmentTableProps> = ({
@@ -65,12 +65,7 @@ const AssignmentTable: React.FC<AssignmentTableProps> = ({
             assignments.map(assignment => (
               <tr key={assignment.id} className="border-b border-theme-border hover:bg-theme-component-hover">
                 <td className="py-3 px-4 text-theme-primary">{assignment.title}</td>
-                <td className="py-3 px-4">
-                  <div className="flex items-center">
-                    <FaUserAlt className="mr-2 text-primary-color" />
-                    <span className="text-theme-primary">{assignment.assignedTo}</span>
-                  </div>
-                </td>
+                <td className="py-4 px-4 text-theme-primary">{assignment.assignedToName || assignment.assignedTo}</td>
                 <td className="py-3 px-4">
                   <span className={`text-xs px-2 py-1 rounded-full ${getStatusClasses(assignment.status)}`}>
                     {assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
