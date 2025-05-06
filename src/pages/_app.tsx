@@ -1,6 +1,9 @@
 import type { AppProps } from 'next/app'
 import '../styles/globals.css'
+import '../styles/pomodoro.css'
 import { AppProvider, useAppContext } from '../contexts/AppContext';
+import { PomodoroProvider, usePomodoroContext } from '../contexts/PomodoroContext';
+import MiniPomodoro from '../components/planning/pomodoro/MiniPomodoro';
 import { useRouter, type NextRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
@@ -9,7 +12,9 @@ export default function App({ Component, pageProps }: AppProps) {
 const router = useRouter();
   return (
     <AppProvider>
-      <AuthWrapper {...{Component, pageProps}} router={useRouter()} />
+      <PomodoroProvider>
+        <AuthWrapper {...{Component, pageProps}} router={useRouter()} />
+      </PomodoroProvider>
     </AppProvider>
   );
 }
@@ -22,6 +27,7 @@ interface AuthWrapperProps {
 
 function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
   const { authData, themeConfig } = useAppContext();
+  const { activeTask, isPomodorActive, stopPomodoro } = usePomodoroContext();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -58,6 +64,15 @@ function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
   return (
     <div className="min-h-screen max-h-screen bg-theme-primary text-theme-primary border border-transparent overflow-hidden">
       <Component {...pageProps} />
+      
+      {/* Renderizar el MiniPomodoro cuando hay una tarea activa */}
+      {isPomodorActive && activeTask && (
+        <MiniPomodoro 
+          taskId={activeTask.id}
+          taskTitle={activeTask.title}
+          onClose={stopPomodoro}
+        />
+      )}
     </div>
   );
 

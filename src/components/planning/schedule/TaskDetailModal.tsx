@@ -1,5 +1,6 @@
 import React from 'react';
-import { FaCheck, FaClock, FaExclamation, FaTimes } from 'react-icons/fa';
+import { FaCheck, FaClock, FaExclamation, FaTimes, FaHourglass } from 'react-icons/fa';
+import { usePomodoroContext } from '../../../contexts/PomodoroContext';
 import { Event } from './ScheduleEvent';
 
 interface TaskDetailModalProps {
@@ -15,6 +16,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   onClose,
   onStatusChange
 }) => {
+  const { startPomodoro } = usePomodoroContext();
   if (!isOpen) return null;
   
   // Obtener el color de fondo basado en la prioridad y el estado
@@ -118,6 +120,8 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     
     if (currentStatus === 'todo' || currentStatus === 'pendiente' || currentStatus === 'por hacer') {
       newStatus = 'in progress';
+      // Iniciar pomodoro cuando la tarea pasa a 'en progreso'
+      startPomodoro(event);
     } else if (currentStatus === 'in progress' || currentStatus === 'en progreso' || currentStatus === 'en proceso' || currentStatus === 'progress') {
       newStatus = 'done';
     } else {
@@ -224,6 +228,25 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               Cambiar a: {getNextStatusName()}
             </button>
           )}
+          
+          {/* Botón para iniciar pomodoro directamente */}
+          {(event.status?.toLowerCase() === 'in progress' || 
+            event.status?.toLowerCase() === 'en progreso' || 
+            event.status?.toLowerCase() === 'en proceso' || 
+            event.status?.toLowerCase() === 'progress') && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                startPomodoro(event);
+                onClose();
+              }}
+              className="px-4 py-2 bg-red-800 hover:bg-red-700 text-white rounded-md transition-colors flex items-center gap-2"
+            >
+              <FaHourglass size={14} />
+              Iniciar Pomodoro
+            </button>
+          )}
+          
           <button 
             onClick={(e) => {
               e.stopPropagation();

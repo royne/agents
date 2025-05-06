@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaCheck, FaClock, FaExclamation } from 'react-icons/fa';
 import TaskDetailModal from './TaskDetailModal';
+import { usePomodoroContext } from '../../../contexts/PomodoroContext';
 
 export interface Event {
   id: string;
@@ -26,6 +27,7 @@ interface ScheduleEventProps {
 
 const ScheduleEvent: React.FC<ScheduleEventProps> = ({ event, duration, onStatusChange, onEventClick }) => {
   const [showModal, setShowModal] = useState(false);
+  const { startPomodoro } = usePomodoroContext();
 
   // Obtener el estado formateado
   const getStatusDisplay = () => {
@@ -90,6 +92,8 @@ const ScheduleEvent: React.FC<ScheduleEventProps> = ({ event, duration, onStatus
     
     if (currentStatus === 'todo' || currentStatus === 'pendiente' || currentStatus === 'por hacer') {
       newStatus = 'in progress';
+      // Iniciar pomodoro cuando la tarea pasa a 'en progreso'
+      startPomodoro(event);
     } else if (currentStatus === 'in progress' || currentStatus === 'en progreso' || currentStatus === 'en proceso' || currentStatus === 'progress') {
       newStatus = 'done';
     } else {

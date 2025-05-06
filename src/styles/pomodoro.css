@@ -1,0 +1,73 @@
+/* Estilos para el pomodoro con apariencia retro LED */
+.led-display {
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 0 5px rgba(255, 0, 0, 0.7);
+  letter-spacing: 2px;
+  font-weight: bold;
+}
+
+.mini-pomodoro {
+  animation: slideIn 0.3s ease-out;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+  background: radial-gradient(circle, #1a1a1a 0%, #000000 100%);
+}
+
+@keyframes slideIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.mini-pomodoro-button {
+  transition: all 0.2s ease;
+}
+
+.mini-pomodoro-button:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+.led-glow {
+  animation: glow 1.5s ease-in-out infinite alternate;
+  position: relative;
+}
+
+.led-glow::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+  z-index: -1;
+  animation: pulse 2s infinite;
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 0 0 5px rgba(255, 0, 0, 0.7);
+  }
+  to {
+    text-shadow: 0 0 10px rgba(255, 0, 0, 1), 0 0 15px rgba(255, 0, 0, 0.8);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+  }
+}
