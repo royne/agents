@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FaCheck, FaClock, FaExclamation } from 'react-icons/fa';
+import TaskDetailModal from './TaskDetailModal';
 
 export interface Event {
   id: string;
@@ -20,9 +21,12 @@ interface ScheduleEventProps {
   event: Event;
   duration: number;
   onStatusChange?: (taskId: string, newStatus: string) => void;
+  onEventClick?: (event: Event) => void;
 }
 
-const ScheduleEvent: React.FC<ScheduleEventProps> = ({ event, duration, onStatusChange }) => {
+const ScheduleEvent: React.FC<ScheduleEventProps> = ({ event, duration, onStatusChange, onEventClick }) => {
+  const [showModal, setShowModal] = useState(false);
+
   // Obtener el estado formateado
   const getStatusDisplay = () => {
     if (!event.status) return null;
@@ -147,58 +151,90 @@ const ScheduleEvent: React.FC<ScheduleEventProps> = ({ event, duration, onStatus
     return 'Por hacer';
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Evitar que se propague el clic si fue en el ícono de estado
+    if ((e.target as HTMLElement).closest('.status-icon')) {
+      return;
+    }
+    
+    setShowModal(true);
+    if (onEventClick) {
+      onEventClick(event);
+    }
+  };
+  
+  const closeModal = () => {
+    setShowModal(false);
+  };
+
   return (
-    <div className={`${getCardColor()} h-full rounded-md overflow-hidden shadow-lg`}>
-      {/* Barra superior con título y botón de estado */}
-      <div className="px-3 py-2 flex justify-between items-center bg-black bg-opacity-20 border-b border-black border-opacity-10">
-        <div className="font-medium text-white truncate text-sm">{event.title}</div>
-        {onStatusChange && (
-          <button 
-            onClick={handleStatusChange}
-            className="ml-1 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-1 transition-colors"
-            title={`Cambiar a: ${getStatusName()}`}
-          >
-            {getStatusIcon()}
-          </button>
-        )}
-      </div>
-      
-      {/* Contenido principal */}
-      <div className="p-2 flex flex-col h-full text-white">
-        {/* Descripción - ahora con mayor legibilidad */}
-        {event.description && (
-          <div className="text-white text-opacity-90 text-xs mb-2 bg-black bg-opacity-20 p-1.5 rounded">
-            {event.description}
-          </div>
-        )}
-        
-        {/* Etiquetas de estado y prioridad */}
-        <div className="mt-auto pt-1 flex flex-wrap gap-1.5">
-          {/* Indicador visual de estado actual */}
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-1.5">
-              {getPriorityDisplay()}
-              
-              {/* Asignado a */}
-              {event.is_assigned && event.assigned_to_name && (
-                <span className="bg-white bg-opacity-20 text-[10px] px-2 py-0.5 rounded-full flex items-center">
-                  <svg className="w-2.5 h-2.5 mr-1 opacity-70" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
-                  {event.assigned_to_name}
-                </span>
-              )}
-            </div>
-            
-            {/* Indicador de estado con borde brillante para mayor visibilidad */}
-            <div className="bg-white bg-opacity-10 border border-white border-opacity-30 rounded-full px-2 py-0.5 text-[10px] font-medium flex items-center shadow-sm">
+    <>
+      <div 
+        className={`${getCardColor()} h-full rounded-md overflow-hidden shadow-lg cursor-pointer`}
+        onClick={handleCardClick}
+      >
+        {/* Barra superior con título y botón de estado */}
+        <div className="px-3 py-2 flex justify-between items-center bg-black bg-opacity-20 border-b border-black border-opacity-10">
+          <div className="font-medium text-white truncate text-sm">{event.title}</div>
+          {onStatusChange && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation(); // Evitar que se propague al div padre
+                handleStatusChange();
+              }}
+              className="ml-1 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-1 transition-colors status-icon"
+              title={`Cambiar a: ${getStatusName()}`}
+            >
               {getStatusIcon()}
-              <span className="ml-1">{getStatusName()}</span>
+            </button>
+          )}
+        </div>
+        
+        {/* Contenido principal */}
+        <div className="p-2 flex flex-col h-full text-white">
+          {/* Descripción - ahora con mayor legibilidad */}
+          {event.description && (
+            <div className="text-white text-opacity-90 text-xs mb-2 bg-black bg-opacity-20 p-1.5 rounded">
+              {event.description}
+            </div>
+          )}
+          
+          {/* Etiquetas de estado y prioridad */}
+          <div className="mt-auto pt-1 flex flex-wrap gap-1.5">
+            {/* Indicador visual de estado actual */}
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-1.5">
+                {getPriorityDisplay()}
+                
+                {/* Asignado a */}
+                {event.is_assigned && event.assigned_to_name && (
+                  <span className="bg-white bg-opacity-20 text-[10px] px-2 py-0.5 rounded-full flex items-center">
+                    <svg className="w-2.5 h-2.5 mr-1 opacity-70" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                    </svg>
+                    {event.assigned_to_name}
+                  </span>
+                )}
+              </div>
+              
+              {/* Indicador de estado con borde brillante para mayor visibilidad */}
+              <div className="bg-white bg-opacity-10 border border-white border-opacity-30 rounded-full px-2 py-0.5 text-[10px] font-medium flex items-center shadow-sm">
+                {getStatusIcon()}
+                <span className="ml-1">{getStatusName()}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+      
+      {/* Modal de detalle de tarea usando el componente separado */}
+      <TaskDetailModal 
+        event={event}
+        isOpen={showModal}
+        onClose={closeModal}
+        onStatusChange={onStatusChange}
+      />
+    </>
   );
 };
 
