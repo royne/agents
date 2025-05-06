@@ -3,18 +3,14 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 interface ScheduleHeaderProps {
   currentDate: Date;
-  viewMode: 'day' | 'week' | 'month';
   onPrevDay: () => void;
   onNextDay: () => void;
-  onViewModeChange: (mode: 'day' | 'week' | 'month') => void;
 }
 
 const ScheduleHeader: React.FC<ScheduleHeaderProps> = ({
   currentDate,
-  viewMode,
   onPrevDay,
-  onNextDay,
-  onViewModeChange
+  onNextDay
 }) => {
   // Formatear la fecha actual
   const formatDate = (date: Date): string => {
@@ -27,46 +23,26 @@ const ScheduleHeader: React.FC<ScheduleHeaderProps> = ({
   };
 
   return (
-    <div className="flex justify-between items-center mb-6">
-      <div className="flex items-center space-x-2">
-        <button 
-          onClick={onPrevDay}
-          className="p-2 rounded-full bg-theme-component-hover hover:bg-primary-color hover:text-white transition-colors"
-          aria-label="Día anterior"
-        >
-          <FaChevronLeft />
-        </button>
-        <h2 className="text-xl font-bold text-theme-primary">
-          {formatDate(currentDate)}
-        </h2>
-        <button 
-          onClick={onNextDay}
-          className="p-2 rounded-full bg-theme-component-hover hover:bg-primary-color hover:text-white transition-colors"
-          aria-label="Día siguiente"
-        >
-          <FaChevronRight />
-        </button>
-      </div>
-      <div className="flex space-x-1 bg-theme-component-hover rounded-md overflow-hidden">
-        <button 
-          onClick={() => onViewModeChange('day')}
-          className={`px-3 py-1 text-sm ${viewMode === 'day' ? 'bg-primary-color text-white' : 'text-theme-secondary hover:text-theme-primary'}`}
-        >
-          día
-        </button>
-        <button 
-          onClick={() => onViewModeChange('week')}
-          className={`px-3 py-1 text-sm ${viewMode === 'week' ? 'bg-primary-color text-white' : 'text-theme-secondary hover:text-theme-primary'}`}
-        >
-          semana
-        </button>
-        <button 
-          onClick={() => onViewModeChange('month')}
-          className={`px-3 py-1 text-sm ${viewMode === 'month' ? 'bg-primary-color text-white' : 'text-theme-secondary hover:text-theme-primary'}`}
-        >
-          mes
-        </button>
-      </div>
+    <div className="flex items-center justify-center">
+      <button 
+        onClick={onPrevDay}
+        className="p-2 rounded-full text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+        aria-label="Día anterior"
+      >
+        <FaChevronLeft size={16} />
+      </button>
+      
+      <h2 className="mx-4 text-xl font-bold text-white">
+        {formatDate(currentDate)}
+      </h2>
+      
+      <button 
+        onClick={onNextDay}
+        className="p-2 rounded-full text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+        aria-label="Día siguiente"
+      >
+        <FaChevronRight size={16} />
+      </button>
     </div>
   );
 };

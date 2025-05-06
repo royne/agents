@@ -15,119 +15,208 @@ interface ScheduleGridProps {
   events: Event[];
   currentDate: Date;
   onAddEvent?: (roomId: string, hour: string) => void;
+  onTaskStatusChange?: (taskId: string, newStatus: string) => void;
+  onTaskMove?: (taskId: string, newRoomId: string, newStartTime: string) => void;
 }
 
 const ScheduleGrid: React.FC<ScheduleGridProps> = ({
   rooms,
   events,
   currentDate,
-  onAddEvent
+  onAddEvent,
+  onTaskStatusChange,
+  onTaskMove
 }) => {
   // Función para manejar el movimiento de eventos
   const handleEventMove = (event: Event, targetRoomId: string, targetHour: string) => {
-    // Aquí implementaríamos la lógica para mover el evento
-    // Por ahora, simplemente mostramos un mensaje en la consola
-    console.log(`Moviendo evento ${event.id} a sala ${targetRoomId} a las ${targetHour}`);
-    
-    // Si tuviéramos una función para actualizar eventos, la llamaríamos aquí
-    // updateEvent(event.id, { roomId: targetRoomId, startTime: newStartTime, endTime: newEndTime });
+    if (onTaskMove) {
+      onTaskMove(event.id, targetRoomId, targetHour);
+    }
   };
-  // Generar las horas del día (de 6am a 6pm)
-  const hours = Array.from({ length: 12 }, (_, i) => {
-    const hour = i + 6; // Empezamos desde las 6am
-    return `${hour}${hour === 12 ? 'pm' : 'am'}`;
-  });
 
-  // Verificar si hay un evento en una hora y sala específica
+  // Generar las horas del día para cada sección (mañana, tarde, noche)
+  const getHoursForSection = (roomId: string) => {
+    switch (roomId) {
+      case 'morning':
+        return Array.from({ length: 5 }, (_, i) => {
+          const hour = i + 7; // 7am a 11am
+          return `${hour.toString().padStart(2, '0')}:00`;
+        });
+      case 'afternoon':
+        return Array.from({ length: 6 }, (_, i) => {
+          const hour = i + 12; // 12pm a 5pm
+          return `${hour.toString().padStart(2, '0')}:00`;
+        });
+      case 'evening':
+        return Array.from({ length: 6 }, (_, i) => {
+          const hour = i + 18; // 6pm a 11pm
+          return `${hour.toString().padStart(2, '0')}:00`;
+        });
+      default:
+        return [];
+    }
+  };
+
+  // Formatear la fecha para comparar con los eventos
+  const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+
+  // Verificar si hay un evento para una celda específica
   const getEventForCell = (roomId: string, hour: string): Event | undefined => {
-    const hourNum = parseInt(hour.replace('am', '').replace('pm', ''));
-    const adjustedHour = hour.includes('pm') && hourNum !== 12 ? hourNum + 12 : hourNum;
-    const timeStr = adjustedHour.toString().padStart(2, '0') + ':00';
-    
-    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
-    
+    const [hourStr] = hour.split(':');
+    const adjustedHour = parseInt(hourStr, 10);
+
     return events.find(event => {
-      const eventStartHour = parseInt(event.startTime.split(':')[0]);
-      const eventEndHour = parseInt(event.endTime.split(':')[0]);
-      return event.roomId === roomId && 
-             event.date === dateStr && 
-             eventStartHour <= adjustedHour && 
-             eventEndHour > adjustedHour;
+      if (event.date !== dateStr || event.roomId !== roomId) {
+        return false;
+      }
+
+      const [eventStartHourStr] = event.startTime.split(':');
+      const [eventEndHourStr] = event.endTime.split(':');
+
+      const eventStartHour = parseInt(eventStartHourStr, 10);
+      const eventEndHour = parseInt(eventEndHourStr, 10);
+
+      return eventStartHour <= adjustedHour && eventEndHour > adjustedHour;
     });
   };
 
-  // Calcular la duración del evento en horas
-  const getEventDuration = (event: Event): number => {
-    const startHour = parseInt(event.startTime.split(':')[0]);
-    const endHour = parseInt(event.endTime.split(':')[0]);
-    return endHour - startHour;
+  // Obtener la columna de inicio para un evento
+  const getEventStartColumn = (event: Event, roomId: string): number => {
+    const hoursForSection = getHoursForSection(roomId);
+    const [eventStartHourStr] = event.startTime.split(':');
+    const eventStartHour = parseInt(eventStartHourStr, 10);
+
+    return hoursForSection.findIndex(hour => {
+      const [hourStr] = hour.split(':');
+      return parseInt(hourStr, 10) === eventStartHour;
+    });
   };
 
-  // Calcular la posición de inicio del evento (en qué columna comienza)
-  const getEventStartColumn = (event: Event): number => {
-    const startHour = parseInt(event.startTime.split(':')[0]);
-    return startHour - 6; // Restamos 6 porque nuestra primera columna es 6am
+  // Calcular la duración de un evento en términos de columnas
+  const getEventDuration = (event: Event, roomId: string): number => {
+    const hoursForSection = getHoursForSection(roomId);
+    const [eventStartHourStr] = event.startTime.split(':');
+    const [eventEndHourStr] = event.endTime.split(':');
+
+    const eventStartHour = parseInt(eventStartHourStr, 10);
+    const eventEndHour = parseInt(eventEndHourStr, 10);
+
+    // Encontrar el índice de inicio y fin en las horas de la sección
+    const startIdx = hoursForSection.findIndex(hour => {
+      const [hourStr] = hour.split(':');
+      return parseInt(hourStr, 10) === eventStartHour;
+    });
+
+    const endIdx = hoursForSection.findIndex(hour => {
+      const [hourStr] = hour.split(':');
+      return parseInt(hourStr, 10) === eventEndHour;
+    });
+
+    // Si no se encontró el índice de fin, usar la longitud del array
+    const actualEndIdx = endIdx === -1 ? hoursForSection.length : endIdx;
+
+    // Calcular la duración (mínimo 1 columna)
+    return Math.max(1, actualEndIdx - startIdx);
+  };
+
+  // Manejar el drop de un evento
+  const handleDrop = (event: Event, targetRoomId: string, targetHour: string) => {
+    handleEventMove(event, targetRoomId, targetHour);
   };
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse rounded-lg overflow-hidden shadow-md dark:shadow-gray-800">
-          <thead>
-          <tr className="bg-theme-component-hover bg-opacity-40 dark:bg-opacity-20">
-            <th className="border-b border-gray-200 dark:border-gray-700 border-opacity-50 dark:border-opacity-40 p-3 text-left text-theme-secondary font-semibold w-32">Salas</th>
-            {hours.map(hour => (
-              <th key={hour} className="border-b border-gray-200 dark:border-gray-700 border-opacity-50 dark:border-opacity-40 p-3 text-center text-theme-secondary font-semibold min-w-[80px]">
-                {hour}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rooms.map(room => (
-            <tr key={room.id} className="hover:bg-theme-component-hover transition-all duration-200">
-              <td className="border-r border-gray-200 dark:border-gray-700 p-3 text-theme-primary font-medium">
-                {room.name}
-              </td>
-              {hours.map((hour, hourIndex) => {
-                const event = getEventForCell(room.id, hour);
-                
-                // Si hay un evento que comienza en esta celda
-                if (event && getEventStartColumn(event) === hourIndex) {
-                  const duration = getEventDuration(event);
-                  return (
-                    <td 
-                      key={`${room.id}-${hour}`} 
-                      className={`p-0 relative`}
-                      colSpan={duration}
-                    >
-                      <DraggableScheduleEvent event={event} duration={duration} />
-                    </td>
-                  );
-                } 
-                // Si esta celda está ocupada por un evento que comenzó antes
-                else if (event && getEventStartColumn(event) < hourIndex) {
-                  return null; // No renderizamos nada, ya que está cubierto por el colSpan
-                } 
-                // Celda vacía
-                else {
-                  return (
-                    <td key={`${room.id}-${hour}`} className="p-0">
-                      <DroppableScheduleCell
-                        roomId={room.id}
-                        hour={hour}
-                        onDrop={handleEventMove}
-                        onAddEvent={onAddEvent}
-                      />
-                    </td>
-                  );
-                }
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+      <div className="space-y-6">
+        {rooms.map(room => {
+          const hoursForSection = getHoursForSection(room.id);
+          
+          return (
+            <div key={room.id} className="bg-gray-700 rounded-lg overflow-hidden shadow-lg">
+              {/* Encabezado de la sección */}
+              <div className="bg-gray-600 px-4 py-3 border-b border-gray-500">
+                <h3 className="text-base font-medium text-white">{room.name}</h3>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  {/* Encabezados de horas */}
+                  <thead>
+                    <tr className="bg-gray-800">
+                      {hoursForSection.map(hour => {
+                        // Formatear la hora para mostrarla de forma más amigable
+                        const [hourStr] = hour.split(':');
+                        const hourNum = parseInt(hourStr);
+                        const formattedHour = hourNum > 12 
+                          ? `${hourNum - 12}:00 PM` 
+                          : hourNum === 12 
+                            ? '12:00 PM' 
+                            : `${hourNum}:00 AM`;
+                            
+                        return (
+                          <th 
+                            key={hour} 
+                            className="p-3 text-center text-xs font-medium text-gray-300 border-b border-gray-600"
+                          >
+                            {formattedHour}
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+                  
+                  {/* Celdas de eventos */}
+                  <tbody>
+                    <tr>
+                      {hoursForSection.map((hour, hourIndex) => {
+                        const event = getEventForCell(room.id, hour);
+                        
+                        // Si hay un evento que comienza en esta celda
+                        if (event && getEventStartColumn(event, room.id) === hourIndex) {
+                          const duration = getEventDuration(event, room.id);
+                          return (
+                            <td 
+                              key={`${room.id}-${hour}`} 
+                              className="p-0 relative"
+                              colSpan={duration}
+                            >
+                              <DraggableScheduleEvent 
+                                event={event} 
+                                duration={duration} 
+                                onStatusChange={onTaskStatusChange}
+                                onMove={handleEventMove}
+                              />
+                            </td>
+                          );
+                        } 
+                        // Si esta celda está ocupada por un evento que comenzó antes
+                        else if (event && getEventStartColumn(event, room.id) < hourIndex) {
+                          return null; // No renderizamos nada, ya que está cubierto por el colSpan
+                        } 
+                        // Si no hay evento, mostrar una celda vacía donde se pueden soltar eventos
+                        else {
+                          return (
+                            <td 
+                              key={`${room.id}-${hour}`} 
+                              className="p-0 h-24 border border-gray-600 relative hover:bg-gray-600/30 transition-colors duration-200"
+                            >
+                              <DroppableScheduleCell 
+                                roomId={room.id} 
+                                hour={hour} 
+                                onDrop={handleDrop}
+                                onAddEvent={onAddEvent}
+                              />
+                            </td>
+                          );
+                        }
+                      })}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </DndProvider>
   );
 };

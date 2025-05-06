@@ -45,12 +45,11 @@ const DroppableScheduleCell: React.FC<DroppableScheduleCellProps> = ({
   
   // Calcular clases CSS basadas en el estado
   const cellClasses = `
-    p-1 text-center relative group
-    ${isOver && canDrop ? 'bg-primary-color bg-opacity-20' : 'bg-theme-component bg-opacity-30 dark:bg-opacity-10 hover:bg-opacity-40 dark:hover:bg-opacity-20'}
+    w-full h-full p-2 text-center relative group
+    ${isOver && canDrop ? 'bg-blue-500 bg-opacity-20' : ''}
     ${canDrop ? 'cursor-pointer' : ''}
     transition-all duration-200
-    border border-gray-200 dark:border-gray-700 border-opacity-40 dark:border-opacity-30
-    shadow-inner shadow-gray-100 dark:shadow-gray-900 dark:shadow-opacity-20
+    hover:bg-gray-600 hover:bg-opacity-20
   `;
 
   // Manejar clic para añadir evento
@@ -64,8 +63,15 @@ const DroppableScheduleCell: React.FC<DroppableScheduleCellProps> = ({
     <div ref={ref} className={cellClasses} onClick={handleClick}>
       {children || (
         <div className="invisible group-hover:visible absolute inset-0 flex items-center justify-center">
-          <FaPlus className="text-primary-color opacity-70" />
+          <div className="bg-blue-500 bg-opacity-20 hover:bg-opacity-30 rounded-full p-1.5 transition-colors">
+            <FaPlus className="text-white" size={12} />
+          </div>
         </div>
+      )}
+      
+      {/* Indicador visual cuando se está arrastrando sobre la celda */}
+      {isOver && canDrop && (
+        <div className="absolute inset-0 border-2 border-blue-500 border-dashed rounded-sm pointer-events-none"></div>
       )}
     </div>
   );
