@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaPlay, FaPause, FaRedo, FaTimes } from 'react-icons/fa';
-import '../../../styles/pomodoro.css';
 
 interface MiniPomodoroProps {
   taskId: string;
