@@ -50,18 +50,16 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({ events: propEvents = 
   useEffect(() => {
     const loadTasks = async () => {
       if (!authData?.isAuthenticated || !authData?.company_id) {
-        console.log('Usuario no autenticado o sin compañía');
         return;
       }
       
       try {
         setLoading(true);
-        console.log('Cargando tareas...');
+
         
         // Obtener el ID del usuario actual desde Supabase
         const { data: { user } } = await supabase.auth.getUser();
         if (!user || !authData.company_id) {
-          console.log('No se pudo obtener el usuario o la compañía');
           return;
         }
         
@@ -73,19 +71,19 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({ events: propEvents = 
         try {
           if (showTeamTasks) {
             tasksData = await taskService.getTeamTasks() || [];
-            console.log('Tareas del equipo cargadas:', tasksData.length);
+
           } else {
             tasksData = await taskService.getUserTasks() || [];
-            console.log('Tareas personales cargadas:', tasksData.length);
+
           }
         } catch (error) {
-          console.error('Error al cargar tareas:', error);
+
           tasksData = [];
         }
         
         // Asegurarse de que tasksData es un array
         if (!Array.isArray(tasksData)) {
-          console.warn('tasksData no es un array, estableciendo como array vacío');
+
           tasksData = [];
         }
         
@@ -101,7 +99,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({ events: propEvents = 
                 dates.push(date);
               }
             } catch (e) {
-              console.warn('Error al parsear fecha de tarea:', task.due_date);
+
             }
           }
           if (task.start_date) {
@@ -111,7 +109,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({ events: propEvents = 
                 dates.push(date);
               }
             } catch (e) {
-              console.warn('Error al parsear fecha de tarea:', task.start_date);
+
             }
           }
         });
@@ -141,7 +139,7 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({ events: propEvents = 
               return currentDiff < closestDiff ? date : closest;
             }, dates[0]);
             
-            console.log('Ajustando calendario al mes de la tarea más cercana:', closestDate.toISOString());
+
             setCurrentDate(new Date(closestDate));
           }
         }
@@ -385,42 +383,63 @@ const MonthlyCalendar: React.FC<MonthlyCalendarProps> = ({ events: propEvents = 
       eventsByMonth[monthKey] = (eventsByMonth[monthKey] || 0) + 1;
     }
   });
-  console.log('Eventos por mes:', eventsByMonth);
+
+
+  // Función para crear un nuevo evento (se implementaría según necesidades)
+  const handleNewEvent = () => {
+
+    // Aquí se implementaría la lógica para abrir un modal de creación de evento
+  };
 
   return (
     <CalendarProvider initialEvents={formattedEvents}>
-      <div className="bg-theme-component p-6 rounded-lg shadow-md">
-        <div className="flex justify-between items-center mb-4">
-          <CalendarHeader 
-            month={month} 
-            year={year} 
-            onPrevMonth={prevMonth} 
-            onNextMonth={nextMonth} 
-          />
-          <div className="flex flex-col items-end space-y-2">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-theme-secondary">
-                {showTeamTasks ? 'Tareas del equipo' : 'Mis tareas'}
-              </span>
-              <Switch 
-                checked={showTeamTasks}
-                onChange={() => {
-                  console.log('Cambiando a', !showTeamTasks ? 'tareas del equipo' : 'tareas personales');
-                  setShowTeamTasks(!showTeamTasks);
-                }}
-                label=""
-              />
+      <div className="bg-theme-component p-6 rounded-lg shadow-md h-full flex flex-col">
+        {/* Encabezado con navegación y controles */}
+        <div className="flex flex-col space-y-4 mb-6">
+          <div className="flex flex-col md:flex-row justify-between w-full">
+            <CalendarHeader 
+              month={month} 
+              year={year} 
+              onPrevMonth={prevMonth} 
+              onNextMonth={nextMonth}
+              onNewEvent={handleNewEvent}
+            />
+          </div>
+          
+          <div className="flex flex-wrap justify-between items-center gap-3 bg-theme-component-hover p-3 rounded-lg shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-theme-component px-3 py-1.5 rounded-lg">
+                <span className="text-sm text-theme-secondary">
+                  {showTeamTasks ? 'Tareas del equipo' : 'Mis tareas'}
+                </span>
+                <Switch 
+                  checked={showTeamTasks}
+                  onChange={() => {
+                    setShowTeamTasks(!showTeamTasks);
+                  }}
+                  label=""
+                />
+              </div>
+              
+              {loading && (
+                <div className="flex items-center gap-2 bg-theme-component px-3 py-1.5 rounded-lg">
+                  <div className="animate-pulse h-3 w-3 rounded-full bg-primary-color"></div>
+                  <span className="text-sm text-theme-secondary">Cargando...</span>
+                </div>
+              )}
             </div>
-            {loading && <span className="text-xs text-theme-secondary">Cargando...</span>}
-            <div className="text-xs text-theme-secondary">
-              {formattedEvents.length} eventos en el calendario
+            
+            <div className="text-sm text-theme-secondary bg-theme-component px-3 py-1.5 rounded-lg">
+              {formattedEvents.length} {formattedEvents.length === 1 ? 'evento' : 'eventos'} en el calendario
             </div>
           </div>
         </div>
         
-        {/* Envolver el calendario en un div con clave para forzar re-renderizado */}
-        <div key={`calendar-${month}-${year}-${showTeamTasks ? 'team' : 'personal'}`}>
-          <CalendarGrid year={year} month={month} events={formattedEvents} />
+        {/* Contenedor principal del calendario */}
+        <div className="flex-grow overflow-auto">
+          <div key={`calendar-${month}-${year}-${showTeamTasks ? 'team' : 'personal'}`}>
+            <CalendarGrid year={year} month={month} events={formattedEvents} />
+          </div>
         </div>
       </div>
     </CalendarProvider>

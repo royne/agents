@@ -33,12 +33,8 @@ const DroppableCell: React.FC<DroppableCellProps> = ({
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: ItemTypes.EVENT,
     drop: (item: DragItem) => {
-      try {
-        if (item && item.event && date) {
-          onDrop(item.event, date, roomId);
-        }
-      } catch (error) {
-        console.error('Error en drop:', error);
+      if (item && item.event && date) {
+        onDrop(item.event, date, roomId);
       }
       return { dropped: true };
     },

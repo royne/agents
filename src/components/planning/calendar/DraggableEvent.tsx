@@ -44,12 +44,8 @@ const DraggableEvent: React.FC<DraggableEventProps> = ({
   const [{ isOver }, drop] = useDrop({
     accept: ItemTypes.EVENT,
     drop: (item: DragItem) => {
-      try {
-        if (targetDate && item.event && item.event.id !== event.id) {
-          onMove(item.event, targetDate, targetRoomId);
-        }
-      } catch (error) {
-        console.error('Error en drop de DraggableEvent:', error);
+      if (targetDate && item.event && item.event.id !== event.id) {
+        onMove(item.event, targetDate, targetRoomId);
       }
     },
     collect: (monitor) => ({

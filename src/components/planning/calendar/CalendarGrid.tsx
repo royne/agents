@@ -18,9 +18,7 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({ year, month, events: propEv
   // Usar eventos del contexto si no se proporcionan como props
   const events = propEvents || contextEvents || [];
   
-  // Log para depurar eventos
-  console.log('CalendarGrid - Eventos disponibles:', events?.length || 0, 'eventos');
-  console.log('CalendarGrid - Mes actual:', month + 1, 'Año:', year);
+
   // Función para obtener los días del mes actual
   const getDaysInMonth = (year: number, month: number): number => {
     return new Date(year, month + 1, 0).getDate();
