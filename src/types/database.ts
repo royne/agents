@@ -107,6 +107,57 @@ export interface UserCarrier {
   updated_at?: Date
 }
 
+export interface Project {
+  id: string;
+  company_id: string;
+  name: string;
+  description?: string;
+  start_date?: Date;
+  end_date?: Date;
+  status?: string;
+  created_by?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  project_id?: string;
+  profile_id?: string;
+  status?: string;
+  priority?: string;
+  start_date?: Date;
+  due_date?: Date;
+  completed_at?: Date;
+  created_by?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface TaskAssignee {
+  id: string;
+  task_id: string;
+  profile_id: string;
+  assigned_at: Date;
+  assigned_by?: string;
+}
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string;
+  start_time: Date;
+  end_time: Date;
+  location?: string;
+  task_id?: string;
+  project_id?: string;
+  profile_id: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -169,6 +220,26 @@ export interface Database {
         Row: ScriptEmbeddingRecord;
         Insert: Omit<ScriptEmbeddingRecord, 'id' | 'created_at'>;
         Update: Partial<Omit<ScriptEmbeddingRecord, 'id' | 'created_at'>>;
+      };
+      projects: {
+        Row: Project;
+        Insert: Omit<Project, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Project, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      tasks: {
+        Row: Task;
+        Insert: Omit<Task, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Task, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      task_assignees: {
+        Row: TaskAssignee;
+        Insert: Omit<TaskAssignee, 'id' | 'assigned_at'>;
+        Update: Partial<Omit<TaskAssignee, 'id' | 'assigned_at'>>;
+      };
+      calendar_events: {
+        Row: CalendarEvent;
+        Insert: Omit<CalendarEvent, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<CalendarEvent, 'id' | 'created_at' | 'updated_at'>>;
       };
     };
     Functions: {
