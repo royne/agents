@@ -43,6 +43,33 @@ body {
   color: var(--text-primary);
 }
 
+/* Estilos personalizados para la barra de desplazamiento */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--primary-color);
+  border-radius: 20px;
+  opacity: 0.5;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary-color);
+  opacity: 0.8;
+}
+
+/* Ocultar la barra de desplazamiento cuando no se usa */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) transparent;
+}
+
 /* Clases de utilidad para usar las variables de color */
 .bg-theme-primary {
   background-color: var(--bg-primary) !important;

@@ -9,6 +9,11 @@ export interface CalendarEvent {
   roomId?: string;
   color?: string;
   description?: string;
+  // Propiedades adicionales para tareas
+  priority?: 'high' | 'medium' | 'low';
+  is_assigned?: boolean;
+  assigned_to?: any;
+  owner_name?: string;
 }
 
 interface CalendarContextType {
@@ -42,15 +47,51 @@ export const CalendarProvider: React.FC<CalendarProviderProps> = ({
   children, 
   initialEvents = [] 
 }) => {
-  const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
+  // Validar y corregir eventos iniciales
+  const validatedInitialEvents = initialEvents.filter(event => {
+    // Verificar que las fechas son válidas
+    const hasValidStart = event.start instanceof Date && !isNaN(event.start.getTime());
+    const hasValidEnd = event.end instanceof Date && !isNaN(event.end.getTime());
+    
+    if (!hasValidStart || !hasValidEnd) {
+      console.error('Evento con fechas inválidas excluido:', event);
+      return false;
+    }
+    
+    return true;
+  });
+  
+  console.log('CalendarProvider - Eventos iniciales válidos:', validatedInitialEvents.length);
+  
+  const [events, setEvents] = useState<CalendarEvent[]>(validatedInitialEvents);
 
   // Función para añadir un nuevo evento
   const addEvent = (eventData: Omit<CalendarEvent, 'id'>) => {
+    // Validar que las fechas son válidas
+    if (!(eventData.start instanceof Date) || isNaN(eventData.start.getTime())) {
+      console.error('Intento de añadir evento con fecha de inicio inválida:', eventData);
+      return null;
+    }
+    
+    if (!(eventData.end instanceof Date) || isNaN(eventData.end.getTime())) {
+      console.error('Intento de añadir evento con fecha de fin inválida:', eventData);
+      return null;
+    }
+    
     const newEvent: CalendarEvent = {
       ...eventData,
       id: Date.now().toString(),
     };
+    
+    console.log('Añadiendo nuevo evento:', {
+      id: newEvent.id,
+      title: newEvent.title,
+      start: newEvent.start.toISOString(),
+      end: newEvent.end.toISOString()
+    });
+    
     setEvents(prevEvents => [...prevEvents, newEvent]);
+    return newEvent;
   };
 
   // Función para actualizar un evento existente
@@ -69,35 +110,43 @@ export const CalendarProvider: React.FC<CalendarProviderProps> = ({
 
   // Función para mover un evento (cambiar fecha/hora y posiblemente sala)
   const moveEvent = (id: string, newStart: Date, newEnd?: Date, newRoomId?: string) => {
-    console.log('moveEvent called:', { id, newStart, newEnd, newRoomId });
+    // Validar que las fechas son válidas
+    if (!(newStart instanceof Date) || isNaN(newStart.getTime())) {
+      console.error('Intento de mover evento con fecha de inicio inválida:', { id, newStart });
+      return;
+    }
+    
+    if (newEnd && (!(newEnd instanceof Date) || isNaN(newEnd.getTime()))) {
+      console.error('Intento de mover evento con fecha de fin inválida:', { id, newEnd });
+      return;
+    }
     
     setEvents(prevEvents => {
-      const updatedEvents = prevEvents.map(event => {
-        if (event.id === id) {
-          // Calcular la duración del evento original
-          const duration = event.end.getTime() - event.start.getTime();
-          
-          // Si no se proporciona una nueva hora de finalización, calcularla basada en la duración original
-          const updatedEnd = newEnd || new Date(newStart.getTime() + duration);
-          
-          const updatedEvent = {
-            ...event,
-            start: newStart,
-            end: updatedEnd,
-            roomId: newRoomId !== undefined ? newRoomId : event.roomId
-          };
-          
-          console.log('Event updated:', { 
-            before: { start: event.start, end: event.end, roomId: event.roomId },
-            after: { start: updatedEvent.start, end: updatedEvent.end, roomId: updatedEvent.roomId }
-          });
-          
-          return updatedEvent;
-        }
-        return event;
+      return prevEvents.map(event => {
+        if (event.id !== id) return event;
+        
+        // Calcular la duración del evento original
+        const duration = event.end.getTime() - event.start.getTime();
+        
+        // Si no se proporciona una nueva fecha de fin, calcularla basada en la duración original
+        const calculatedNewEnd = newEnd || new Date(newStart.getTime() + duration);
+        
+        console.log('Moviendo evento:', {
+          id: event.id,
+          title: event.title,
+          oldStart: event.start.toISOString(),
+          newStart: newStart.toISOString(),
+          oldEnd: event.end.toISOString(),
+          newEnd: calculatedNewEnd.toISOString()
+        });
+        
+        return {
+          ...event,
+          start: newStart,
+          end: calculatedNewEnd,
+          roomId: newRoomId !== undefined ? newRoomId : event.roomId
+        };
       });
-      
-      return updatedEvents;
     });
   };
 

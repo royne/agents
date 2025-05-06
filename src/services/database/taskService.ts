@@ -184,6 +184,73 @@ export class TaskService {
   }
 
   /**
+   * Obtiene todas las tareas del equipo (de todos los miembros de la compañía)
+   */
+  async getTeamTasks() {
+    if (!this.companyId) {
+      throw new Error('Compañía no establecida');
+    }
+    
+    // Primero obtenemos todos los perfiles de la compañía actual
+    const { data: companyProfiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('company_id', this.companyId);
+      
+    if (profilesError) {
+      console.error('Error al obtener perfiles de la compañía:', profilesError);
+      return [];
+    }
+    
+    if (!companyProfiles || companyProfiles.length === 0) {
+      return [];
+    }
+    
+    // Extraemos los IDs de los perfiles para filtrar las tareas
+    const profileIds = companyProfiles.map(profile => profile.id);
+    
+    // Obtenemos todas las tareas de los miembros del equipo
+    const { data: tasks, error: tasksError } = await supabase
+      .from('tasks')
+      .select(`
+        *,
+        profiles:profile_id(id, name),
+        task_assignees(*, assigned_to:profile_id(id, name))
+      `)
+      .in('profile_id', profileIds)
+      .order('due_date', { ascending: true });
+      
+    if (tasksError) {
+      console.error('Error al obtener tareas del equipo:', tasksError);
+      return [];
+    }
+    
+    // Procesamos las tareas para añadir información sobre quién está asignado
+    const processedTasks = (tasks || []).map(task => {
+      // Si la tarea tiene asignaciones, añadimos esa información
+      if (task.task_assignees && task.task_assignees.length > 0) {
+        return {
+          ...task,
+          is_assigned: true,
+          assigned_to: task.task_assignees[0].assigned_to,
+          // Renombrar name a full_name para mantener consistencia con la interfaz
+          assigned_to_name: task.task_assignees[0].assigned_to?.name
+        };
+      }
+      
+      // Si no tiene asignaciones, la tarea es del creador
+      return {
+        ...task,
+        is_assigned: false,
+        // Renombrar name a full_name para mantener consistencia con la interfaz
+        owner_name: task.profiles?.name
+      };
+    });
+    
+    return processedTasks;
+  }
+
+  /**
    * Obtiene una tarea específica por su ID
    */
   async getTask(id: string): Promise<Task | null> {

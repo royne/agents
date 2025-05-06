@@ -16,7 +16,11 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({ year, month, events: propEv
   const { events: contextEvents, moveEvent } = useCalendar();
   
   // Usar eventos del contexto si no se proporcionan como props
-  const events = propEvents || contextEvents;
+  const events = propEvents || contextEvents || [];
+  
+  // Log para depurar eventos
+  console.log('CalendarGrid - Eventos disponibles:', events?.length || 0, 'eventos');
+  console.log('CalendarGrid - Mes actual:', month + 1, 'Año:', year);
   // Función para obtener los días del mes actual
   const getDaysInMonth = (year: number, month: number): number => {
     return new Date(year, month + 1, 0).getDate();
@@ -46,6 +50,14 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({ year, month, events: propEv
       />
     );
   }
+  
+  // Log para depurar el rango de días del mes
+  console.log('CalendarGrid - Rango de días del mes:', {
+    primerDia: new Date(year, month, 1).toISOString(),
+    ultimoDia: new Date(year, month, daysInMonth).toISOString(),
+    diasEnMes: daysInMonth,
+    primerDiaSemana: firstDayOfMonth
+  });
 
   // Función para manejar el movimiento de eventos
   const handleEventMove = (event: CalendarEvent, targetDate: Date, targetRoomId?: string) => {
@@ -88,11 +100,54 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({ year, month, events: propEv
     const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
 
     // Filtrar eventos para este día
-    const dayEvents = events.filter(event => {
-      return event.start.getDate() === day && 
-             event.start.getMonth() === month && 
-             event.start.getFullYear() === year;
-    });
+    const dayEvents = events ? events.filter(event => {
+      try {
+        // Verificar si el evento y su fecha de inicio existen
+        if (!event || !event.start) {
+          return false;
+        }
+        
+        // Asegurarse de que la fecha de inicio es un objeto Date válido
+        let eventDate: Date;
+        
+        if (event.start instanceof Date) {
+          if (isNaN(event.start.getTime())) {
+            return false;
+          }
+          eventDate = event.start;
+        } else if (typeof event.start === 'string') {
+          // Intentar convertir string a Date
+          eventDate = new Date(event.start);
+          if (isNaN(eventDate.getTime())) {
+            return false;
+          }
+        } else {
+          return false;
+        }
+        
+        // Crear una fecha para el día actual del calendario (sin tiempo)
+        const calendarDate = new Date(year, month, day);
+        calendarDate.setHours(0, 0, 0, 0);
+        
+        // Crear una copia de la fecha del evento sin tiempo para comparar solo la fecha
+        const eventDateNoTime = new Date(eventDate);
+        eventDateNoTime.setHours(0, 0, 0, 0);
+        
+        // Comparar fechas ignorando la hora (usando getTime para comparación exacta)
+        const isSameDay = calendarDate.getTime() === eventDateNoTime.getTime();
+        
+        return isSameDay;
+      } catch (error) {
+        return false;
+      }
+    }) : [];
+    
+    // Log para depuración si hay eventos en este día
+    if (dayEvents.length > 0) {
+      console.log(`Día ${day}/${month + 1}/${year} tiene ${dayEvents.length} eventos:`, 
+        dayEvents.map(e => ({ id: e.id, title: e.title }))
+      );
+    }
 
     calendarCells.push(
       <DroppableCell 
@@ -107,14 +162,14 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({ year, month, events: propEv
             {day}
           </div>
           {/* Mostrar eventos del día */}
-          <div className="flex-grow overflow-y-auto space-y-1 p-1">
+          <div className="flex-grow overflow-y-auto custom-scrollbar space-y-1 p-1 max-h-20">
             {dayEvents.map((event) => (
               <DraggableEvent 
                 key={`event-${event.id}`}
                 event={event}
                 onMove={handleEventMove}
                 targetDate={currentDate}
-                className="text-xs rounded-lg shadow-sm"
+                className="text-xs rounded-lg shadow-sm mb-1"
               />
             ))}
           </div>
@@ -125,7 +180,7 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({ year, month, events: propEv
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div>
+      <div data-component-name="CalendarGrid">
         {/* Días de la semana */}
         <div className="grid grid-cols-7 mb-2">
           {dayNames.map((day, index) => (

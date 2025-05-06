@@ -33,36 +33,39 @@ const DroppableCell: React.FC<DroppableCellProps> = ({
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: ItemTypes.EVENT,
     drop: (item: DragItem) => {
-      console.log('Item dropped:', { item, date, roomId });
-      onDrop(item.event, date, roomId);
+      try {
+        if (item && item.event && date) {
+          onDrop(item.event, date, roomId);
+        }
+      } catch (error) {
+        console.error('Error en drop:', error);
+      }
       return { dropped: true };
     },
     collect: (monitor) => ({
-      isOver: monitor.isOver(),
-      canDrop: monitor.canDrop(),
+      isOver: !!monitor.isOver(),
+      canDrop: !!monitor.canDrop(),
     }),
   });
   
   // Aplicar la referencia al elemento
   drop(ref);
   
-  // Agregar un console.log para depuración
-  console.log('DroppableCell rendered:', { date, isOver, canDrop });
-  
-  // Calcular clases CSS basadas en el estado
+  // Clases mejoradas para el componente
   const cellClasses = `
-    h-28 m-1 p-1 rounded-lg transition-all duration-200
-    ${isToday ? 'bg-primary-color bg-opacity-10 dark:bg-primary-color dark:bg-opacity-20' : 'bg-theme-component'}
-    ${isOver && canDrop ? 'bg-primary-color bg-opacity-20 dark:bg-primary-color dark:bg-opacity-30 scale-105 shadow-md dark:shadow-gray-900' : ''}
-    ${canDrop ? 'cursor-pointer' : ''}
-    hover:bg-theme-component-hover hover:shadow-sm dark:hover:shadow-gray-900
-    border border-gray-200 dark:border-gray-700
+    h-28 m-1 p-1 rounded-lg
+    ${isToday ? 'bg-primary-color bg-opacity-10' : 'bg-theme-component'}
+    ${isOver && canDrop ? 'bg-primary-color bg-opacity-20' : ''}
+    border border-gray-200 hover:border-primary-color hover:border-opacity-50
+    transition-all duration-200
     ${className}
   `;
 
   return (
     <div ref={ref} className={cellClasses}>
-      {children}
+      <div className="h-full flex flex-col">
+        {children}
+      </div>
     </div>
   );
 };
