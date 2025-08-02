@@ -7,6 +7,8 @@ import PageHeader from '../../components/common/PageHeader';
 import type { Advertisement, Campaign } from '../../types/database';
 import { useAppContext } from '../../contexts/AppContext';
 import { PLATFORM_COLORS } from '../../constants/platforms';
+import AdFilters from '../../components/filters/AdFilters';
+import { useAdFilters } from '../../hooks/useAdFilters';
 
 export default function AdsPage() {
   const [ads, setAds] = useState<Advertisement[]>([]);
@@ -16,6 +18,18 @@ export default function AdsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const { authData } = useAppContext();
+  
+  // Usar el hook de filtros para anuncios
+  const {
+    filteredAds,
+    selectedCampaign,
+    setSelectedCampaign,
+    selectedPlatform,
+    setSelectedPlatform,
+    selectedStatus,
+    setSelectedStatus,
+    resetFilters
+  } = useAdFilters({ ads, campaigns });
 
   useEffect(() => {
     fetchData();
@@ -113,6 +127,18 @@ export default function AdsPage() {
             </button>
           }
         />
+        
+        {/* Componente de filtros */}
+        <AdFilters
+          campaigns={campaigns}
+          selectedCampaign={selectedCampaign}
+          setSelectedCampaign={setSelectedCampaign}
+          selectedPlatform={selectedPlatform}
+          setSelectedPlatform={setSelectedPlatform}
+          selectedStatus={selectedStatus}
+          setSelectedStatus={setSelectedStatus}
+          resetFilters={resetFilters}
+        />
 
         <div className="bg-gray-800 rounded-lg shadow overflow-hidden">
           <table className="w-full">
@@ -126,7 +152,7 @@ export default function AdsPage() {
               </tr>
             </thead>
             <tbody>
-              {ads.map((item) => {
+              {filteredAds.map((item) => {
                 const campaign = campaigns.find(c => c.id === item.campaign_id);
                 return (
                   <tr key={item.id} className="border-t border-gray-700">

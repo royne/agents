@@ -127,6 +127,7 @@ const PlatformSection = ({
 export default function Sales() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [filteredCampaigns, setFilteredCampaigns] = useState<Campaign[]>([]);
   const [ads, setAds] = useState<Advertisement[]>([]);
   const [selectedAd, setSelectedAd] = useState<Advertisement | null>(null);
   const [loading, setLoading] = useState(false);
@@ -134,6 +135,7 @@ export default function Sales() {
   const [hoveredCampaign, setHoveredCampaign] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [operationType, setOperationType] = useState<'venta' | 'gasto'>('venta');
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [expandedPlatforms, setExpandedPlatforms] = useState<Record<string, boolean>>({
     [PLATFORMS.META]: false,
     [PLATFORMS.TIKTOK]: false,
@@ -143,6 +145,27 @@ export default function Sales() {
   useEffect(() => {
     fetchData();
   }, []);
+  
+  // Filtrar campañas cuando cambia el término de búsqueda (similar a ILIKE de PostgreSQL)
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredCampaigns(campaigns);
+    } else {
+      // Convertir a minúsculas para búsqueda insensible a mayúsculas/minúsculas
+      const term = searchTerm.toLowerCase();
+      
+      // Filtrar campañas que contengan el término en cualquier parte del nombre o CP
+      const filtered = campaigns.filter(campaign => {
+        const campaignName = campaign.name?.toLowerCase() || '';
+        const campaignCp = campaign.cp?.toLowerCase() || '';
+        
+        // Buscar coincidencia en cualquier parte del texto (como ILIKE %term%)
+        return campaignName.includes(term) || campaignCp.includes(term);
+      });
+      
+      setFilteredCampaigns(filtered);
+    }
+  }, [searchTerm, campaigns]);
 
   useEffect(() => {
     if (selectedAd) {
@@ -162,7 +185,9 @@ export default function Sales() {
     const adsData = await adDatabaseService.getAds(authData.company_id);
     
     setSales(salesData);
-    setCampaigns(campaignsData.filter(campaign => campaign.status === true));
+    const activeCampaigns = campaignsData.filter(campaign => campaign.status === true);
+    setCampaigns(activeCampaigns);
+    setFilteredCampaigns(activeCampaigns);
     setAds(adsData.filter(ad => ad.status === true));
     setLoading(false);
   };
@@ -220,15 +245,53 @@ export default function Sales() {
         <ToggleSwitch />
 
         <div className="bg-gray-800 p-6 rounded-lg">
-          <h2 className="text-2xl font-bold mb-6">Campañas Activas</h2>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <h2 className="text-2xl font-bold">Campañas Activas</h2>
+            
+            <div className="w-full md:w-1/3 mt-4 md:mt-0">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Buscar campaña..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full p-2 pl-10 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                {searchTerm.trim() !== '' && (
+                  <button 
+                    onClick={() => setSearchTerm('')}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white"
+                  >
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
           
           {campaigns.length > 0 ? (
             <div className="space-y-6">
+              {searchTerm.trim() !== '' && (
+                <div className="bg-gray-700 p-4 rounded-lg mb-4">
+                  <p className="text-sm text-gray-300 mb-2">
+                    Resultados para: <span className="font-bold">"{searchTerm}"</span> 
+                    ({filteredCampaigns.length} {filteredCampaigns.length === 1 ? 'campaña' : 'campañas'}):
+                  </p>
+                </div>
+              )}
+              
               {/* Secciones de plataformas usando el componente reutilizable */}
               <PlatformSection 
                 platform={PLATFORMS.META}
                 platformName="Meta"
-                campaigns={campaigns}
+                campaigns={filteredCampaigns}
                 ads={ads}
                 expandedPlatforms={expandedPlatforms}
                 setExpandedPlatforms={setExpandedPlatforms}
@@ -241,7 +304,7 @@ export default function Sales() {
               <PlatformSection 
                 platform={PLATFORMS.TIKTOK}
                 platformName="TikTok"
-                campaigns={campaigns}
+                campaigns={filteredCampaigns}
                 ads={ads}
                 expandedPlatforms={expandedPlatforms}
                 setExpandedPlatforms={setExpandedPlatforms}
@@ -254,7 +317,7 @@ export default function Sales() {
               <PlatformSection 
                 platform={PLATFORMS.WHATSAPP}
                 platformName="WhatsApp"
-                campaigns={campaigns}
+                campaigns={filteredCampaigns}
                 ads={ads}
                 expandedPlatforms={expandedPlatforms}
                 setExpandedPlatforms={setExpandedPlatforms}
