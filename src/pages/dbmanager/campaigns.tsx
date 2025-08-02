@@ -6,6 +6,8 @@ import type { Campaign, Product } from '../../types/database';
 import PageHeader from '../../components/common/PageHeader';
 import { useAppContext } from '../../contexts/AppContext';
 import { PLATFORM_OPTIONS, PLATFORM_COLORS } from '../../constants/platforms';
+import CampaignFilters from '../../components/filters/CampaignFilters';
+import { useCampaignFilters } from '../../hooks/useCampaignFilters';
 
 export default function CampaignPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -15,6 +17,22 @@ export default function CampaignPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const { authData } = useAppContext();
+  
+  // Usar el hook de filtros para campañas
+  const {
+    filteredCampaigns,
+    selectedProduct,
+    setSelectedProduct,
+    selectedPlatform,
+    setSelectedPlatform,
+    selectedStatus,
+    setSelectedStatus,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    resetFilters
+  } = useCampaignFilters({ campaigns, products });
 
   useEffect(() => {
     fetchData();
@@ -114,6 +132,22 @@ export default function CampaignPage() {
             </button>
           }
         />
+        
+        {/* Componente de filtros */}
+        <CampaignFilters
+          products={products}
+          selectedProduct={selectedProduct}
+          setSelectedProduct={setSelectedProduct}
+          selectedPlatform={selectedPlatform}
+          setSelectedPlatform={setSelectedPlatform}
+          selectedStatus={selectedStatus}
+          setSelectedStatus={setSelectedStatus}
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
+          resetFilters={resetFilters}
+        />
 
         <div className="bg-gray-800 rounded-lg shadow overflow-hidden">
           <table className="w-full">
@@ -129,7 +163,7 @@ export default function CampaignPage() {
               </tr>
             </thead>
             <tbody>
-              {campaigns.map((item) => {
+              {filteredCampaigns.map((item) => {
                 const product = products.find(p => p.id === item.product_id);
                 return (
                   <tr key={item.id} className="border-t border-gray-700">
