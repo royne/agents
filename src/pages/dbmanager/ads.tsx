@@ -6,6 +6,7 @@ import { campaignDatabaseService } from '../../services/database/campaignService
 import PageHeader from '../../components/common/PageHeader';
 import type { Advertisement, Campaign } from '../../types/database';
 import { useAppContext } from '../../contexts/AppContext';
+import { PLATFORM_COLORS } from '../../constants/platforms';
 
 export default function AdsPage() {
   const [ads, setAds] = useState<Advertisement[]>([]);
@@ -119,6 +120,7 @@ export default function AdsPage() {
               <tr>
                 <th className="px-6 py-3 text-left">Nombre</th>
                 <th className="px-6 py-3 text-left">Campaña</th>
+                <th className="px-6 py-3 text-left">Plataforma</th>
                 <th className="px-6 py-3 text-left">Estado</th>
                 <th className="px-6 py-3 text-right">Acciones</th>
               </tr>
@@ -130,6 +132,13 @@ export default function AdsPage() {
                   <tr key={item.id} className="border-t border-gray-700">
                     <td className="px-6 py-4">{item.name}</td>
                     <td className="px-6 py-4">{campaign?.name || '-'}</td>
+                    <td className="px-6 py-4">
+                      {campaign?.platform ? (
+                        <span className={`px-2 py-1 rounded text-xs text-white ${PLATFORM_COLORS[campaign.platform as keyof typeof PLATFORM_COLORS] || 'bg-gray-500'}`}>
+                          {campaign.platform}
+                        </span>
+                      ) : '-'}
+                    </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded text-xs ${item.status ? 'bg-green-500' : 'bg-red-500'}`}>
                         {item.status ? 'Activo' : 'Inactivo'}
@@ -197,7 +206,7 @@ export default function AdsPage() {
                   <option value="">Selecciona una campaña</option>
                   {campaigns.map(campaign => (
                     <option key={campaign.id} value={campaign.id}>
-                      {campaign.name}
+                      {campaign.name} {campaign.platform ? `- ${campaign.platform}` : ''}
                     </option>
                   ))}
                 </select>

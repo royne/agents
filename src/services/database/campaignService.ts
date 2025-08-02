@@ -9,7 +9,11 @@ export const campaignDatabaseService = {
       .select()
       .single();
 
-    return error ? null : data;
+    if (error) {
+      console.error('Error creating campaign:', error);
+      throw new Error(`Error al crear campaña: ${error.message}`);
+    }
+    return data;
   },
 
   async getCampaigns(company_id: string): Promise<Campaign[]> {
@@ -30,7 +34,11 @@ export const campaignDatabaseService = {
       .select()
       .single();
 
-    return error ? null : data;
+    if (error) {
+      console.error('Error updating campaign:', error);
+      throw new Error(`Error al actualizar campaña: ${error.message}`);
+    }
+    return data;
   },
 
   async deleteCampaign(id: string): Promise<boolean> {

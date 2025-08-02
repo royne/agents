@@ -5,6 +5,7 @@ import { productDatabaseService } from '../../services/database/productService';
 import type { Campaign, Product } from '../../types/database';
 import PageHeader from '../../components/common/PageHeader';
 import { useAppContext } from '../../contexts/AppContext';
+import { PLATFORM_OPTIONS, PLATFORM_COLORS } from '../../constants/platforms';
 
 export default function CampaignPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -42,6 +43,7 @@ export default function CampaignPage() {
         launch_date: currentCampaign.launch_date || new Date(),
         product_id: currentCampaign.product_id || '',
         cp: currentCampaign.cp || '',
+        platform: currentCampaign.platform || '',
         status: currentCampaign.status !== undefined ? currentCampaign.status : true,
         company_id: authData.company_id
       };
@@ -113,6 +115,7 @@ export default function CampaignPage() {
                 <th className="px-6 py-3 text-left">Producto</th>
                 <th className="px-6 py-3 text-left">Fecha de lanzamiento</th>
                 <th className="px-6 py-3 text-left">Cuenta publicitaria</th>
+                <th className="px-6 py-3 text-left">Plataforma</th>
                 <th className="px-6 py-3 text-left">Estado</th>
                 <th className="px-6 py-3 text-right">Acciones</th>
               </tr>
@@ -126,6 +129,13 @@ export default function CampaignPage() {
                     <td className="px-6 py-4">{product?.name || '-'}</td>
                     <td className="px-6 py-4">{item.launch_date ? new Date(item.launch_date).toLocaleDateString() : '-'}</td>
                     <td className="px-6 py-4">{item.cp || '-'}</td>
+                    <td className="px-6 py-4">
+                      {item.platform ? (
+                        <span className={`px-2 py-1 rounded text-xs text-white ${PLATFORM_COLORS[item.platform as keyof typeof PLATFORM_COLORS] || 'bg-gray-500'}`}>
+                          {item.platform}
+                        </span>
+                      ) : '-'}
+                    </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded text-xs ${item.status ? 'bg-green-500' : 'bg-red-500'}`}>
                         {item.status ? 'Activa' : 'Inactiva'}
@@ -212,6 +222,19 @@ export default function CampaignPage() {
                   onChange={(e) => setCurrentCampaign({...currentCampaign, cp: e.target.value})}
                   required
                 />
+                <select
+                  className="w-full p-2 rounded bg-gray-700 text-white"
+                  value={currentCampaign.platform || ''}
+                  onChange={(e) => setCurrentCampaign({...currentCampaign, platform: e.target.value})}
+                  required
+                >
+                  <option value="">Selecciona una plataforma</option>
+                  {PLATFORM_OPTIONS.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
                 <div className="flex items-center">
                   <input
                     type="checkbox"
