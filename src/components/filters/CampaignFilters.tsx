@@ -15,6 +15,8 @@ interface CampaignFiltersProps {
   endDate: string;
   setEndDate: (date: string) => void;
   resetFilters: () => void;
+  filteredCampaigns: Campaign[];
+  totalCampaigns: number;
 }
 
 export default function CampaignFilters({
@@ -30,10 +32,24 @@ export default function CampaignFilters({
   endDate,
   setEndDate,
   resetFilters,
+  filteredCampaigns,
+  totalCampaigns,
 }: CampaignFiltersProps) {
   return (
     <div className="bg-gray-800 p-6 rounded-lg shadow mb-6">
-      <h2 className="text-xl font-bold mb-4">Filtros</h2>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+        <h2 className="text-xl font-bold">Filtros</h2>
+        <div className="mt-2 md:mt-0 px-3 py-1 bg-gray-700 rounded-full text-sm">
+          <span className="font-medium">
+            {filteredCampaigns.length} {filteredCampaigns.length === 1 ? 'campaña' : 'campañas'}
+          </span>
+          {filteredCampaigns.length !== totalCampaigns && (
+            <span className="text-gray-400 ml-1">
+              de {totalCampaigns} {totalCampaigns === 1 ? 'total' : 'totales'}
+            </span>
+          )}
+        </div>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">Producto</label>

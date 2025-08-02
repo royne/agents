@@ -147,6 +147,8 @@ export default function CampaignPage() {
           endDate={endDate}
           setEndDate={setEndDate}
           resetFilters={resetFilters}
+          filteredCampaigns={filteredCampaigns}
+          totalCampaigns={campaigns.length}
         />
 
         <div className="bg-gray-800 rounded-lg shadow overflow-hidden">
