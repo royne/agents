@@ -13,6 +13,7 @@ export default function CampaignPage() {
   const [currentCampaign, setCurrentCampaign] = useState<Partial<Campaign>>({});
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const { authData } = useAppContext();
 
   useEffect(() => {
@@ -84,6 +85,13 @@ export default function CampaignPage() {
 
   const handleCreateNew = () => {
     setCurrentCampaign({});
+    setIsEditing(false);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (campaign: Campaign) => {
+    setCurrentCampaign(campaign);
+    setIsEditing(true);
     setIsModalOpen(true);
   };
 
@@ -141,7 +149,13 @@ export default function CampaignPage() {
                         {item.status ? 'Activa' : 'Inactiva'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right space-x-4">
+                    <td className="px-6 py-4 text-right space-x-2">
+                      <button
+                        onClick={() => handleEdit(item)}
+                        className="px-3 py-1 rounded text-white text-sm bg-blue-600 hover:bg-blue-700"
+                      >
+                        Editar
+                      </button>
                       <button 
                         onClick={() => handleToggleStatus(item.id, !!item.status)}
                         className={`px-3 py-1 rounded text-white text-sm ${item.status ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
@@ -167,9 +181,13 @@ export default function CampaignPage() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Nueva Campaña</h2>
+                <h2 className="text-xl font-bold">{isEditing ? 'Editar Campaña' : 'Nueva Campaña'}</h2>
                 <button 
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setCurrentCampaign({});
+                    setIsEditing(false);
+                  }}
                   className="text-gray-400 hover:text-gray-300"
                 >
                   ×

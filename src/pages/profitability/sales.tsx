@@ -9,6 +9,120 @@ import SalesForm from '../../components/Financial/salesForm';
 import ExpensesForm from '../../components/Financial/expensesForm';
 import PageHeader from '../../components/common/PageHeader';
 import { FaDollarSign } from 'react-icons/fa';
+import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
+import { PLATFORMS, PLATFORM_COLORS } from '../../constants/platforms';
+
+// Componente para mostrar una plataforma con sus campañas
+interface PlatformSectionProps {
+  platform: string;
+  platformName: string;
+  campaigns: Campaign[];
+  ads: Advertisement[];
+  expandedPlatforms: Record<string, boolean>;
+  setExpandedPlatforms: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  hoveredCampaign: string | null;
+  setHoveredCampaign: React.Dispatch<React.SetStateAction<string | null>>;
+  operationType: 'venta' | 'gasto';
+  setSelectedAd: React.Dispatch<React.SetStateAction<Advertisement | null>>;
+}
+
+const PlatformSection = ({
+  platform,
+  platformName,
+  campaigns,
+  ads,
+  expandedPlatforms,
+  setExpandedPlatforms,
+  hoveredCampaign,
+  setHoveredCampaign,
+  operationType,
+  setSelectedAd
+}: PlatformSectionProps) => {
+  const platformCampaigns = campaigns.filter(c => c.platform === platform);
+  const isExpanded = expandedPlatforms[platform];
+  
+  const toggleExpand = () => {
+    setExpandedPlatforms(prev => ({ ...prev, [platform]: !prev[platform] }));
+  };
+
+  return (
+    <div className="border border-gray-700 rounded-lg overflow-hidden">
+      <div 
+        className="flex justify-between items-center p-4 cursor-pointer bg-gray-800 hover:bg-gray-700"
+        onClick={toggleExpand}
+      >
+        <div className="flex items-center">
+          <span className={`px-3 py-1 rounded text-white ${PLATFORM_COLORS[platform as keyof typeof PLATFORM_COLORS]} font-bold`}>
+            {platformName}
+            <span className="ml-2 bg-white text-gray-800 text-xs px-2 py-0.5 rounded-full">
+              {platformCampaigns.length}
+            </span>
+          </span>
+        </div>
+        <div>
+          {isExpanded ? <FaChevronDown /> : <FaChevronRight />}
+        </div>
+      </div>
+      
+      {isExpanded && (
+        <div className="p-4 bg-gray-900">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {platformCampaigns.length > 0 ? (
+              platformCampaigns.map((campaign) => (
+                <div 
+                  key={campaign.id}
+                  className={`bg-gray-700 p-4 rounded-xl relative transition-all duration-300 ${
+                    hoveredCampaign === campaign.id ? 
+                    (operationType === 'gasto' ? 'bg-red-800/30' : 'bg-green-800/30') : ''
+                  }`}
+                  onClick={() => setHoveredCampaign(
+                    hoveredCampaign === campaign.id ? null : campaign.id
+                  )}
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-bold">{campaign.name} - {campaign.cp}</h3>
+                      <p className="text-sm text-gray-400">
+                        {new Date(campaign.launch_date).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className={`w-2 h-2 rounded-full ${
+                      hoveredCampaign === campaign.id ? 
+                      (operationType === 'gasto' ? 'bg-red-400' : 'bg-green-400') : 'bg-gray-500'
+                    }`} />
+                  </div>
+
+                  {hoveredCampaign === campaign.id && (
+                    <div className="mt-4 space-y-2">
+                      {ads
+                        .filter(ad => ad.campaign_id === campaign.id)
+                        .map(ad => (
+                          <button
+                            key={ad.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedAd(ad);
+                            }}
+                            className="w-full p-3 text-left bg-gray-800 hover:bg-gray-700 rounded-lg"
+                          >
+                            {ad.name}
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-4">
+                <p className="text-gray-400">No hay campañas de {platformName} disponibles</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function Sales() {
   const [sales, setSales] = useState<Sale[]>([]);
@@ -20,6 +134,11 @@ export default function Sales() {
   const [hoveredCampaign, setHoveredCampaign] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [operationType, setOperationType] = useState<'venta' | 'gasto'>('venta');
+  const [expandedPlatforms, setExpandedPlatforms] = useState<Record<string, boolean>>({
+    [PLATFORMS.META]: false,
+    [PLATFORMS.TIKTOK]: false,
+    [PLATFORMS.WHATSAPP]: false
+  });
 
   useEffect(() => {
     fetchData();
@@ -102,56 +221,54 @@ export default function Sales() {
 
         <div className="bg-gray-800 p-6 rounded-lg">
           <h2 className="text-2xl font-bold mb-6">Campañas Activas</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {campaigns.length > 0 ? campaigns.map((campaign) => (
-              <div 
-                key={campaign.id}
-                className={`bg-gray-700 p-4 rounded-xl relative transition-all duration-300 ${
-                  hoveredCampaign === campaign.id ? 
-                  (operationType === 'gasto' ? 'bg-red-800/30' : 'bg-green-800/30') : ''
-                }`}
-                onClick={() => setHoveredCampaign(
-                  hoveredCampaign === campaign.id ? null : campaign.id
-                )}
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-lg font-bold">{campaign.name} - {campaign.cp}</h3>
-                    <p className="text-sm text-gray-400">
-                      {new Date(campaign.launch_date).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className={`w-2 h-2 rounded-full ${
-                    hoveredCampaign === campaign.id ? 
-                    (operationType === 'gasto' ? 'bg-red-400' : 'bg-green-400') : 'bg-gray-500'
-                  }`} />
-                </div>
-
-                {hoveredCampaign === campaign.id && (
-                  <div className="mt-4 space-y-2">
-                    {ads
-                      .filter(ad => ad.campaign_id === campaign.id)
-                      .map(ad => (
-                        <button
-                          key={ad.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedAd(ad);
-                          }}
-                          className="w-full p-3 text-left bg-gray-800 hover:bg-gray-700 rounded-lg"
-                        >
-                          {ad.name}
-                        </button>
-                      ))}
-                  </div>
-                )}
-              </div>
-            )) : (
-              <div className="col-span-3 text-center py-4">
-                <p className="text-gray-400">No hay campañas activas disponibles</p>
-              </div>
-            )}
-          </div>
+          
+          {campaigns.length > 0 ? (
+            <div className="space-y-6">
+              {/* Secciones de plataformas usando el componente reutilizable */}
+              <PlatformSection 
+                platform={PLATFORMS.META}
+                platformName="Meta"
+                campaigns={campaigns}
+                ads={ads}
+                expandedPlatforms={expandedPlatforms}
+                setExpandedPlatforms={setExpandedPlatforms}
+                hoveredCampaign={hoveredCampaign}
+                setHoveredCampaign={setHoveredCampaign}
+                operationType={operationType}
+                setSelectedAd={setSelectedAd}
+              />
+              
+              <PlatformSection 
+                platform={PLATFORMS.TIKTOK}
+                platformName="TikTok"
+                campaigns={campaigns}
+                ads={ads}
+                expandedPlatforms={expandedPlatforms}
+                setExpandedPlatforms={setExpandedPlatforms}
+                hoveredCampaign={hoveredCampaign}
+                setHoveredCampaign={setHoveredCampaign}
+                operationType={operationType}
+                setSelectedAd={setSelectedAd}
+              />
+              
+              <PlatformSection 
+                platform={PLATFORMS.WHATSAPP}
+                platformName="WhatsApp"
+                campaigns={campaigns}
+                ads={ads}
+                expandedPlatforms={expandedPlatforms}
+                setExpandedPlatforms={setExpandedPlatforms}
+                hoveredCampaign={hoveredCampaign}
+                setHoveredCampaign={setHoveredCampaign}
+                operationType={operationType}
+                setSelectedAd={setSelectedAd}
+              />
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-gray-400">No hay campañas activas disponibles</p>
+            </div>
+          )}
         </div>
 
         {isModalOpen && (
