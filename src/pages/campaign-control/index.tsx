@@ -3,24 +3,6 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import PageHeader from '../../components/common/PageHeader';
 import { campaignDatabaseService } from '../../services/database/campaignService';
 import { useAppContext } from '../../contexts/AppContext';
-import { 
-  FaCalendarAlt, 
-  FaChartLine, 
-  FaRegStickyNote, 
-  FaExternalLinkAlt,
-  FaMoneyBillWave, 
-  FaHistory,
-  FaBell,
-  FaExclamationTriangle,
-  FaCheckCircle,
-  FaEdit,
-  FaArrowUp,
-  FaArrowDown,
-  FaPause,
-  FaPlay,
-  FaRegChartBar
-} from 'react-icons/fa';
-import Link from 'next/link';
 import type { Campaign } from '../../types/database';
 import { 
   CampaignDailyRecord, 
@@ -28,6 +10,13 @@ import {
   DailySummary,
   CampaignWithDailyData 
 } from '../../types/campaign-control';
+
+// Importación de componentes modulares
+import DateSelector from '../../components/campaign-control/DateSelector';
+import DailySummaryComponent from '../../components/campaign-control/DailySummary';
+import RecentChanges from '../../components/campaign-control/RecentChanges';
+import PendingCampaigns from '../../components/campaign-control/PendingCampaigns';
+import CampaignsList from '../../components/campaign-control/CampaignsList';
 
 export default function CampaignControl() {
   const { authData } = useAppContext();
@@ -37,16 +26,6 @@ export default function CampaignControl() {
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
-
-  // Función para formatear moneda
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'MXN',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
 
   // Datos quemados para el resumen diario
   const dailySummary: DailySummary = {
@@ -196,63 +175,10 @@ export default function CampaignControl() {
     }
   }, [campaigns, selectedDate]);
 
-  // Obtener el color de estado para una campaña
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'paused': return 'bg-yellow-500';
-      case 'limited': return 'bg-orange-500';
-      case 'learning': return 'bg-blue-500';
-      default: return 'bg-gray-500';
-    }
+  // Manejador de cambio de fecha
+  const handleDateChange = (date: string) => {
+    setSelectedDate(date);
   };
-
-  // Obtener el texto de estado para una campaña
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'active': return 'Activa';
-      case 'paused': return 'Pausada';
-      case 'limited': return 'Limitada';
-      case 'learning': return 'Aprendizaje';
-      default: return 'Desconocido';
-    }
-  };
-
-  // Obtener el color de fondo de estado para una campaña
-  const getStatusBgColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-100';
-      case 'paused': return 'bg-yellow-100';
-      case 'limited': return 'bg-orange-100';
-      case 'learning': return 'bg-blue-100';
-      default: return 'bg-gray-100';
-    }
-  };
-  
-  // Obtener un ícono para el estado
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active': return <FaCheckCircle className="text-green-500" />;
-      case 'paused': return <FaPause className="text-yellow-500" />;
-      case 'limited': return <FaExclamationTriangle className="text-orange-500" />;
-      case 'learning': return <FaPlay className="text-blue-500" />;
-      default: return <FaCheckCircle className="text-gray-500" />;
-    }
-  };
-
-  // Obtener un ícono para el tipo de cambio
-  const getChangeTypeIcon = (changeType: string) => {
-    switch (changeType) {
-      case 'increase': return <FaArrowUp className="text-green-500" />;
-      case 'decrease': return <FaArrowDown className="text-orange-500" />;
-      case 'pause': return <FaPause className="text-yellow-500" />;
-      case 'resume': return <FaPlay className="text-green-500" />;
-      default: return <FaEdit className="text-gray-500" />;
-    }
-  };
-
-  // Filtrar campañas según si necesitan actualización
-  const campaignsNeedingUpdate = campaignsWithData.filter(campaign => campaign.needsUpdate);
 
   return (
     <DashboardLayout>
@@ -267,226 +193,26 @@ export default function CampaignControl() {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Fecha y selección de día */}
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              <FaCalendarAlt className="text-lg text-primary-color" />
-              <h2 className="text-xl font-bold">Fecha: {new Date(selectedDate).toLocaleDateString()}</h2>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input 
-                type="date" 
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
-              />
-            </div>
-          </div>
+          {/* Selector de fecha */}
+          <DateSelector 
+            selectedDate={selectedDate} 
+            onDateChange={handleDateChange} 
+          />
           
           {/* Contenedor de tres columnas para Resumen Diario, Últimos Cambios y Pendientes de Registrar */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Resumen del día */}
-            <div className="bg-gray-800 rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-bold mb-4 flex items-center">
-                <FaChartLine className="mr-2 text-primary-color" />
-                Resumen Diario
-              </h2>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div className="bg-gray-700 p-4 rounded-lg">
-                  <div className="text-sm text-gray-400">Presupuesto Total</div>
-                  <div className="text-2xl font-bold">{formatCurrency(dailySummary.totalBudget)}</div>
-                </div>
-                
-                <div className="bg-gray-700 p-4 rounded-lg">
-                  <div className="text-sm text-gray-400">Campañas Activas</div>
-                  <div className="text-2xl font-bold">{dailySummary.activeCampaigns}</div>
-                </div>
-                
-                <div className="bg-gray-700 p-4 rounded-lg">
-                  <div className="text-sm text-gray-400">Pendientes de Actualizar</div>
-                  <div className="text-2xl font-bold text-yellow-500">{dailySummary.campaignsNeedingUpdate}</div>
-                </div>
-                
-                <div className="bg-gray-700 p-4 rounded-lg">
-                  <div className="text-sm text-gray-400">Ingresos del Día</div>
-                  <div className="text-2xl font-bold text-green-500">{formatCurrency(dailySummary.totalRevenue)}</div>
-                </div>
-              </div>
-              
-              <div className="bg-gray-700 p-4 rounded-lg">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center">
-                    <FaRegStickyNote className="text-primary-color mr-2" />
-                    <div className="font-medium">Notas del día:</div>
-                  </div>
-                  <button className="text-primary-color hover:text-blue-400">
-                    <FaEdit />
-                  </button>
-                </div>
-                <div className="mt-2 text-sm">
-                  {dailySummary.notes}
-                </div>
-              </div>
-            </div>
+            <DailySummaryComponent summary={dailySummary} />
             
             {/* Últimos cambios importantes */}
-            <div className="bg-gray-800 rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-bold mb-4 flex items-center">
-                <FaBell className="mr-2 text-primary-color" />
-                Últimos Cambios y Notificaciones
-              </h2>
-              
-              {recentChanges.length > 0 ? (
-                <div className="space-y-3">
-                  {recentChanges.map(change => (
-                    <div key={change.id} className="bg-gray-700 p-4 rounded-lg">
-                      <div className="flex items-start">
-                        <div className="flex-shrink-0 mr-3 mt-1">
-                          {getChangeTypeIcon(change.changeType)}
-                        </div>
-                        <div className="flex-grow">
-                          <div className="flex justify-between">
-                            <div>
-                              <span className="font-medium">{change.campaignName}</span>
-                              <span className="text-sm text-gray-400 ml-2">
-                                {change.changeType === 'increase' ? 'Aumento de presupuesto' :
-                                change.changeType === 'decrease' ? 'Reducción de presupuesto' :
-                                change.changeType === 'pause' ? 'Campaña pausada' : 'Campaña reactivada'}
-                              </span>
-                            </div>
-                            <div className="text-sm text-gray-400">
-                              {new Date(change.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </div>
-                          </div>
-                          <div className="mt-1 text-sm">{change.reason}</div>
-                          {(change.changeType === 'increase' || change.changeType === 'decrease') && (
-                            <div className="mt-1 text-sm">
-                              <span className="text-gray-400">{formatCurrency(change.previousBudget)}</span>
-                              <span className="mx-2">→</span>
-                              <span className={change.changeType === 'increase' ? 'text-green-400' : 'text-yellow-400'}>
-                                {formatCurrency(change.newBudget)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex justify-end mt-2">
-                        <Link href={`/campaign-control/${change.campaignId}/daily-view`} className="text-primary-color hover:text-blue-400 flex items-center text-xs">
-                          Ver detalles
-                          <FaExternalLinkAlt className="ml-1 text-xs" />
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-10 text-gray-400">
-                  No hay cambios recientes para mostrar
-                </div>
-              )}
-            </div>
+            <RecentChanges changes={recentChanges} />
             
             {/* Campañas que necesitan actualización */}
-            <div className="bg-gray-800 rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-bold mb-4 flex items-center">
-                <FaEdit className="mr-2 text-yellow-500" />
-                Pendientes de Registrar ({campaignsNeedingUpdate.length})
-              </h2>
-            
-            <div>
-              {campaignsNeedingUpdate.length > 0 ? (
-                <div className="space-y-3">
-                  {campaignsNeedingUpdate.map(campaign => (
-                    <div key={campaign.id} className="bg-gray-700 p-4 rounded-lg">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center">
-                          <div className="mr-2">{getStatusIcon(campaign.dailyData.status)}</div>
-                          <div>
-                            <div className="font-medium">{campaign.name}</div>
-                            <div className="text-xs text-gray-400">
-                              {campaign.platform || 'N/A'} | {formatCurrency(campaign.dailyData.budget)}
-                            </div>
-                          </div>
-                        </div>
-                        <div>
-                          <span className="inline-flex items-center text-sm px-2 py-1 rounded-full" 
-                                style={{ backgroundColor: getStatusColor(campaign.dailyData.status) + '20' }}>
-                            {getStatusText(campaign.dailyData.status)}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex justify-end mt-3">
-                        <Link href={`/campaign-control/${campaign.id}/daily-view`} 
-                              className="text-primary-color hover:text-blue-400 inline-flex items-center text-sm">
-                          <span className="mr-1">Registrar</span>
-                          <FaExternalLinkAlt className="text-xs" />
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-10 text-gray-400">
-                  No hay campañas pendientes de actualizar
-                </div>
-              )}
-            </div>
-            </div>
+            <PendingCampaigns campaigns={campaignsWithData} />
           </div>
           
           {/* Todas las campañas */}
-          <div className="bg-gray-800 rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold mb-4 flex items-center">
-              <FaMoneyBillWave className="mr-2 text-primary-color" />
-              Todas las Campañas ({campaignsWithData.length})
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {campaignsWithData.length > 0 ? campaignsWithData.map(campaign => (
-                <div key={campaign.id} className="bg-gray-700 rounded-lg p-4 flex flex-col">
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-medium truncate flex-grow">{campaign.name}</h3>
-                    <div className="ml-2 flex items-center">
-                      {getStatusIcon(campaign.dailyData.status)}
-                    </div>
-                  </div>
-                  
-                  <div className="text-xs text-gray-400 mt-1">
-                    {campaign.platform || 'N/A'} | Ppto: {formatCurrency(campaign.dailyData.budget)}
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2 mt-3">
-                    <div>
-                      <div className="text-xs text-gray-400">Unidades Vendidas</div>
-                      <div>{campaign.dailyData.units || 0}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-400">Ingresos Día Anterior</div>
-                      <div>{campaign.dailyData.revenue ? formatCurrency(campaign.dailyData.revenue) : '$0'}</div>
-                    </div>
-                  </div>
-                  
-                  {campaign.needsUpdate && (
-                    <div className="mt-2 bg-yellow-900/20 text-yellow-500 text-xs p-2 rounded">
-                      Pendiente de actualizar
-                    </div>
-                  )}
-                  
-                  <div className="flex justify-end mt-3">
-                    <Link href={`/campaign-control/${campaign.id}/daily-view`} className="text-primary-color hover:text-blue-400 flex items-center text-sm">
-                      Ver detalles
-                      <FaExternalLinkAlt className="ml-1 text-xs" />
-                    </Link>
-                  </div>
-                </div>
-              )) : (
-                <div className="col-span-3 text-center py-10 text-gray-400">
-                  No hay campañas para mostrar
-                </div>
-              )}
-            </div>
-          </div>
+          <CampaignsList campaigns={campaignsWithData} />
         </div>
       )}
     </DashboardLayout>
