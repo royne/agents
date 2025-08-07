@@ -1,16 +1,94 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { FaRegChartBar } from 'react-icons/fa';
-import { formatCurrency } from '../utils/formatters';
+import { formatCurrency, formatNumber } from '../../../utils/formatters';
+import { CampaignDailyRecord } from '../../../types/campaign-control';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface MetricsChartProps {
   period?: string;
   onPeriodChange?: (period: string) => void;
+  dailyRecords?: CampaignDailyRecord[];
 }
 
 const MetricsChart: React.FC<MetricsChartProps> = ({ 
-  period = '3', 
-  onPeriodChange = () => {} 
+  period = '7', 
+  onPeriodChange = () => {},
+  dailyRecords = []
 }) => {
+  // Estado para la métrica seleccionada
+  const [selectedMetric, setSelectedMetric] = useState<string>('cpa');
+  
+  // Filtrar registros según el período seleccionado
+  const filteredRecords = useMemo(() => {
+    if (!dailyRecords || dailyRecords.length === 0) return [];
+    
+    const days = parseInt(period);
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    return dailyRecords
+      .filter(record => new Date(record.date) >= cutoffDate)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [dailyRecords, period]);
+  
+  // Preparar datos para el gráfico
+  const chartData = useMemo(() => {
+    return filteredRecords.map(record => {
+      const units = record.units_sold || record.units || 0;
+      const sales = record.sales || record.revenue || 0;
+      const spend = record.spend || 0;
+      
+      // Calcular CPA y ROI
+      const cpa = units > 0 ? spend / units : 0;
+      const roi = spend > 0 ? (sales - spend) / spend : 0;
+      
+      return {
+        date: new Date(record.date).toLocaleDateString(),
+        cpa,
+        roi,
+        units,
+        spend,
+        sales
+      };
+    });
+  }, [filteredRecords]);
+  
+  // Calcular estadísticas
+  const stats = useMemo(() => {
+    if (chartData.length === 0) {
+      return {
+        avgCpa: 0,
+        avgRoi: 0,
+        totalUnits: 0,
+        cpaChange: 0,
+        roiChange: 0,
+        unitsChange: 0
+      };
+    }
+    
+    // Calcular promedios actuales
+    const avgCpa = chartData.reduce((sum, item) => sum + item.cpa, 0) / chartData.length;
+    const avgRoi = chartData.reduce((sum, item) => sum + item.roi, 0) / chartData.length;
+    const totalUnits = chartData.reduce((sum, item) => sum + item.units, 0);
+    
+    // Calcular cambios respecto al período anterior
+    // (Simplificado - en una implementación real se compararía con datos del período anterior)
+    const cpaChange = chartData.length > 1 ? 
+      ((chartData[chartData.length-1].cpa / chartData[0].cpa) - 1) * 100 : 0;
+    const roiChange = chartData.length > 1 ? 
+      ((chartData[chartData.length-1].roi / chartData[0].roi) - 1) * 100 : 0;
+    const unitsChange = chartData.length > 1 ? 
+      ((chartData[chartData.length-1].units / chartData[0].units) - 1) * 100 : 0;
+    
+    return {
+      avgCpa,
+      avgRoi,
+      totalUnits,
+      cpaChange,
+      roiChange,
+      unitsChange
+    };
+  }, [chartData]);
   return (
     <div className="bg-gray-800 rounded-lg shadow-lg p-6">
       <h2 className="text-xl font-bold mb-4 flex items-center justify-between">
@@ -35,66 +113,86 @@ const MetricsChart: React.FC<MetricsChartProps> = ({
       <div className="bg-gray-750 rounded-lg p-4 mb-4">
         {/* Selector de métricas */}
         <div className="flex flex-wrap gap-2 mb-4">
-          <button className="bg-primary-color px-3 py-1 rounded text-xs font-medium">
+          <button 
+            className={`px-3 py-1 rounded text-xs ${selectedMetric === 'cpa' ? 'bg-primary-color font-medium' : 'bg-gray-600 hover:bg-gray-500'}`}
+            onClick={() => setSelectedMetric('cpa')}
+          >
             CPA
           </button>
-          <button className="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded text-xs">
-            ROAS
-          </button>
-          <button className="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded text-xs">
-            Conversiones
-          </button>
-          <button className="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded text-xs">
+          <button 
+            className={`px-3 py-1 rounded text-xs ${selectedMetric === 'spend' ? 'bg-primary-color font-medium' : 'bg-gray-600 hover:bg-gray-500'}`}
+            onClick={() => setSelectedMetric('spend')}
+          >
             Gastos
           </button>
-          <button className="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded text-xs">
+          <button 
+            className={`px-3 py-1 rounded text-xs ${selectedMetric === 'units' ? 'bg-primary-color font-medium' : 'bg-gray-600 hover:bg-gray-500'}`}
+            onClick={() => setSelectedMetric('units')}
+          >
+            Conversiones
+          </button>
+          <button 
+            className={`px-3 py-1 rounded text-xs ${selectedMetric === 'sales' ? 'bg-primary-color font-medium' : 'bg-gray-600 hover:bg-gray-500'}`}
+            onClick={() => setSelectedMetric('sales')}
+          >
             Ingresos
+          </button>
+          <button 
+            className={`px-3 py-1 rounded text-xs ${selectedMetric === 'roi' ? 'bg-primary-color font-medium' : 'bg-gray-600 hover:bg-gray-500'}`}
+            onClick={() => setSelectedMetric('roi')}
+          >
+            ROI
           </button>
         </div>
         
-        {/* Gráfico simulado */}
-        <div className="h-auto min-h-[180px] max-h-[200px] w-full bg-gray-700 rounded-lg p-3 flex items-center justify-center">
-          <div className="relative w-full h-full">
-            {/* Eje Y */}
-            <div className="absolute left-0 top-0 bottom-0 w-10 flex flex-col justify-between text-xs text-gray-400 py-2">
-              <div>$500</div>
-              <div>$400</div>
-              <div>$300</div>
-              <div>$200</div>
-              <div>$100</div>
-              <div>$0</div>
+        {/* Gráfico dinámico con Recharts */}
+        <div className="h-auto min-h-[200px] w-full bg-gray-700 rounded-lg p-3">
+          {chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#888" 
+                  tick={{ fill: '#888', fontSize: 10 }} 
+                />
+                <YAxis 
+                  stroke="#888" 
+                  tick={{ fill: '#888', fontSize: 10 }}
+                  tickFormatter={(value) => selectedMetric === 'cpa' || selectedMetric === 'spend' || selectedMetric === 'sales' 
+                    ? `$${value}` 
+                    : value.toString()
+                  }
+                />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#333', border: 'none' }} 
+                  labelStyle={{ color: '#fff' }}
+                  formatter={(value: number) => {
+                    if (selectedMetric === 'cpa' || selectedMetric === 'spend' || selectedMetric === 'sales') {
+                      return formatCurrency(value);
+                    } else if (selectedMetric === 'roi') {
+                      return value.toFixed(2);
+                    } else {
+                      return formatNumber(value);
+                    }
+                  }}
+                />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey={selectedMetric} 
+                  stroke="#3b82f6" 
+                  strokeWidth={2}
+                  dot={{ r: 4, strokeWidth: 1 }}
+                  activeDot={{ r: 6, strokeWidth: 2 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full flex items-center justify-center text-gray-400">
+              No hay datos suficientes para mostrar el gráfico
             </div>
-            
-            {/* Contenido del gráfico */}
-            <div className="absolute left-12 right-0 top-0 bottom-0">
-              {/* Líneas horizontales de referencia */}
-              <div className="h-full w-full flex flex-col justify-between">
-                {[0, 1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="border-t border-gray-600 w-full h-0"></div>
-                ))}
-              </div>
-              
-              {/* Barras simuladas */}
-              <div className="absolute inset-0 flex items-end justify-around">
-                <div className="w-[15%] bg-gradient-to-t from-blue-500/80 to-blue-500/20 rounded-t-sm" style={{ height: '40%' }}>
-                  <div className="text-center text-xs mt-2 text-blue-300">$200</div>
-                </div>
-                <div className="w-[15%] bg-gradient-to-t from-blue-500/80 to-blue-500/20 rounded-t-sm" style={{ height: '60%' }}>
-                  <div className="text-center text-xs mt-2 text-blue-300">$300</div>
-                </div>
-                <div className="w-[15%] bg-gradient-to-t from-blue-500/80 to-blue-500/20 rounded-t-sm" style={{ height: '50%' }}>
-                  <div className="text-center text-xs mt-2 text-blue-300">$250</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Leyenda del eje X */}
-        <div className="flex justify-around mt-2 text-xs text-gray-400">
-          <div>{new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toLocaleDateString()}</div>
-          <div>{new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toLocaleDateString()}</div>
-          <div>{new Date().toLocaleDateString()}</div>
+          )}
         </div>
       </div>
       
@@ -102,25 +200,28 @@ const MetricsChart: React.FC<MetricsChartProps> = ({
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-gray-750 p-3 rounded-lg">
           <div className="text-xs text-gray-400">CPA Promedio</div>
-          <div className="text-lg font-bold">{formatCurrency(250)}</div>
-          <div className="text-xs text-green-500 flex items-center">
-            <span className="mr-1">↓</span> 5% vs periodo anterior
+          <div className="text-lg font-bold">{formatCurrency(stats.avgCpa)}</div>
+          <div className={`text-xs flex items-center ${stats.cpaChange < 0 ? 'text-green-500' : 'text-red-500'}`}>
+            <span className="mr-1">{stats.cpaChange < 0 ? '↓' : '↑'}</span> 
+            {Math.abs(stats.cpaChange).toFixed(1)}% vs periodo anterior
           </div>
         </div>
         
         <div className="bg-gray-750 p-3 rounded-lg">
-          <div className="text-xs text-gray-400">ROAS Promedio</div>
-          <div className="text-lg font-bold text-green-500">2.4x</div>
-          <div className="text-xs text-green-500 flex items-center">
-            <span className="mr-1">↑</span> 12% vs periodo anterior
+          <div className="text-xs text-gray-400">ROI Promedio</div>
+          <div className="text-lg font-bold text-green-500">{stats.avgRoi.toFixed(2)}</div>
+          <div className={`text-xs flex items-center ${stats.roiChange > 0 ? 'text-green-500' : 'text-red-500'}`}>
+            <span className="mr-1">{stats.roiChange > 0 ? '↑' : '↓'}</span> 
+            {Math.abs(stats.roiChange).toFixed(1)}% vs periodo anterior
           </div>
         </div>
         
         <div className="bg-gray-750 p-3 rounded-lg">
           <div className="text-xs text-gray-400">Conversiones</div>
-          <div className="text-lg font-bold text-blue-500">24</div>
-          <div className="text-xs text-red-500 flex items-center">
-            <span className="mr-1">↓</span> 3% vs periodo anterior
+          <div className="text-lg font-bold text-blue-500">{formatNumber(stats.totalUnits)}</div>
+          <div className={`text-xs flex items-center ${stats.unitsChange > 0 ? 'text-green-500' : 'text-red-500'}`}>
+            <span className="mr-1">{stats.unitsChange > 0 ? '↑' : '↓'}</span> 
+            {Math.abs(stats.unitsChange).toFixed(1)}% vs periodo anterior
           </div>
         </div>
       </div>

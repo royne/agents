@@ -539,6 +539,7 @@ export default function DailyView() {
           <MetricsChart 
             period={chartPeriod}
             onPeriodChange={handlePeriodChange}
+            dailyRecords={dailyRecords}
           />
         </div>
         
