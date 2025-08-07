@@ -1,6 +1,7 @@
-import React from 'react';
-import { formatCurrency, formatNumber, formatDate } from '../../../utils/formatters';
+import React, { useMemo } from 'react';
+import { formatCurrency, formatNumber } from '../../../utils/formatters';
 import { CampaignDailyRecord } from '../../../types/campaign-control';
+import { FaCalendarAlt, FaChartLine, FaBoxOpen, FaMoneyBillWave } from 'react-icons/fa';
 
 interface DailyHistoryTableProps {
   dailyRecords: CampaignDailyRecord[];
@@ -11,10 +12,29 @@ const DailyHistoryTable: React.FC<DailyHistoryTableProps> = ({ dailyRecords }) =
   const formatNumberWith2Decimals = (value: number): string => {
     return value.toFixed(2);
   };
+  
+  // Función para formatear fechas correctamente
+  const formatDateCorrectly = (dateString: string): string => {
+    // Extraer directamente los componentes de la fecha sin crear un objeto Date
+    // para evitar ajustes de zona horaria
+    const [year, month, day] = dateString.split('-');
+    return `${day}/${month}/${year}`;
+  };
   // Ordenar registros por fecha (más reciente primero)
   const sortedRecords = [...dailyRecords].sort((a, b) => {
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
+  
+  // Calcular totales para los contadores
+  const totals = useMemo(() => {
+    return dailyRecords.reduce((acc, record) => {
+      return {
+        totalSpend: acc.totalSpend + (record.spend || 0),
+        totalSales: acc.totalSales + (record.sales || record.revenue || 0),
+        totalUnits: acc.totalUnits + (record.units_sold || record.units || 0)
+      };
+    }, { totalSpend: 0, totalSales: 0, totalUnits: 0 });
+  }, [dailyRecords]);
 
   // Calcular el CPA (Costo Por Adquisición) para un registro
   const calculateCPA = (record: CampaignDailyRecord): number => {
@@ -51,12 +71,39 @@ const DailyHistoryTable: React.FC<DailyHistoryTableProps> = ({ dailyRecords }) =
 
   return (
     <div className="bg-gray-800 rounded-lg shadow-lg p-4">
-      <h3 className="text-lg font-semibold mb-4 flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary-color" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-        </svg>
-        Registro Histórico por Día
-      </h3>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold flex items-center">
+          <FaCalendarAlt className="mr-2 text-primary-color" />
+          Registro Histórico por Día
+        </h3>
+        
+        {/* Contadores de totales */}
+        <div className="flex space-x-4">
+          <div className="bg-gray-750 px-4 py-2 rounded-lg flex items-center">
+            <FaMoneyBillWave className="mr-2 text-red-500" />
+            <div>
+              <div className="text-xs text-gray-400">Total Gastos</div>
+              <div className="text-sm font-bold">{formatCurrency(totals.totalSpend)}</div>
+            </div>
+          </div>
+          
+          <div className="bg-gray-750 px-4 py-2 rounded-lg flex items-center">
+            <FaMoneyBillWave className="mr-2 text-green-500" />
+            <div>
+              <div className="text-xs text-gray-400">Total Ventas</div>
+              <div className="text-sm font-bold">{formatCurrency(totals.totalSales)}</div>
+            </div>
+          </div>
+          
+          <div className="bg-gray-750 px-4 py-2 rounded-lg flex items-center">
+            <FaBoxOpen className="mr-2 text-blue-500" />
+            <div>
+              <div className="text-xs text-gray-400">Total Unidades</div>
+              <div className="text-sm font-bold">{formatNumber(totals.totalUnits)}</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full bg-gray-750 rounded-lg">
@@ -77,7 +124,7 @@ const DailyHistoryTable: React.FC<DailyHistoryTableProps> = ({ dailyRecords }) =
               sortedRecords.map((record) => (
                 <tr key={record.id} className="hover:bg-gray-700/30 transition-colors">
                   <td className="py-3 px-4 text-sm text-gray-300">
-                    {formatDate(record.date)}
+                    {formatDateCorrectly(record.date)}
                   </td>
                   <td className="py-3 px-4 text-sm">
                     <span className={`inline-flex items-center ${getStatusColor(record.status)}`}>
