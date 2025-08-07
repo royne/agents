@@ -49,6 +49,7 @@ export interface Campaign {
   cp: string;
   platform?: string;
   status: boolean;
+  initial_budget?: number; // Presupuesto inicial con valor por defecto de 60000
   created_at: Date;
   updated_at?: Date;
 };

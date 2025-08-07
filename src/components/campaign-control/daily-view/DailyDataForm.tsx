@@ -1,33 +1,103 @@
-import React from 'react';
-import { FaEdit, FaMoneyBillWave, FaRegChartBar, FaSave } from 'react-icons/fa';
+import React, { useEffect, useState } from 'react';
+import { FaEdit, FaMoneyBillWave, FaRegChartBar, FaSave, FaCheckCircle } from 'react-icons/fa';
 import { CampaignDailyRecord } from '../../../types/campaign-control';
 import { formatCurrency } from '../../../utils/formatters';
-import CampaignDateSelector from './CampaignDateSelector';
 
 interface DailyDataFormProps {
   dailyRecord: CampaignDailyRecord;
   onSave: (data: Partial<CampaignDailyRecord>) => void;
+  selectedDate?: string; // Fecha seleccionada para mostrar en el título
 }
 
-const DailyDataForm: React.FC<DailyDataFormProps> = ({ dailyRecord, onSave }) => {
-  const [formData, setFormData] = React.useState({
-    date: new Date().toISOString().split('T')[0],
-    spend: dailyRecord.spend,
-    revenue: dailyRecord.revenue,
+const DailyDataForm: React.FC<DailyDataFormProps> = ({ dailyRecord, onSave, selectedDate }) => {
+  // Estado para mostrar mensaje de éxito
+  const [showSuccess, setShowSuccess] = useState(false);
+  
+  // Estado del formulario con valores iniciales
+  const [formData, setFormData] = useState({
+    spend: dailyRecord.spend || 0,
+    revenue: dailyRecord.revenue || 0,
     units: dailyRecord.units || 0
   });
 
+  // Estado para controlar los valores de los inputs como strings
+  // Esto permite una mejor experiencia de usuario al escribir
+  const [inputValues, setInputValues] = useState({
+    spend: formData.spend > 0 ? formData.spend.toString() : '',
+    revenue: formData.revenue > 0 ? formData.revenue.toString() : '',
+    units: formData.units > 0 ? formData.units.toString() : ''
+  });
+
+  // Actualizar el formulario cuando cambian los datos externos
+  useEffect(() => {
+    const newFormData = {
+      spend: dailyRecord.spend || 0,
+      revenue: dailyRecord.revenue || 0,
+      units: dailyRecord.units || 0
+    };
+    
+    setFormData(newFormData);
+    
+    // Actualizar los valores de los inputs
+    setInputValues({
+      spend: newFormData.spend > 0 ? newFormData.spend.toString() : '',
+      revenue: newFormData.revenue > 0 ? newFormData.revenue.toString() : '',
+      units: newFormData.units > 0 ? newFormData.units.toString() : ''
+    });
+  }, [dailyRecord]);
+
+  // Manejar cambios en los inputs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'date' ? value : Number(value)
-    }));
+    
+    // Validar que solo se ingresen números y punto decimal
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      // Actualizar el valor del input como string
+      setInputValues(prev => ({
+        ...prev,
+        [name]: value
+      }));
+      
+      // Actualizar el valor numérico en el estado del formulario
+      setFormData(prev => ({
+        ...prev,
+        [name]: value === '' ? 0 : parseFloat(value)
+      }));
+    }
   };
 
+  // Manejar envío del formulario
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    
+    // Enviar datos al componente padre
+    onSave({
+      spend: formData.spend,
+      revenue: formData.revenue,
+      units: formData.units
+    });
+    
+    // Mostrar mensaje de éxito
+    setShowSuccess(true);
+    
+    // Ocultar mensaje después de 3 segundos
+    setTimeout(() => {
+      setShowSuccess(false);
+    }, 3000);
+    
+    // Resetear el formulario
+    setFormData({
+      spend: 0,
+      revenue: 0,
+      units: 0
+    });
+    
+    // Resetear los valores de los inputs
+    setInputValues({
+      spend: '',
+      revenue: '',
+      units: ''
+    });
   };
 
   // Cálculos derivados
@@ -35,18 +105,19 @@ const DailyDataForm: React.FC<DailyDataFormProps> = ({ dailyRecord, onSave }) =>
   const roas = formData.spend > 0 ? formData.revenue / formData.spend : 0;
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-lg p-6">
-      <h2 className="text-xl font-bold mb-4 flex items-center justify-between">
+    <div className="bg-gray-800 rounded-lg shadow-lg p-6 relative">
+      {/* Mensaje de éxito */}
+      {showSuccess && (
+        <div className="absolute top-4 right-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-2 rounded flex items-center">
+          <FaCheckCircle className="mr-2 text-green-500" />
+          Datos guardados correctamente
+        </div>
+      )}
+      
+      <h2 className="text-xl font-bold mb-4">
         <div className="flex items-center">
           <FaEdit className="mr-2 text-primary-color" />
-          Registrar Datos del Día Anterior
-        </div>
-        <div>
-          <CampaignDateSelector
-            selectedDate={formData.date}
-            onDateChange={(date) => setFormData(prev => ({ ...prev, date }))}
-            label="Fecha:"
-          />
+          Registrar Datos del Día {selectedDate && <span className="ml-2 text-sm text-gray-400">({selectedDate})</span>}
         </div>
       </h2>
       
@@ -61,38 +132,38 @@ const DailyDataForm: React.FC<DailyDataFormProps> = ({ dailyRecord, onSave }) =>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-gray-400 mb-1">
-                Gastos (MXN)
+                Gastos
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                   $
                 </span>
                 <input 
-                  type="number" 
+                  type="text" 
                   name="spend"
                   className="w-full bg-gray-700 border border-gray-600 rounded p-2 pl-6"
-                  value={formData.spend}
+                  value={inputValues.spend}
                   onChange={handleChange}
-                  step="0.01"
+                  placeholder="0"
                 />
               </div>
             </div>
             
             <div>
               <label className="block text-xs text-gray-400 mb-1">
-                Ingresos (MXN)
+                Ingresos
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                   $
                 </span>
                 <input 
-                  type="number" 
+                  type="text" 
                   name="revenue"
                   className="w-full bg-gray-700 border border-gray-600 rounded p-2 pl-6"
-                  value={formData.revenue}
+                  value={inputValues.revenue}
                   onChange={handleChange}
-                  step="0.01"
+                  placeholder="0"
                 />
               </div>
             </div>
@@ -112,10 +183,10 @@ const DailyDataForm: React.FC<DailyDataFormProps> = ({ dailyRecord, onSave }) =>
                 Total de Unidades Vendidas
               </label>
               <input 
-                type="number" 
+                type="text" 
                 name="units"
                 className="w-full bg-gray-700 border border-gray-600 rounded p-2"
-                value={formData.units}
+                value={inputValues.units}
                 onChange={handleChange}
                 placeholder="Ingresa el número total de unidades vendidas"
               />
@@ -187,7 +258,7 @@ const DailyDataForm: React.FC<DailyDataFormProps> = ({ dailyRecord, onSave }) =>
             className="bg-primary-color hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
           >
             <FaSave className="mr-2" />
-            Guardar Datos
+            {showSuccess ? 'Datos Guardados' : 'Guardar Datos'}
           </button>
         </div>
       </form>

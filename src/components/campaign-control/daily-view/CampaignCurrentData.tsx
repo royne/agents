@@ -6,6 +6,7 @@ import { formatCurrency } from '../../../utils/formatters';
 interface CampaignCurrentDataProps {
   dailyRecord: CampaignDailyRecord;
   lastBudgetChange?: CampaignBudgetChange;
+  initialBudget?: number; // Presupuesto inicial real del día
   getStatusColor: (status: string) => string;
   getStatusText: (status: string) => string;
   getChangeTypeColor: (changeType: string) => string;
@@ -15,11 +16,14 @@ interface CampaignCurrentDataProps {
 const CampaignCurrentData: React.FC<CampaignCurrentDataProps> = ({
   dailyRecord,
   lastBudgetChange,
+  initialBudget, // Agregamos el presupuesto inicial
   getStatusColor,
   getStatusText,
   getChangeTypeColor,
   getChangeTypeIcon
 }) => {
+  // Usar el presupuesto inicial proporcionado o caer de nuevo al presupuesto actual
+  const budgetToShow = initialBudget !== undefined ? initialBudget : dailyRecord.budget;
   return (
     <div className="bg-gray-800 rounded-lg shadow-lg p-6">
       <h2 className="text-xl font-bold mb-4 flex items-center justify-between">
@@ -40,7 +44,7 @@ const CampaignCurrentData: React.FC<CampaignCurrentDataProps> = ({
       
       <div className="bg-gray-700 p-4 rounded-lg mb-4">
         <div className="text-sm text-gray-400">Presupuesto Inicial del Día</div>
-        <div className="text-2xl font-bold">{formatCurrency(dailyRecord.budget)}</div>
+        <div className="text-2xl font-bold">{formatCurrency(budgetToShow)}</div>
       </div>
       
       {/* Último cambio de la bitácora */}
@@ -48,13 +52,13 @@ const CampaignCurrentData: React.FC<CampaignCurrentDataProps> = ({
         <div className="bg-gray-750 p-4 rounded-lg border-l-4 border-primary-color mt-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center">
-              <span className={`text-lg mr-2 ${getChangeTypeColor(lastBudgetChange.changeType)}`}>
-                {getChangeTypeIcon(lastBudgetChange.changeType)}
+              <span className={`text-lg mr-2 ${getChangeTypeColor(lastBudgetChange.change_type)}`}>
+                {getChangeTypeIcon(lastBudgetChange.change_type)}
               </span>
               <span className="font-medium">
-                {lastBudgetChange.changeType === 'increase' ? 'Aumento de Presupuesto' :
-                 lastBudgetChange.changeType === 'decrease' ? 'Reducción de Presupuesto' :
-                 lastBudgetChange.changeType === 'pause' ? 'Campaña Pausada' : 'Campaña Reactivada'}
+                {lastBudgetChange.change_type === 'increase' ? 'Aumento de Presupuesto' :
+                 lastBudgetChange.change_type === 'decrease' ? 'Reducción de Presupuesto' :
+                 lastBudgetChange.change_type === 'pause' ? 'Campaña Pausada' : 'Campaña Reactivada'}
               </span>
             </div>
             <div className="text-xs bg-gray-700 px-2 py-1 rounded-full">
@@ -62,17 +66,17 @@ const CampaignCurrentData: React.FC<CampaignCurrentDataProps> = ({
             </div>
           </div>
           
-          {lastBudgetChange.changeType !== 'pause' && lastBudgetChange.changeType !== 'resume' && (
+          {lastBudgetChange.change_type !== 'pause' && lastBudgetChange.change_type !== 'resume' && (
             <div className="flex items-center justify-between bg-gray-700 p-2 rounded-lg mb-2">
               <div className="text-sm">
                 <span className="text-gray-400 mr-2">Anterior:</span>
-                <span className="font-medium">{formatCurrency(lastBudgetChange.previousBudget)}</span>
+                <span className="font-medium">{formatCurrency(lastBudgetChange.previous_budget)}</span>
               </div>
               <div className="text-lg font-bold">→</div>
               <div className="text-sm">
                 <span className="text-gray-400 mr-2">Nuevo:</span>
-                <span className={`font-medium ${lastBudgetChange.changeType === 'increase' ? 'text-green-500' : 'text-red-500'}`}>
-                  {formatCurrency(lastBudgetChange.newBudget)}
+                <span className={`font-medium ${lastBudgetChange.change_type === 'increase' ? 'text-green-500' : 'text-red-500'}`}>
+                  {formatCurrency(lastBudgetChange.new_budget)}
                 </span>
               </div>
             </div>

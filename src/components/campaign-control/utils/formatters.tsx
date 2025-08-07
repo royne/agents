@@ -1,10 +1,10 @@
 /**
- * Formatea un número como moneda en formato MXN
+ * Formatea un número como moneda en formato COP
  */
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('es-MX', {
+  return new Intl.NumberFormat('es-CO', {
     style: 'currency',
-    currency: 'MXN',
+    currency: 'COP',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(amount);

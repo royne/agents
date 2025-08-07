@@ -9,9 +9,10 @@ interface BudgetChangeFormProps {
     reason: string;
     changeType: 'increase' | 'decrease' | 'pause' | 'resume';
   }) => void;
+  selectedDate?: string; // Fecha seleccionada para mostrar en el título
 }
 
-const BudgetChangeForm: React.FC<BudgetChangeFormProps> = ({ currentBudget, onSave }) => {
+const BudgetChangeForm: React.FC<BudgetChangeFormProps> = ({ currentBudget, onSave, selectedDate }) => {
   const [formData, setFormData] = useState({
     newBudget: currentBudget,
     reason: '',
@@ -20,10 +21,23 @@ const BudgetChangeForm: React.FC<BudgetChangeFormProps> = ({ currentBudget, onSa
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'newBudget' ? Number(value) : value
-    }));
+    
+    if (name === 'changeType') {
+      // Si el tipo de cambio es 'pause' o 'resume', mantenemos el presupuesto actual
+      // para que no se modifique cuando se guarde
+      const newChangeType = value as 'increase' | 'decrease' | 'pause' | 'resume';
+      setFormData(prev => ({
+        ...prev,
+        changeType: newChangeType,
+        // Mantenemos el presupuesto actual cuando es pausar o reactivar
+        newBudget: (newChangeType === 'pause' || newChangeType === 'resume') ? currentBudget : prev.newBudget
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: name === 'newBudget' ? Number(value) : value
+      }));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -35,7 +49,7 @@ const BudgetChangeForm: React.FC<BudgetChangeFormProps> = ({ currentBudget, onSa
     <div className="bg-gray-800 rounded-lg shadow-lg p-6">
       <h2 className="text-xl font-bold mb-4 flex items-center">
         <FaExchangeAlt className="mr-2 text-primary-color" />
-        Registrar Cambio de Presupuesto
+        Registrar Cambio de Presupuesto {selectedDate && <span className="ml-2 text-sm text-gray-400">({selectedDate})</span>}
       </h2>
       
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -107,10 +121,32 @@ const BudgetChangeForm: React.FC<BudgetChangeFormProps> = ({ currentBudget, onSa
             </div>
           </div>
           
-          {formData.changeType !== 'pause' && formData.changeType !== 'resume' && (
+          {formData.changeType === 'pause' || formData.changeType === 'resume' ? (
+            <div className="mb-4 bg-blue-500/10 border border-blue-400 rounded-lg p-3">
+              <div className="text-sm text-blue-300 flex items-start">
+                <div className="flex-shrink-0 mr-2 mt-0.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  {formData.changeType === 'pause' ? 
+                    'Al pausar la campaña, el presupuesto actual se mantendrá sin cambios. Solo se registrará el cambio de estado a "Pausada".' : 
+                    'Al reactivar la campaña, el presupuesto actual se mantendrá sin cambios. Solo se registrará el cambio de estado a "Activa".'}
+                </div>
+              </div>
+              
+              <div className="mt-3 flex items-center">
+                <div className="text-sm">
+                  <div className="text-gray-400">Presupuesto que se mantendrá:</div>
+                  <div className="font-medium text-white">{formatCurrency(currentBudget)}</div>
+                </div>
+              </div>
+            </div>
+          ) : (
             <div className="mb-4">
               <label className="block text-sm text-gray-400 mb-1">
-                Nuevo Presupuesto (MXN)
+                Nuevo Presupuesto
               </label>
               <div className="flex items-center space-x-4">
                 <div className="flex-1">
@@ -140,7 +176,7 @@ const BudgetChangeForm: React.FC<BudgetChangeFormProps> = ({ currentBudget, onSa
                   <span className="text-gray-400 mr-1">Cambio:</span>
                   <span className={`font-medium ${formData.newBudget > currentBudget ? 'text-green-500' : 'text-red-500'}`}>
                     {formData.newBudget > currentBudget ? '+' : ''}{formatCurrency(formData.newBudget - currentBudget)}
-                    {' '}({Math.abs(Math.round((formData.newBudget - currentBudget) / currentBudget * 100))}%)
+                    {' '}({Math.abs(Math.round((formData.newBudget - currentBudget) / (currentBudget || 1) * 100))}%)
                   </span>
                 </div>
               </div>

@@ -26,6 +26,21 @@ export const campaignDatabaseService = {
     return error ? [] : data;
   },
 
+  async getCampaignById(id: string, company_id: string): Promise<Campaign | null> {
+    const { data, error } = await supabase
+      .from('campaigns')
+      .select('*')
+      .eq('id', id)
+      .eq('company_id', company_id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching campaign:', error);
+      return null;
+    }
+    return data;
+  },
+
   async updateCampaign(id: string, updates: Partial<Campaign>, company_id: string): Promise<Campaign | null> {
     const { data, error } = await supabase
       .from('campaigns')

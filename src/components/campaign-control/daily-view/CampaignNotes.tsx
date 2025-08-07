@@ -1,17 +1,29 @@
-import React, { useState } from 'react';
-import { FaStickyNote, FaSave, FaBold, FaItalic, FaListUl } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaStickyNote, FaSave, FaBold, FaItalic, FaListUl, FaTimes } from 'react-icons/fa';
 
 interface CampaignNotesProps {
   initialNotes?: string;
   onSave: (notes: string) => void;
+  selectedDate?: string; // Fecha seleccionada para mostrar en el componente
 }
 
-const CampaignNotes: React.FC<CampaignNotesProps> = ({ initialNotes = '', onSave }) => {
+const CampaignNotes: React.FC<CampaignNotesProps> = ({ initialNotes = '', onSave, selectedDate }) => {
   const [notes, setNotes] = useState(initialNotes);
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Actualizar las notas cuando cambia initialNotes (por ejemplo, al cambiar de fecha)
+  useEffect(() => {
+    setNotes(initialNotes);
+  }, [initialNotes]);
 
   const handleSave = () => {
     onSave(notes);
+    setIsEditing(false);
+  };
+  
+  const handleCancel = () => {
+    // Restaurar las notas originales y salir del modo edición
+    setNotes(initialNotes);
     setIsEditing(false);
   };
 
@@ -20,16 +32,25 @@ const CampaignNotes: React.FC<CampaignNotesProps> = ({ initialNotes = '', onSave
       <h2 className="text-xl font-bold mb-4 flex items-center justify-between">
         <div className="flex items-center">
           <FaStickyNote className="mr-2 text-yellow-500" />
-          Notas de la Campaña
+          Notas de la Campaña {selectedDate && <span className="ml-2 text-sm text-gray-400">({selectedDate})</span>}
         </div>
         {isEditing ? (
-          <button
-            onClick={handleSave}
-            className="bg-primary-color hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm flex items-center"
-          >
-            <FaSave className="mr-1" />
-            Guardar
-          </button>
+          <div className="flex space-x-2">
+            <button
+              onClick={handleSave}
+              className="bg-primary-color hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm flex items-center"
+            >
+              <FaSave className="mr-1" />
+              Guardar
+            </button>
+            <button
+              onClick={handleCancel}
+              className="bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded-lg text-sm flex items-center"
+            >
+              <FaTimes className="mr-1" />
+              Cancelar
+            </button>
+          </div>
         ) : (
           <button
             onClick={() => setIsEditing(true)}

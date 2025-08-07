@@ -63,6 +63,7 @@ export default function CampaignPage() {
         product_id: currentCampaign.product_id || '',
         cp: currentCampaign.cp || '',
         platform: currentCampaign.platform || '',
+        initial_budget: currentCampaign.initial_budget !== undefined ? currentCampaign.initial_budget : 60000, // Valor por defecto 60000
         status: currentCampaign.status !== undefined ? currentCampaign.status : true,
         company_id: authData.company_id
       };
@@ -276,6 +277,20 @@ export default function CampaignPage() {
                   onChange={(e) => setCurrentCampaign({...currentCampaign, cp: e.target.value})}
                   required
                 />
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Presupuesto inicial</label>
+                  <input
+                    type="number"
+                    placeholder="60000"
+                    className="w-full p-2 rounded bg-gray-700 text-white"
+                    value={currentCampaign.initial_budget !== undefined ? currentCampaign.initial_budget : 60000}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value);
+                      setCurrentCampaign({...currentCampaign, initial_budget: isNaN(value) ? 60000 : value});
+                    }}
+                    required
+                  />
+                </div>
                 <select
                   className="w-full p-2 rounded bg-gray-700 text-white"
                   value={currentCampaign.platform || ''}

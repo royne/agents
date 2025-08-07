@@ -23,16 +23,16 @@ const RecentChanges: React.FC<RecentChangesProps> = ({ changes }) => {
             <div key={change.id} className="bg-gray-700 p-4 rounded-lg">
               <div className="flex items-start">
                 <div className="flex-shrink-0 mr-3 mt-1">
-                  {getChangeTypeIcon(change.changeType)}
+                  {getChangeTypeIcon(change.change_type)}
                 </div>
                 <div className="flex-grow">
                   <div className="flex justify-between">
                     <div>
                       <span className="font-medium">{change.campaignName}</span>
                       <span className="text-sm text-gray-400 ml-2">
-                        {change.changeType === 'increase' ? 'Aumento de presupuesto' :
-                        change.changeType === 'decrease' ? 'Reducción de presupuesto' :
-                        change.changeType === 'pause' ? 'Campaña pausada' : 'Campaña reactivada'}
+                        {change.change_type === 'increase' ? 'Aumento de presupuesto' :
+                        change.change_type === 'decrease' ? 'Reducción de presupuesto' :
+                        change.change_type === 'pause' ? 'Campaña pausada' : 'Campaña reactivada'}
                       </span>
                     </div>
                     <div className="text-sm text-gray-400">
@@ -40,19 +40,19 @@ const RecentChanges: React.FC<RecentChangesProps> = ({ changes }) => {
                     </div>
                   </div>
                   <div className="mt-1 text-sm">{change.reason}</div>
-                  {(change.changeType === 'increase' || change.changeType === 'decrease') && (
+                  {(change.change_type === 'increase' || change.change_type === 'decrease') && (
                     <div className="mt-1 text-sm">
-                      <span className="text-gray-400">{formatCurrency(change.previousBudget)}</span>
+                      <span className="text-gray-400">{formatCurrency(change.previous_budget)}</span>
                       <span className="mx-2">→</span>
-                      <span className={change.changeType === 'increase' ? 'text-green-400' : 'text-yellow-400'}>
-                        {formatCurrency(change.newBudget)}
+                      <span className={change.change_type === 'increase' ? 'text-green-400' : 'text-yellow-400'}>
+                        {formatCurrency(change.new_budget)}
                       </span>
                     </div>
                   )}
                 </div>
               </div>
               <div className="flex justify-end mt-2">
-                <Link href={`/campaign-control/${change.campaignId}/daily-view`} className="text-primary-color hover:text-blue-400 flex items-center text-xs">
+                <Link href={`/campaign-control/${change.campaign_id}/daily-view`} className="text-primary-color hover:text-blue-400 flex items-center text-xs">
                   Ver detalles
                   <FaExternalLinkAlt className="ml-1 text-xs" />
                 </Link>

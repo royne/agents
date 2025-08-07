@@ -24,7 +24,7 @@ const CampaignBudgetHistory: React.FC<CampaignBudgetHistoryProps> = ({
       </h2>
       
       {budgetChanges.length > 0 ? (
-        <div className="w-full overflow-x-auto">
+        <div className="">
           <table className="w-full table-auto bg-gray-700 rounded-lg">
             <thead className="bg-gray-800">
               <tr>
@@ -39,24 +39,26 @@ const CampaignBudgetHistory: React.FC<CampaignBudgetHistoryProps> = ({
                 <tr key={change.id} className={index % 2 === 0 ? 'bg-gray-750' : 'bg-gray-700'}>
                   <td className="py-2 px-4 text-sm">
                     <div>{new Date(change.date).toLocaleDateString()}</div>
-                    <div className="text-xs text-gray-400">{new Date(change.date).toLocaleTimeString()}</div>
+                    <div className="text-xs text-gray-400">
+                      {new Date(change.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true})}
+                    </div>
                   </td>
                   <td className="py-2 px-4">
                     <span className="inline-flex items-center">
-                      <span className={`text-lg mr-2 ${getChangeTypeColor(change.changeType)}`}>
-                        {getChangeTypeIcon(change.changeType)}
+                      <span className={`text-lg mr-2 ${getChangeTypeColor(change.change_type)}`}>
+                        {getChangeTypeIcon(change.change_type)}
                       </span>
                       <span>
-                        {change.changeType === 'increase' ? 'Aumento' :
-                         change.changeType === 'decrease' ? 'Reducción' :
-                         change.changeType === 'pause' ? 'Pausa' : 'Reactivación'}
+                        {change.change_type === 'increase' ? 'Aumento' :
+                         change.change_type === 'decrease' ? 'Reducción' :
+                         change.change_type === 'pause' ? 'Pausa' : 'Reactivación'}
                       </span>
                     </span>
                   </td>
                   <td className="py-2 px-4 text-sm">
-                    {change.changeType !== 'pause' && change.changeType !== 'resume' ? (
+                    {change.change_type !== 'pause' && change.change_type !== 'resume' ? (
                       <span>
-                        {formatCurrency(change.previousBudget)} → {formatCurrency(change.newBudget)}
+                        {formatCurrency(change.previous_budget)} → {formatCurrency(change.new_budget)}
                       </span>
                     ) : (
                       <span className="text-gray-400">-</span>
