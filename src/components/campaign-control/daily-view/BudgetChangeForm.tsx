@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FaExchangeAlt, FaSave, FaArrowUp, FaArrowDown, FaPlay, FaPause } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaExchangeAlt, FaSave, FaArrowUp, FaArrowDown, FaPlay, FaPause, FaCheckCircle } from 'react-icons/fa';
 import { formatCurrency } from '../../../utils/formatters';
 
 interface BudgetChangeFormProps {
@@ -9,15 +9,27 @@ interface BudgetChangeFormProps {
     reason: string;
     changeType: 'increase' | 'decrease' | 'pause' | 'resume';
   }) => void;
-  selectedDate?: string; // Fecha seleccionada para mostrar en el título
+  selectedDate: string; // Fecha seleccionada para mostrar en el título
 }
 
 const BudgetChangeForm: React.FC<BudgetChangeFormProps> = ({ currentBudget, onSave, selectedDate }) => {
+  // Usar useEffect para actualizar el presupuesto cuando cambia currentBudget
   const [formData, setFormData] = useState({
     newBudget: currentBudget,
     reason: '',
     changeType: 'increase' as 'increase' | 'decrease' | 'pause' | 'resume'
   });
+  
+  // Estado para mostrar mensaje de éxito
+  const [showSuccess, setShowSuccess] = useState(false);
+  
+  // Actualizar el presupuesto cuando cambia currentBudget
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      newBudget: currentBudget
+    }));
+  }, [currentBudget]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -32,10 +44,18 @@ const BudgetChangeForm: React.FC<BudgetChangeFormProps> = ({ currentBudget, onSa
         // Mantenemos el presupuesto actual cuando es pausar o reactivar
         newBudget: (newChangeType === 'pause' || newChangeType === 'resume') ? currentBudget : prev.newBudget
       }));
+    } else if (name === 'newBudget') {
+      // Manejar el campo de presupuesto como número
+      // Permitir valores vacíos temporalmente para facilitar la edición
+      const numValue = value === '' ? 0 : Number(value);
+      setFormData(prev => ({
+        ...prev,
+        [name]: numValue
+      }));
     } else {
       setFormData(prev => ({
         ...prev,
-        [name]: name === 'newBudget' ? Number(value) : value
+        [name]: value
       }));
     }
   };
@@ -43,14 +63,38 @@ const BudgetChangeForm: React.FC<BudgetChangeFormProps> = ({ currentBudget, onSa
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
+    
+    // Mostrar mensaje de éxito
+    setShowSuccess(true);
+    
+    // Ocultar mensaje después de 3 segundos
+    setTimeout(() => {
+      setShowSuccess(false);
+    }, 3000);
+    
+    // Limpiar el formulario después de guardar
+    // Usamos setTimeout para asegurar que el reseteo ocurra después de que se complete la acción
+    setTimeout(() => {
+      setFormData({
+        newBudget: currentBudget, // Restablecer al presupuesto actual
+        reason: '', // Limpiar la razón
+        changeType: 'increase' // Restablecer al tipo por defecto
+      });
+    }, 100);
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-lg p-6">
-      <h2 className="text-xl font-bold mb-4 flex items-center">
+    <div className="bg-gray-800 rounded-lg shadow-lg p-4 relative">
+      {showSuccess && (
+        <div className="absolute top-0 left-0 right-0 bg-green-500 text-white p-2 rounded-t-lg flex items-center justify-center">
+          <FaCheckCircle className="mr-2" />
+          Cambio de presupuesto guardado correctamente
+        </div>
+      )}
+      <h3 className="text-lg font-semibold mb-4 flex items-center">
         <FaExchangeAlt className="mr-2 text-primary-color" />
-        Registrar Cambio de Presupuesto {selectedDate && <span className="ml-2 text-sm text-gray-400">({selectedDate})</span>}
-      </h2>
+        Registrar Cambio de Presupuesto {selectedDate && `(${selectedDate})`}
+      </h3>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="bg-gray-750 p-4 rounded-lg">
@@ -155,12 +199,16 @@ const BudgetChangeForm: React.FC<BudgetChangeFormProps> = ({ currentBudget, onSa
                       $
                     </span>
                     <input 
-                      type="number" 
+                      type="text" 
                       name="newBudget"
                       className="w-full bg-gray-700 border border-gray-600 rounded p-2 pl-6"
-                      value={formData.newBudget}
+                      value={formData.changeType === 'increase' || formData.changeType === 'decrease' ? 
+                        (formData.newBudget === 0 || formData.newBudget === currentBudget ? '' : formData.newBudget) : 
+                        currentBudget}
                       onChange={handleChange}
-                      step="0.01"
+                      inputMode="decimal"
+                      pattern="[0-9]*"
+                      placeholder="0"
                     />
                   </div>
                 </div>

@@ -418,7 +418,16 @@ export default function DailyView() {
       
       if (savedChange) {
         // Actualizar la lista de cambios con el nuevo cambio
-        setBudgetChanges(prev => [savedChange, ...prev]);
+        const updatedChanges = [savedChange, ...budgetChanges];
+        setBudgetChanges(updatedChanges);
+        
+        // Actualizar el presupuesto inicial del día inmediatamente
+        // El presupuesto inicial debe ser el último cambio de presupuesto
+        if (!isPauseOrResume) {
+          // Solo actualizamos el presupuesto inicial si es un cambio real de presupuesto
+          setInitialDailyBudget(data.newBudget);
+          console.log('Actualizando presupuesto inicial a:', data.newBudget);
+        }
         
         // Actualizar el registro diario
         const updatedRecord = {
