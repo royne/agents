@@ -30,10 +30,29 @@ export const formatPercent = (value: number): string => {
 };
 
 /**
- * Formatea un número con separadores de miles
+ * Formatea un valor numérico con separadores de miles
  * @param value - Valor a formatear
  * @returns String formateado con separadores de miles
  */
 export const formatNumber = (value: number): string => {
-  return new Intl.NumberFormat('es-CO').format(value);
+  return new Intl.NumberFormat('es-CO', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(value);
 };
+
+/**
+ * Formatea una fecha en formato legible (DD/MM/YYYY)
+ * @param dateString - String de fecha ISO o Date
+ * @returns String formateado como fecha
+ */
+export const formatDate = (dateString: string | Date): string => {
+  const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+  return date.toLocaleDateString('es-CO', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+};
+
+// La función formatNumber ya está definida arriba

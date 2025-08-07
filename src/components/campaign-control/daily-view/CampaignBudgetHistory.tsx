@@ -14,7 +14,7 @@ const CampaignBudgetHistory: React.FC<CampaignBudgetHistoryProps> = ({
   budgetChanges,
   getChangeTypeColor,
   getChangeTypeIcon,
-  title = "Bitácora de Cambios de Presupuesto"
+  title = "Registro de Cambios de Presupuesto"
 }) => {
   return (
     <div className="bg-gray-800 rounded-lg shadow-lg p-6">

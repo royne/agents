@@ -143,12 +143,40 @@ export const campaignDailyRecordService = {
       .eq('campaign_id', campaignId)
       .gte('date', startDate)
       .lte('date', endDate)
-      .order('date');
-
+      .order('date', { ascending: false });
+    
     if (error) {
       console.error('Error fetching daily records range:', error);
-      return [];
+      throw new Error(`Error al obtener rango de registros diarios: ${error.message}`);
     }
+    
     return data || [];
+  },
+
+  /**
+   * Obtiene todos los registros diarios de una campaña
+   * @param campaignId - ID de la campaña
+   * @returns Array de registros diarios
+   */
+  async getCampaignDailyRecords(campaignId: string): Promise<CampaignDailyRecord[]> {
+    const { data, error } = await supabase
+      .from('campaign_daily_records')
+      .select('*')
+      .eq('campaign_id', campaignId)
+      .order('date', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching campaign daily records:', error);
+      throw new Error(`Error al obtener registros diarios de la campaña: ${error.message}`);
+    }
+    
+    // Mapear los campos units y revenue a units_sold y sales para compatibilidad
+    const recordsWithAliases = (data || []).map(record => ({
+      ...record,
+      units_sold: record.units,
+      sales: record.revenue
+    }));
+    
+    return recordsWithAliases;
   }
 };

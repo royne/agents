@@ -19,10 +19,12 @@ export interface CampaignDailyRecord {
   date: string;
   budget: number; // Presupuesto actual
   spend: number; // Gasto del día anterior
-  units: number; // Unidades vendidas del día anterior
+  units: number; // Unidades vendidas del día anterior (campo original)
+  units_sold: number; // Alias para units (para compatibilidad con componentes)
   revenue: number; // Ingresos generados del día anterior
+  sales: number; // Alias para revenue (para compatibilidad con componentes)
   roas?: number; // Calculado: revenue / spend
-  status: 'active' | 'paused' | 'limited' | 'learning';
+  status: 'active' | 'paused' | 'limited' | 'learning' | 'ended';
   notes?: string; // Notas específicas del día para esta campaña
   created_at?: string;
   updated_at?: string;

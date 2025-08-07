@@ -10,6 +10,7 @@ import CampaignNotes from '../../../components/campaign-control/daily-view/Campa
 import BudgetChangeForm from '../../../components/campaign-control/daily-view/BudgetChangeForm';
 import CampaignBudgetHistory from '../../../components/campaign-control/daily-view/CampaignBudgetHistory';
 import CampaignDateSelector from '../../../components/campaign-control/daily-view/CampaignDateSelector';
+import DailyHistoryTable from '../../../components/campaign-control/daily-view/DailyHistoryTable';
 import { CampaignDailyRecord, CampaignBudgetChange } from '../../../types/campaign-control';
 import { campaignDailyRecordService } from '../../../services/database/campaignDailyRecordService';
 import { campaignBudgetChangeService } from '../../../services/database/campaignBudgetChangeService';
@@ -51,7 +52,7 @@ export default function DailyView() {
   // Estado para mensajes de éxito
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Estado para el registro diario
+  // Estado para el registro diario actual
   const [dailyRecord, setDailyRecord] = useState<CampaignDailyRecord>({
     id: '',
     campaign_id: campaignId as string,
@@ -60,6 +61,8 @@ export default function DailyView() {
     spend: 0,
     revenue: 0,
     units: 0,
+    units_sold: 0,
+    sales: 0,
     status: 'active',
     notes: ''
   });
@@ -72,6 +75,9 @@ export default function DailyView() {
   
   // Estado para el historial de cambios de presupuesto
   const [budgetChanges, setBudgetChanges] = useState<CampaignBudgetChange[]>([]);
+  
+  // Estado para el historial de registros diarios
+  const [dailyRecords, setDailyRecords] = useState<CampaignDailyRecord[]>([]);
   
   // Cargar datos cuando cambia la fecha o el ID de campaña
   useEffect(() => {
@@ -111,10 +117,12 @@ export default function DailyView() {
           setDailyRecord({
             campaign_id: campaignId as string,
             date: selectedDate,
-            budget: 0, // Se actualizará más adelante según las prioridades
+            budget: initialDailyBudget || 0,
             spend: 0,
             revenue: 0,
             units: 0,
+            units_sold: 0,
+            sales: 0,
             status: 'active',
             notes: ''
           });
@@ -126,12 +134,16 @@ export default function DailyView() {
           campaignId as string
         );
         
+        // 3. Cargar el historial de registros diarios
+        const records = await campaignDailyRecordService.getCampaignDailyRecords(campaignId as string);
+        
         // Ordenar los cambios por fecha para asegurarnos que estén en orden correcto
         const sortedChanges = [...changes].sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
         );
         
         setBudgetChanges(sortedChanges);
+        setDailyRecords(records);
         
         // 3. Establecer el presupuesto según prioridades:
         // a. Si ya hay un presupuesto definido en el registro diario, mantenerlo
@@ -292,7 +304,10 @@ export default function DailyView() {
         ...dailyRecord,
         ...data,
         campaign_id: campaignId as string,
-        date: selectedDate // Usamos la fecha con formato completo
+        date: selectedDate, // Usamos la fecha con formato completo
+        // Mantener sincronizados los campos units_sold y sales con units y revenue
+        units_sold: data.units || dailyRecord.units,
+        sales: data.revenue || dailyRecord.revenue
       };
       
       console.log('Guardando registro con fecha:', selectedDate);
@@ -432,15 +447,15 @@ export default function DailyView() {
         // Actualizar el registro diario
         const updatedRecord = {
           ...dailyRecord,
-          // Para pausar/reactivar, mantenemos el mismo presupuesto
           budget: isPauseOrResume ? dailyRecord.budget : data.newBudget,
-          // Actualizamos el estado de la campaña según el tipo de cambio
           status: data.changeType === 'pause' ? 'paused' : 
                  data.changeType === 'resume' ? 'active' : 
                  dailyRecord.status,
-          // Nota: No incluimos company_id ya que no existe en la tabla campaign_daily_records
           campaign_id: campaignId as string,
-          date: selectedDate // Usamos la fecha con hora completa
+          date: selectedDate,
+          // Mantener sincronizados los campos units_sold y sales con units y revenue
+          units_sold: dailyRecord.units,
+          sales: dailyRecord.revenue
         };
         
         // Guardar el registro diario actualizado
@@ -543,16 +558,28 @@ export default function DailyView() {
             selectedDate={formattedSelectedDate}
           />
         </div>
-          </div>
+      </div>
 
       <div className="mt-6 overflow-visible">
-            {/* Componente CampaignBudgetHistory */}
+        <h2 className="text-xl font-semibold mb-4">Historial de la Campaña</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Columna 1: Historial de cambios de presupuesto */}
+          <div>
             <CampaignBudgetHistory 
               budgetChanges={budgetChanges}
               getChangeTypeColor={getChangeTypeColor}
               getChangeTypeIcon={getChangeTypeIcon}
             />
           </div>
+          
+          {/* Columna 2: Historial diario de la campaña */}
+          <div>
+            <DailyHistoryTable 
+              dailyRecords={dailyRecords}
+            />
+          </div>
+        </div>
+      </div>
     </DashboardLayout>
   );
 }
