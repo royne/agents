@@ -527,20 +527,26 @@ export default function DailyView() {
             getChangeTypeColor={getChangeTypeColor}
             getChangeTypeIcon={getChangeTypeIcon}
           />
-          
-          {/* Componente DailyDataForm */}
-          <DailyDataForm 
-            dailyRecord={dailyRecord}
-            onSave={handleSaveData}
-            selectedDate={formattedSelectedDate}
-          />
-          
-          {/* Componente MetricsChart */}
-          <MetricsChart 
-            period={chartPeriod}
-            onPeriodChange={handlePeriodChange}
-            dailyRecords={dailyRecords}
-          />
+
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Componente MetricsChart */}
+            <div className="md:col-span-1">
+              <MetricsChart 
+                period={chartPeriod}
+                onPeriodChange={handlePeriodChange}
+                dailyRecords={dailyRecords}
+              />
+            </div>
+
+            {/* Componente DailyDataForm */}
+            <div className="md:col-span-1">
+              <DailyDataForm 
+                dailyRecord={dailyRecord}
+                onSave={handleSaveData}
+                selectedDate={formattedSelectedDate}
+              />
+            </div>
+          </div>
         </div>
         
         {/* Columna derecha - 1/3 del ancho en pantallas grandes */}

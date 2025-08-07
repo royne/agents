@@ -102,7 +102,9 @@ const DailyDataForm: React.FC<DailyDataFormProps> = ({ dailyRecord, onSave, sele
 
   // Cálculos derivados
   const costPerUnit = formData.units > 0 ? formData.spend / formData.units : 0;
-  const roas = formData.spend > 0 ? formData.revenue / formData.spend : 0;
+  
+  // Cálculo del porcentaje de CPA (gasto sobre ingreso)
+  const cpaPercentage = formData.revenue > 0 ? (formData.spend / formData.revenue) * 100 : 0;
 
   return (
     <div className="bg-gray-800 rounded-lg shadow-lg p-6 relative">
@@ -215,9 +217,9 @@ const DailyDataForm: React.FC<DailyDataFormProps> = ({ dailyRecord, onSave, sele
                   {formData.units > 0 ? formatCurrency(costPerUnit) : '-'}
                 </div>
                 <div className="flex items-center text-xs">
-                  {costPerUnit < 50 ? (
-                    <span className="text-green-500">Bueno</span>
-                  ) : costPerUnit < 100 ? (
+                  {costPerUnit <= 15000 ? (
+                    <span className="text-green-500">Óptimo</span>
+                  ) : costPerUnit <= 20000 ? (
                     <span className="text-yellow-500">Regular</span>
                   ) : (
                     <span className="text-red-500">Alto</span>
@@ -226,25 +228,27 @@ const DailyDataForm: React.FC<DailyDataFormProps> = ({ dailyRecord, onSave, sele
               </div>
             </div>
             
-            {/* ROAS */}
-            <div className="bg-gray-750 p-4 rounded-lg border-t-2 border-green-500">
+            {/* Porcentaje de CPA */}
+            <div className="bg-gray-750 p-4 rounded-lg border-t-2 border-orange-500">
               <div className="flex justify-between items-center mb-1">
-                <div className="text-xs text-gray-400 font-medium">ROAS</div>
+                <div className="text-xs text-gray-400 font-medium">% CPA</div>
                 <div className="text-xs bg-gray-700 px-2 py-0.5 rounded-full">
-                  Ingresos/Gastos
+                  Gasto/Ingreso
                 </div>
               </div>
               <div className="flex items-end justify-between">
                 <div className="text-xl font-bold">
-                  {formData.spend > 0 ? roas.toFixed(2) + 'x' : '-'}
+                  {formData.revenue > 0 ? `${Math.round(cpaPercentage)}%` : '-'}
                 </div>
                 <div className="flex items-center text-xs">
-                  {roas >= 2 ? (
-                    <span className="text-green-500">Excelente</span>
-                  ) : roas >= 1 ? (
-                    <span className="text-yellow-500">Rentable</span>
+                  {cpaPercentage <= 18 ? (
+                    <span className="text-green-500">Óptimo</span>
+                  ) : cpaPercentage <= 23 ? (
+                    <span className="text-blue-500">Bueno</span>
+                  ) : cpaPercentage <= 33 ? (
+                    <span className="text-yellow-500">Límite</span>
                   ) : (
-                    <span className="text-red-500">No rentable</span>
+                    <span className="text-red-500">Pérdida</span>
                   )}
                 </div>
               </div>
