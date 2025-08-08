@@ -11,10 +11,26 @@ export const formatCurrency = (amount: number): string => {
 };
 
 /**
- * Formatea una fecha ISO a formato local
+ * Formatea una fecha ISO a formato local, asegurando que se muestre la fecha correcta
  */
 export const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString();
+  // Crear una fecha a partir del string
+  const inputDate = new Date(dateString);
+  
+  // Crear una nueva fecha usando los componentes de año, mes y día para evitar problemas de zona horaria
+  const year = inputDate.getFullYear();
+  const month = inputDate.getMonth();
+  const day = inputDate.getDate();
+  
+  // Crear una nueva fecha con estos componentes (esto evita el problema de zona horaria)
+  const correctedDate = new Date(year, month, day);
+  
+  // Formatear la fecha en formato local
+  return correctedDate.toLocaleDateString('es-CO', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
 };
 
 /**

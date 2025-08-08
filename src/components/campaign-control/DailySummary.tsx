@@ -109,7 +109,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({ summary, onGenerateSummary,
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-gray-700 p-4 rounded-lg">
           <div className="text-sm text-gray-400">Presupuesto Total</div>
-          <div className="text-2xl font-bold">{formatCurrency(summary.total_budget)}</div>
+          <div className="text-xl font-bold">{formatCurrency(summary.total_budget)}</div>
         </div>
         
         <div className="bg-gray-700 p-4 rounded-lg">
@@ -118,14 +118,14 @@ const DailySummary: React.FC<DailySummaryProps> = ({ summary, onGenerateSummary,
           </div>
           
           {/* Mostrar el valor ajustado como principal si existe */}
-          <div className="text-2xl font-bold text-green-500">
+          <div className="text-xl font-bold text-green-500">
             {summary.adjusted_units ? summary.adjusted_units : summary.total_units}
           </div>
           
           {/* Mostrar el valor calculado como referencia si hay un valor ajustado */}
           {summary.adjusted_units && (
             <div className="mt-1 flex items-center">
-              <span className="text-xs text-gray-400">Calculado:</span>
+              <span className="text-xs text-gray-400">Calc:</span>
               <span className="ml-2 text-xs text-gray-300">{summary.total_units}</span>
               {unitsDiff > 0 && <FaArrowDown className="ml-1 text-red-500 text-xs" />}
               {unitsDiff < 0 && <FaArrowUp className="ml-1 text-green-500 text-xs" />}
@@ -152,14 +152,14 @@ const DailySummary: React.FC<DailySummaryProps> = ({ summary, onGenerateSummary,
           </div>
           
           {/* Mostrar el valor ajustado como principal si existe */}
-          <div className="text-2xl font-bold text-green-500">
+          <div className="text-xl font-bold text-green-500">
             {formatCurrency(summary.adjusted_revenue || summary.total_revenue)}
           </div>
           
           {/* Mostrar el valor calculado como referencia si hay un valor ajustado */}
           {summary.adjusted_revenue && (
             <div className="mt-1 flex items-center">
-              <span className="text-xs text-gray-400">Calculado:</span>
+              <span className="text-xs text-gray-400">Calc:</span>
               <span className="ml-2 text-xs text-gray-300">{formatCurrency(summary.total_revenue)}</span>
               {revenueDiff > 0 && <FaArrowUp className="ml-1 text-green-500 text-xs" />}
               {revenueDiff < 0 && <FaArrowDown className="ml-1 text-red-500 text-xs" />}
@@ -182,7 +182,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({ summary, onGenerateSummary,
         
         <div className="bg-gray-700 p-4 rounded-lg">
           <div className="text-sm text-gray-400">Gasto Total</div>
-          <div className="text-2xl font-bold text-blue-500">{formatCurrency(summary.total_spend)}</div>
+          <div className="text-xl font-bold text-blue-500">{formatCurrency(summary.total_spend)}</div>
         </div>
         
         <div className="bg-gray-700 p-4 rounded-lg">
@@ -191,14 +191,14 @@ const DailySummary: React.FC<DailySummaryProps> = ({ summary, onGenerateSummary,
           </div>
           
           {/* Mostrar el valor ajustado como principal si existe */}
-          <div className="text-2xl font-bold text-purple-500">
+          <div className="text-xl font-bold text-purple-500">
             {formatCurrency(summary.adjusted_cpa || calculatedCPA)}
           </div>
           
           {/* Mostrar el valor calculado como referencia si hay un valor ajustado */}
           {summary.adjusted_cpa && (
             <div className="mt-1 flex items-center">
-              <span className="text-xs text-gray-400">Calculado:</span>
+              <span className="text-xs text-gray-400">Calc:</span>
               <span className="ml-2 text-xs text-gray-300">{formatCurrency(calculatedCPA)}</span>
               {cpaDiff > 0 && <FaArrowDown className="ml-1 text-green-500 text-xs" />}
               {cpaDiff < 0 && <FaArrowUp className="ml-1 text-red-500 text-xs" />}
@@ -222,7 +222,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({ summary, onGenerateSummary,
           </div>
           
           {/* Mostrar el valor ajustado como principal si existe */}
-          <div className="text-2xl font-bold text-yellow-500">
+          <div className="text-xl font-bold text-yellow-500">
             {summary.adjusted_roas 
               ? `${summary.adjusted_roas.toFixed(2)}x` 
               : (summary.total_spend > 0 
@@ -233,7 +233,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({ summary, onGenerateSummary,
           {/* Mostrar el valor calculado como referencia si hay un valor ajustado */}
           {summary.adjusted_roas && (
             <div className="mt-1 flex items-center">
-              <span className="text-xs text-gray-400">Calculado:</span>
+              <span className="text-xs text-gray-400">Calc:</span>
               <span className="ml-2 text-xs text-gray-300">
                 {summary.total_spend > 0 
                   ? `${(summary.total_revenue / summary.total_spend).toFixed(2)}x` 
