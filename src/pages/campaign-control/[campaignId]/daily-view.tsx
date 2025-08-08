@@ -61,8 +61,6 @@ export default function DailyView() {
     spend: 0,
     revenue: 0,
     units: 0,
-    units_sold: 0,
-    sales: 0,
     status: 'active',
     notes: ''
   });
@@ -121,8 +119,6 @@ export default function DailyView() {
             spend: 0,
             revenue: 0,
             units: 0,
-            units_sold: 0,
-            sales: 0,
             status: 'active',
             notes: ''
           });
@@ -304,10 +300,7 @@ export default function DailyView() {
         ...dailyRecord,
         ...data,
         campaign_id: campaignId as string,
-        date: selectedDate, // Usamos la fecha con formato completo
-        // Mantener sincronizados los campos units_sold y sales con units y revenue
-        units_sold: data.units || dailyRecord.units,
-        sales: data.revenue || dailyRecord.revenue
+        date: selectedDate // Usamos la fecha con formato completo
       };
       
       console.log('Guardando registro con fecha:', selectedDate);
