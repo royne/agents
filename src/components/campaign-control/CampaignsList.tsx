@@ -8,6 +8,7 @@ interface CampaignsListProps {
 }
 
 const CampaignsList: React.FC<CampaignsListProps> = ({ campaigns }) => {
+  console.log('campaigns', campaigns);
   return (
     <div className="bg-gray-800 rounded-lg shadow-lg p-6">
       <h2 className="text-xl font-bold mb-4 flex items-center">

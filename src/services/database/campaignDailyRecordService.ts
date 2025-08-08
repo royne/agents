@@ -35,7 +35,7 @@ export const campaignDailyRecordService = {
         .eq('date', dateOnly)
         .order('date', { ascending: false });
 
-      console.log('Data:', data);
+      console.log('Data:------------------', dateOnly);
       if (error) {
         console.error('Error fetching daily records:', error);
         throw new Error(`Error al obtener registros diarios: ${error.message}`);

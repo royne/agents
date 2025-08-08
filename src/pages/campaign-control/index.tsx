@@ -26,9 +26,14 @@ export default function CampaignControl() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [campaignsWithData, setCampaignsWithData] = useState<CampaignWithDailyData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  );
+  // Inicializar con la fecha local actual en formato YYYY-MM-DD
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
 
   // Estado para los datos del resumen diario - inicializado vacío para evitar datos quemados
   const [dailySummary, setDailySummary] = useState<DailySummary>({
@@ -182,6 +187,7 @@ export default function CampaignControl() {
 
   // Manejador de cambio de fecha
   const handleDateChange = (date: string) => {
+    console.log('Selected date:', date);
     setSelectedDate(date);
     // La recarga de datos está manejada por el useEffect que observa selectedDate
   };
