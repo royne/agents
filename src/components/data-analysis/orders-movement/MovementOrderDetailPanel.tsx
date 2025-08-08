@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaUser, FaMapMarkerAlt, FaClipboardList, FaShippingFast } from 'react-icons/fa';
 import { MovementOrder } from '../../../services/data-analysis/OrdersMovementService';
 
 interface MovementOrderDetailPanelProps {
@@ -17,7 +17,7 @@ const MovementOrderDetailPanel: React.FC<MovementOrderDetailPanelProps> = ({
 
   return (
     <div 
-      className={`fixed top-0 right-0 h-full w-full md:w-1/2 lg:w-1/3 bg-theme-background border-l border-theme-border shadow-xl transition-transform duration-300 transform ${isOpen ? 'translate-x-0' : 'translate-x-full'} z-50 overflow-y-auto`}
+      className={`fixed top-0 right-0 h-full w-full md:w-1/2 lg:w-1/3 bg-theme-component border-l border-theme-border shadow-xl transition-transform duration-300 transform ${isOpen ? 'translate-x-0' : 'translate-x-full'} z-50 overflow-y-auto`}
     >
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
@@ -31,7 +31,12 @@ const MovementOrderDetailPanel: React.FC<MovementOrderDetailPanelProps> = ({
         </div>
         
         <div className="bg-theme-component p-4 rounded-lg border border-theme-border mb-4">
-          <h4 className="text-lg font-medium mb-2 text-primary-color">Información General</h4>
+          <div className="flex items-center mb-4">
+            <div className="bg-blue-500 w-5 h-5 flex items-center justify-center rounded-full mr-3">
+              <FaUser className="text-xs text-white" />
+            </div>
+            <h4 className="text-lg font-medium text-primary-color">Información General</h4>
+          </div>
           <div className="grid grid-cols-1 gap-3">
             <div>
               <p className="text-xs text-theme-tertiary">ID</p>
@@ -53,7 +58,12 @@ const MovementOrderDetailPanel: React.FC<MovementOrderDetailPanelProps> = ({
         </div>
         
         <div className="bg-theme-component p-4 rounded-lg border border-theme-border mb-4">
-          <h4 className="text-lg font-medium mb-2 text-primary-color">Ubicación</h4>
+          <div className="flex items-center mb-4">
+            <div className="bg-blue-500 w-5 h-5 flex items-center justify-center rounded-full mr-3">
+              <FaMapMarkerAlt className="text-xs text-white" />
+            </div>
+            <h4 className="text-lg font-medium text-primary-color">Ubicación</h4>
+          </div>
           <div className="grid grid-cols-1 gap-3">
             <div>
               <p className="text-xs text-theme-tertiary">Ciudad Destino</p>
@@ -71,7 +81,12 @@ const MovementOrderDetailPanel: React.FC<MovementOrderDetailPanelProps> = ({
         </div>
         
         <div className="bg-theme-component p-4 rounded-lg border border-theme-border mb-4">
-          <h4 className="text-lg font-medium mb-2 text-primary-color">Estado y Movimiento</h4>
+          <div className="flex items-center mb-4">
+            <div className="bg-blue-500 w-5 h-5 flex items-center justify-center rounded-full mr-3">
+              <FaClipboardList className="text-xs text-white" />
+            </div>
+            <h4 className="text-lg font-medium text-primary-color">Estado y Movimiento</h4>
+          </div>
           <div className="grid grid-cols-1 gap-3">
             <div>
               <p className="text-xs text-theme-tertiary">Estado</p>
@@ -109,7 +124,12 @@ const MovementOrderDetailPanel: React.FC<MovementOrderDetailPanelProps> = ({
         </div>
         
         <div className="bg-theme-component p-4 rounded-lg border border-theme-border mb-4">
-          <h4 className="text-lg font-medium mb-2 text-primary-color">Envío y Valores</h4>
+          <div className="flex items-center mb-4">
+            <div className="bg-blue-500 w-5 h-5 flex items-center justify-center rounded-full mr-3">
+              <FaShippingFast className="text-xs text-white" />
+            </div>
+            <h4 className="text-lg font-medium text-primary-color">Envío y Valores</h4>
+          </div>
           <div className="grid grid-cols-1 gap-3">
             <div>
               <p className="text-xs text-theme-tertiary">Transportadora</p>
