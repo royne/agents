@@ -45,8 +45,8 @@ const DailySummary: React.FC<DailySummaryProps> = ({ summary, onGenerateSummary 
         </div>
         
         <div className="bg-gray-700 p-4 rounded-lg">
-          <div className="text-sm text-gray-400">Ingresos del Día</div>
-          <div className="text-2xl font-bold text-green-500">{formatCurrency(summary.total_revenue)}</div>
+          <div className="text-sm text-gray-400">Gasto Total</div>
+          <div className="text-2xl font-bold text-blue-500">{formatCurrency(summary.total_spend)}</div>
         </div>
       </div>
       

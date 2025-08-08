@@ -30,97 +30,25 @@ export default function CampaignControl() {
     new Date().toISOString().split('T')[0]
   );
 
-  // Estado para los datos del resumen diario
+  // Estado para los datos del resumen diario - inicializado vacío para evitar datos quemados
   const [dailySummary, setDailySummary] = useState<DailySummary>({
     company_id: authData?.company_id || '',
     date: selectedDate,
-    total_budget: 2450000,
-    total_spend: 1890000,
-    total_revenue: 4347000,
+    total_budget: 0,
+    total_spend: 0,
+    total_revenue: 0,
     total_units: 0,
-    active_campaigns: 15,
-    pending_updates: 8,
-    avg_roas: 2.3,
-    notes: 'Buen rendimiento general. Se aumentaron presupuestos en Facebook. 3 campañas presentan alertas de bajo rendimiento.'
+    active_campaigns: 0,
+    pending_updates: 0,
+    avg_roas: 0,
+    notes: ''
   });
 
-  // Estado para los cambios recientes
-  const [recentChanges, setRecentChanges] = useState<CampaignBudgetChange[]>([
-    {
-      id: '1',
-      campaign_id: '101',
-      campaignName: 'FB Conversiones - Producto A',
-      date: new Date(new Date().getTime() - 12 * 60 * 60 * 1000).toISOString(), // 12 horas atrás
-      previous_budget: 100000,
-      new_budget: 120000,
-      reason: 'Aumento por buen rendimiento',
-      change_type: 'increase'
-    },
-    {
-      id: '2',
-      campaign_id: '102',
-      campaignName: 'Google Search - Marca',
-      date: new Date(new Date().getTime() - 14 * 60 * 60 * 1000).toISOString(), // 14 horas atrás
-      previous_budget: 80000,
-      new_budget: 0,
-      reason: 'Pausada por bajo ROAS',
-      change_type: 'pause'
-    },
-    {
-      id: '3',
-      campaign_id: '103',
-      campaignName: 'TikTok - Awareness',
-      date: new Date(new Date().getTime() - 18 * 60 * 60 * 1000).toISOString(), // 18 horas atrás
-      previous_budget: 120000,
-      new_budget: 100000,
-      reason: 'Reducción por ajuste de presupuesto',
-      change_type: 'decrease'
-    },
-  ]);
+  // Estado para los cambios recientes - inicializado vacío para usar solo datos reales
+  const [recentChanges, setRecentChanges] = useState<CampaignBudgetChange[]>([]);
 
   // Estado para los registros diarios de campañas
-  const [campaignDailyRecords, setCampaignDailyRecords] = useState<CampaignDailyRecord[]>([
-    {
-      campaign_id: '1',
-      date: selectedDate,
-      budget: 150000,
-      spend: 120000,
-      units: 48,
-      revenue: 240000,
-      roas: 2.0,
-      status: 'active'
-    },
-    {
-      campaign_id: '2',
-      date: selectedDate,
-      budget: 100000,
-      spend: 85000,
-      units: 32,
-      revenue: 160000,
-      roas: 1.88,
-      status: 'active'
-    },
-    {
-      campaign_id: '3',
-      date: selectedDate,
-      budget: 80000,
-      spend: 0,
-      units: 0,
-      revenue: 0,
-      roas: 0,
-      status: 'paused'
-    },
-    {
-      campaign_id: '4',
-      date: selectedDate,
-      budget: 120000,
-      spend: 65000,
-      units: 12,
-      revenue: 60000,
-      roas: 0.92,
-      status: 'active'
-    },
-  ]);
+  const [campaignDailyRecords, setCampaignDailyRecords] = useState<CampaignDailyRecord[]>([]);
 
   // Cargar todos los datos necesarios
   useEffect(() => {
@@ -136,6 +64,21 @@ export default function CampaignControl() {
           const summary = await dailySummaryService.getDailySummary(authData.company_id, selectedDate);
           if (summary) {
             setDailySummary(summary);
+          } else {
+            // Si no existe un resumen para la fecha seleccionada, generarlo automáticamente
+            try {
+              console.log('Generando resumen diario automáticamente...');
+              const generatedSummary = await dailySummaryService.generateDailySummary(
+                authData.company_id,
+                selectedDate
+              );
+              
+              if (generatedSummary) {
+                setDailySummary(generatedSummary);
+              }
+            } catch (summaryError) {
+              console.error('Error al generar resumen diario automáticamente:', summaryError);
+            }
           }
           
           // 3. Cargar los cambios recientes reales
@@ -144,9 +87,8 @@ export default function CampaignControl() {
             setRecentChanges(recentChangesData);
           }
           
-          // 4. Cargar registros diarios si existen
-          // Esto normalmente requeriría múltiples llamadas a la API, una por campaña
-          // Por simplicidad, mantendremos los datos quemados por ahora
+          // 4. Los registros diarios se cargan en un useEffect separado
+          // para mejorar la modularidad y el rendimiento
           
         } catch (error) {
           console.error('Error al cargar datos del dashboard:', error);
@@ -159,30 +101,76 @@ export default function CampaignControl() {
     loadDashboardData();
   }, [authData, selectedDate]);
 
-  // Usar datos reales cuando estén disponibles, de lo contrario usar los quemados
+  // Cargar registros diarios para la fecha seleccionada
+  useEffect(() => {
+    const loadDailyRecords = async () => {
+      if (authData?.company_id) {
+        try {
+          // Cargar registros diarios para la fecha seleccionada
+          const records = await campaignDailyRecordService.getCompanyDailyRecords(authData.company_id, selectedDate);
+          if (records && records.length > 0) {
+            setCampaignDailyRecords(records);
+          }
+        } catch (error) {
+          console.error('Error al cargar registros diarios:', error);
+        }
+      }
+    };
+    
+    loadDailyRecords();
+  }, [authData, selectedDate]);
+
+  // Usar datos reales cuando estén disponibles, de lo contrario usar valores por defecto
   useEffect(() => {
     if (campaigns.length > 0) {
-      // Combinar datos de campañas con datos diarios simulados
+      // Obtener la fecha de ayer para verificar si necesita actualización
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayString = yesterday.toISOString().split('T')[0];
+      
+      // Combinar datos de campañas con datos diarios
       const combinedData: CampaignWithDailyData[] = campaigns.map(campaign => {
-        // Buscar si hay un registro diario para esta campaña
-        const dailyRecord = campaignDailyRecords.find(record => record.campaign_id === campaign.id);
+        // Buscar si hay un registro diario para esta campaña en la fecha seleccionada
+        const dailyRecord = campaignDailyRecords.find(
+          record => record.campaign_id === campaign.id && record.date === selectedDate
+        );
+        
         // Buscar último cambio para esta campaña
         const lastChange = recentChanges.find(change => change.campaign_id === campaign.id);
         
-        // Determinar si necesita actualización basado en la fecha (campaña activa sin datos del día actual)
-        const needsUpdate = campaign.status && (!dailyRecord || dailyRecord.date !== selectedDate);
+        // Convertir el status booleano a string para la comparación
+        const campaignStatus = typeof campaign.status === 'boolean' ? 
+          (campaign.status ? 'active' : 'paused') : 
+          campaign.status;
+          
+        // Una campaña necesita actualización si:
+        // 1. Está activa
+        // 2. La fecha seleccionada es hoy o anterior
+        // 3. No tiene registro para la fecha seleccionada
+        const needsUpdate = 
+          campaignStatus === 'active' && 
+          selectedDate <= new Date().toISOString().split('T')[0] &&
+          !dailyRecord;
+        
+        // Si hay datos diarios, usarlos; de lo contrario, crear un objeto con valores por defecto
+        const campaignDailyData: CampaignDailyRecord = dailyRecord || {
+          id: '',
+          campaign_id: campaign.id || '',
+          date: selectedDate,
+          budget: 0,
+          spend: 0,
+          units: 0,
+          units_sold: 0,
+          revenue: 0,
+          sales: 0,
+          status: typeof campaign.status === 'boolean' ? 
+            (campaign.status ? 'active' : 'paused') : 
+            (campaign.status === 'active' ? 'active' : 'paused')
+        };
         
         return {
           ...campaign,
-          dailyData: dailyRecord || {
-            campaign_id: campaign.id,
-            date: selectedDate,
-            budget: 0,
-            spend: 0,
-            units: 0,
-            revenue: 0,
-            status: campaign.status ? 'active' : 'paused'
-          },
+          dailyData: campaignDailyData,
           lastChange,
           needsUpdate
         };

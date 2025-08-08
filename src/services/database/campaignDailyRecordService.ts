@@ -2,6 +2,51 @@ import { supabase } from '../../lib/supabase';
 import type { CampaignDailyRecord } from '../../types/campaign-control';
 
 export const campaignDailyRecordService = {
+  // Obtener todos los registros diarios para una fecha específica y compañía
+  async getCompanyDailyRecords(companyId: string, date: string): Promise<CampaignDailyRecord[]> {
+    try {
+      // Primero, obtener todas las campañas que pertenecen a la compañía
+      const { data: campaigns, error: campaignsError } = await supabase
+        .from('campaigns')
+        .select('id')
+        .eq('company_id', companyId);
+
+      if (campaignsError) {
+        console.error('Error fetching company campaigns:', campaignsError);
+        throw new Error(`Error al obtener campañas de la compañía: ${campaignsError.message}`);
+      }
+
+      if (!campaigns || campaigns.length === 0) {
+        return []; // No hay campañas para esta compañía
+      }
+
+      // Extraer solo la parte de la fecha (YYYY-MM-DD) para la consulta
+      const dateOnly = date.split('T')[0];
+      
+      // Obtener los IDs de las campañas
+      const campaignIds = campaigns.map(campaign => campaign.id);
+      
+      // Ahora, obtener los registros diarios para estas campañas en la fecha especificada
+      // En lugar de usar LIKE, usamos eq con la fecha exacta para evitar problemas con el operador
+      const { data, error } = await supabase
+        .from('campaign_daily_records')
+        .select('*')
+        .in('campaign_id', campaignIds)
+        .eq('date', dateOnly)
+        .order('date', { ascending: false });
+
+      console.log('Data:', data);
+      if (error) {
+        console.error('Error fetching daily records:', error);
+        throw new Error(`Error al obtener registros diarios: ${error.message}`);
+      }
+      
+      return data || [];
+    } catch (error) {
+      console.error('Error in getCompanyDailyRecords:', error);
+      throw error;
+    }
+  },
   async getDailyRecord(campaignId: string, date: string): Promise<CampaignDailyRecord | null> {
     // Extraer solo la parte de la fecha (YYYY-MM-DD) para la consulta
     // Esto permite buscar registros por día independientemente de la hora

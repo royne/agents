@@ -29,8 +29,8 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
           <div>{campaign.dailyData.units || 0}</div>
         </div>
         <div>
-          <div className="text-xs text-gray-400">Ingresos Día Anterior</div>
-          <div>{campaign.dailyData.revenue ? formatCurrency(campaign.dailyData.revenue) : '$0'}</div>
+          <div className="text-xs text-gray-400">Gasto</div>
+          <div>{campaign.dailyData.spend ? formatCurrency(campaign.dailyData.spend) : '$0'}</div>
         </div>
       </div>
       
