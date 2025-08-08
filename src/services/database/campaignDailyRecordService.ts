@@ -5,11 +5,11 @@ export const campaignDailyRecordService = {
   // Obtener todos los registros diarios para una fecha específica y compañía
   async getCompanyDailyRecords(companyId: string, date: string): Promise<CampaignDailyRecord[]> {
     try {
-      // Primero, obtener todas las campañas que pertenecen a la compañía
       const { data: campaigns, error: campaignsError } = await supabase
         .from('campaigns')
         .select('id')
-        .eq('company_id', companyId);
+        .eq('company_id', companyId)
+        .eq('status', true);
 
       if (campaignsError) {
         console.error('Error fetching company campaigns:', campaignsError);
@@ -27,7 +27,6 @@ export const campaignDailyRecordService = {
       const campaignIds = campaigns.map(campaign => campaign.id);
       
       // Ahora, obtener los registros diarios para estas campañas en la fecha especificada
-      // En lugar de usar LIKE, usamos eq con la fecha exacta para evitar problemas con el operador
       const { data, error } = await supabase
         .from('campaign_daily_records')
         .select('*')
@@ -35,7 +34,6 @@ export const campaignDailyRecordService = {
         .eq('date', dateOnly)
         .order('date', { ascending: false });
 
-      console.log('Data:------------------', dateOnly);
       if (error) {
         console.error('Error fetching daily records:', error);
         throw new Error(`Error al obtener registros diarios: ${error.message}`);
@@ -48,16 +46,13 @@ export const campaignDailyRecordService = {
     }
   },
   async getDailyRecord(campaignId: string, date: string): Promise<CampaignDailyRecord | null> {
-    // Extraer solo la parte de la fecha (YYYY-MM-DD) para la consulta
-    // Esto permite buscar registros por día independientemente de la hora
     const dateOnly = date.split('T')[0];
-    console.log('Buscando registro diario con fecha:', dateOnly);
     
     const { data, error } = await supabase
       .from('campaign_daily_records')
       .select('*')
       .eq('campaign_id', campaignId)
-      .eq('date', date) // Mantener la fecha completa para compatibilidad
+      .eq('date', date)
       .single();
 
     if (error && error.code !== 'PGRST116') {
@@ -65,13 +60,12 @@ export const campaignDailyRecordService = {
       throw new Error(`Error al obtener registro diario: ${error.message}`);
     }
     
-    // Si no encontramos con fecha completa, intentamos con solo la fecha
     if (!data) {
       const { data: dataByDateOnly, error: errorByDateOnly } = await supabase
         .from('campaign_daily_records')
         .select('*')
         .eq('campaign_id', campaignId)
-        .like('date', `${dateOnly}%`) // Buscar registros que empiecen con la fecha
+        .like('date', `${dateOnly}%`)
         .order('date', { ascending: false })
         .limit(1)
         .single();
@@ -87,14 +81,10 @@ export const campaignDailyRecordService = {
   },
 
   async saveDailyRecord(record: Omit<CampaignDailyRecord, 'id' | 'created_at' | 'updated_at'>): Promise<CampaignDailyRecord | null> {
-    // Asegurarnos de que la fecha incluye la hora completa
     const recordWithFullDate = {
       ...record,
-      // Si la fecha no tiene formato ISO completo, lo convertimos
       date: record.date.includes('T') ? record.date : new Date(record.date).toISOString()
     };
-    
-    console.log('Guardando registro diario con fecha completa:', recordWithFullDate.date);
     
     // Primero verificamos si existe un registro para esta campaña y fecha
     const dateOnly = recordWithFullDate.date.split('T')[0];
@@ -118,9 +108,7 @@ export const campaignDailyRecordService = {
         .limit(1)
         .single();
         
-      // Si encontramos por fecha parcial, actualizamos ese registro
       if (existingByDateOnly) {
-        console.log('Encontrado registro por fecha parcial:', existingByDateOnly.id);
         const { data, error } = await supabase
           .from('campaign_daily_records')
           .update({
@@ -139,9 +127,7 @@ export const campaignDailyRecordService = {
       }
     }
     
-    // Si existe por fecha exacta, actualizamos el registro
     if (existingRecord) {
-      console.log('Actualizando registro existente:', existingRecord.id);
       const { data, error } = await supabase
         .from('campaign_daily_records')
         .update({
@@ -159,8 +145,6 @@ export const campaignDailyRecordService = {
       return data;
     }
     
-    // Si no existe, insertamos un nuevo registro con un ID generado
-    console.log('Creando nuevo registro diario con fecha completa');
     const recordId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
     
     const { data, error } = await supabase
