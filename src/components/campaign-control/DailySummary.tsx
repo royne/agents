@@ -9,6 +9,7 @@ interface DailySummaryProps {
 }
 
 const DailySummary: React.FC<DailySummaryProps> = ({ summary, onGenerateSummary }) => {
+  console.log('summary', summary);
   return (
     <div className="bg-gray-800 rounded-lg shadow-lg p-6">
       <div className="flex justify-between items-center mb-4">
@@ -28,25 +29,43 @@ const DailySummary: React.FC<DailySummaryProps> = ({ summary, onGenerateSummary 
         )}
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-gray-700 p-4 rounded-lg">
           <div className="text-sm text-gray-400">Presupuesto Total</div>
           <div className="text-2xl font-bold">{formatCurrency(summary.total_budget)}</div>
         </div>
         
         <div className="bg-gray-700 p-4 rounded-lg">
-          <div className="text-sm text-gray-400">Campañas Activas</div>
-          <div className="text-2xl font-bold">{summary.active_campaigns}</div>
+          <div className="text-sm text-gray-400">Total Unidades</div>
+          <div className="text-2xl font-bold text-green-500">{summary.total_units}</div>
         </div>
         
         <div className="bg-gray-700 p-4 rounded-lg">
-          <div className="text-sm text-gray-400">Pendientes de Actualizar</div>
-          <div className="text-2xl font-bold text-yellow-500">{summary.pending_updates || 0}</div>
+          <div className="text-sm text-gray-400">Total Ingresos</div>
+          <div className="text-2xl font-bold text-green-500">{formatCurrency(summary.total_revenue)}</div>
         </div>
         
         <div className="bg-gray-700 p-4 rounded-lg">
           <div className="text-sm text-gray-400">Gasto Total</div>
           <div className="text-2xl font-bold text-blue-500">{formatCurrency(summary.total_spend)}</div>
+        </div>
+        
+        <div className="bg-gray-700 p-4 rounded-lg">
+          <div className="text-sm text-gray-400">CPA</div>
+          <div className="text-2xl font-bold text-purple-500">
+            {summary.total_units > 0 
+              ? formatCurrency(summary.total_spend / summary.total_units) 
+              : '$0'}
+          </div>
+        </div>
+        
+        <div className="bg-gray-700 p-4 rounded-lg">
+          <div className="text-sm text-gray-400">% CPA</div>
+          <div className="text-2xl font-bold text-yellow-500">
+            {summary.total_revenue > 0 
+              ? `${((summary.total_spend / summary.total_revenue) * 100).toFixed(1)}%` 
+              : '0%'}
+          </div>
         </div>
       </div>
       
