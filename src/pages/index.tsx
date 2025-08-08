@@ -1,6 +1,6 @@
 import React from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase, FaLock, FaDollarSign, FaBrain, FaCalendarAlt } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase, FaLock, FaDollarSign, FaBrain, FaCalendarAlt, FaAd } from 'react-icons/fa';
 import Link from 'next/link';
 import { useAppContext } from '../contexts/AppContext';
 import WelcomeBanner from '../components/dashboard/WelcomeBanner';
@@ -19,6 +19,12 @@ const modules = [
     icon: FaChartLine,
     description: 'Análisis de ventas y estadísticas',
     path: '/profitability'
+  },
+  {
+    name: 'Control de Campañas',
+    icon: FaAd,
+    description: 'Gestión y seguimiento de campañas publicitarias',
+    path: '/campaign-control'
   },
   {
     name: 'Calculadora de Precios',

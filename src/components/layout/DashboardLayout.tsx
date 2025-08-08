@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain, FaUsersCog } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain, FaUsersCog, FaAd, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
 import Link from 'next/link';
@@ -8,6 +8,7 @@ import Image from 'next/image';
 const menuItems = [
   { name: 'Agentes', icon: FaComments, path: '/agents' },
   { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability' },
+  { name: 'Control de Campañas', icon: FaAd, path: '/campaign-control' },
   { name: 'Calculadora de Precios', icon: FaDollarSign, path: '/calculator' },
   { name: 'Logística', icon: FaTruck, path: '/logistic' },
   { name: 'Análisis de Datos', icon: FaBrain, path: '/data-analysis' },
@@ -22,12 +23,27 @@ const mobileMenuItems = [
   { name: 'Dashboard', icon: () => <Image src="/unlocked.png" alt="Unlocked" width={20} height={20} />, path: '/' },
   { name: 'Agentes', icon: FaComments, path: '/agents' },
   { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability' },
+  { name: 'Campañas', icon: FaAd, path: '/campaign-control' },
 ];
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
   const { logout, themeConfig, isAdmin } = useAppContext();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // Por defecto, el sidebar estará abierto en pantallas grandes
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
+  // Guardar el estado del sidebar en localStorage para mantenerlo entre sesiones
+  useEffect(() => {
+    const savedSidebarState = localStorage.getItem('sidebarOpen');
+    if (savedSidebarState !== null) {
+      setIsSidebarOpen(savedSidebarState === 'true');
+    }
+  }, []);
+  
+  // Actualizar localStorage cuando cambia el estado del sidebar
+  useEffect(() => {
+    localStorage.setItem('sidebarOpen', isSidebarOpen.toString());
+  }, [isSidebarOpen]);
   
   // Aplicar el color primario a elementos con la clase .btn-primary
   useEffect(() => {
@@ -54,21 +70,31 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       <div 
         className={`${
           isSidebarOpen ? 'w-64' : 'w-16'
-        } bg-theme-component transition-all duration-300 fixed h-screen z-50 hidden md:block`}
-        onMouseEnter={() => setIsSidebarOpen(true)}
-        onMouseLeave={() => setIsSidebarOpen(false)}
+        } bg-theme-component transition-all duration-300 fixed h-screen z-40 hidden md:block`}
       >
+        {/* Botón flotante para mostrar/ocultar el sidebar */}
+        <button 
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="absolute -right-4 top-20 bg-theme-component shadow-lg rounded-r-md p-1 flex items-center justify-center z-50 hover:bg-theme-component-hover transition-colors border-r border-t border-b border-gray-700"
+          aria-label={isSidebarOpen ? "Ocultar menú" : "Mostrar menú"}
+          style={{ width: '20px', height: '40px' }}
+        >
+          {isSidebarOpen ? 
+            <FaChevronLeft className="text-primary-color text-xs" /> : 
+            <FaChevronRight className="text-primary-color text-xs" />}
+        </button>
         <div className="p-4 flex flex-col h-full justify-between overflow-y-auto">
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <div className='flex items-center px-2'>
-                <Image src="/unlocked.png" alt="Unlocked Ecom" width={32} height={32} />
-              </div>
-              {isSidebarOpen && (
-                <Link href={'/'}>
-                  <span className="text-theme-primary font-bold text-xl">Unlocked</span>
-                </Link>
-              )}
+            <div className="flex flex-col items-center">
+              {/* Logo siempre visible y clickeable */}
+              <Link href={'/'} className="flex items-center justify-center w-full py-4">
+                <div className='flex items-center justify-center'>
+                  <Image src="/unlocked.png" alt="Unlocked Ecom" width={32} height={32} />
+                </div>
+                {isSidebarOpen && (
+                  <span className="text-theme-primary font-bold text-xl ml-2">Unlocked</span>
+                )}
+              </Link>
             </div>
             
             <nav className="flex-1 mt-6">
@@ -145,7 +171,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       {/* Main Content - Ajustado para móviles */}
       <main 
         className={`flex-1 bg-theme-primary p-8 overflow-y-auto h-screen transition-all duration-300
-                   md:ml-16 ${isSidebarOpen ? 'md:ml-64' : ''} pb-16 md:pb-8 flex flex-col`}
+                   md:ml-16 ${isSidebarOpen ? 'md:ml-64' : 'md:ml-16'} pb-16 md:pb-8 flex flex-col`}
       >
         <div className="flex-grow">
           {children}
