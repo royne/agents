@@ -154,15 +154,6 @@ const ExcelAnalysis = () => {
               
               <ExcelDataViewer data={excelData} analysisType={analysisType} />
             </div>
-            
-            <div className="mt-8">
-              <h3 className="text-xl font-semibold mb-4">Análisis de datos</h3>
-              <div className="bg-theme-primary p-6 rounded-lg shadow">
-                <p className="text-center text-theme-secondary">
-                  Próximamente: Visualizaciones gráficas de los datos
-                </p>
-              </div>
-            </div>
           </div>
         )}
       </div>

@@ -6,6 +6,8 @@ import ProductProfitChart from '../charts/ProductProfitChart';
 import ProductTrendChart from '../charts/ProductTrendChart';
 import ProductDailySalesChart from '../charts/ProductDailySalesChart';
 import ProductDepartmentChart from '../charts/ProductCategoryChart'; // Importamos con el nuevo nombre pero del mismo archivo
+import ProductMarginComparisonChart from '../charts/ProductMarginComparisonChart'; // Nuevo componente para comparativa de márgenes
+import ProductSeasonalityChart from '../charts/ProductSeasonalityChart'; // Nuevo componente para análisis de estacionalidad
 
 interface ProductsAnalysisViewerProps {
   data: any[];
@@ -108,6 +110,20 @@ const ProductsAnalysisViewer: React.FC<ProductsAnalysisViewerProps> = ({ data, s
               sales: item.sales,
               products: item.products
             }))}
+          />
+        </div>
+        
+        {/* NUEVO: Comparativa de márgenes por producto */}
+        <div className="w-full mb-6">
+          <ProductMarginComparisonChart 
+            products={summary.productProfitData}
+          />
+        </div>
+        
+        {/* NUEVO: Análisis de estacionalidad */}
+        <div className="w-full mb-6">
+          <ProductSeasonalityChart 
+            trendData={summary.trendData}
           />
         </div>
       </div>

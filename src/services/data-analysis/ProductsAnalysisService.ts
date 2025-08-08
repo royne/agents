@@ -378,16 +378,54 @@ class ProductsAnalysisService extends BaseExcelService {
       if (product.fecha) {
         // Formatear fecha como YYYY-MM-DD
         let dateStr: string;
+        let parsedDate: Date | null = null;
         
         try {
-          // Usar un enfoque simple: convertir a fecha y formatear
-          const date = new Date(product.fecha);
+          // Intentar varios formatos de fecha
+          const rawDate = product.fecha;
+          
+          // Si ya es un objeto Date
+          if (rawDate instanceof Date) {
+            parsedDate = rawDate;
+          }
+          // Si es un número (posiblemente un timestamp de Excel)
+          else if (typeof rawDate === 'number') {
+            // Convertir fecha de Excel (días desde 1/1/1900) a timestamp JS
+            if (rawDate > 1000) { // Probablemente una fecha de Excel
+              const excelEpoch = new Date(1899, 11, 30);
+              parsedDate = new Date(excelEpoch.getTime() + rawDate * 24 * 60 * 60 * 1000);
+            } else {
+              parsedDate = new Date(rawDate); // Intentar como timestamp
+            }
+          }
+          // Si es string, intentar varios formatos
+          else {
+            const dateStr = String(rawDate);
+            
+            // Intentar formato ISO
+            parsedDate = new Date(dateStr);
+            
+            // Si no es válida, intentar formatos comunes en español (DD/MM/YYYY)
+            if (isNaN(parsedDate.getTime())) {
+              const parts = dateStr.split(/[\/\-\.]/);
+              if (parts.length === 3) {
+                // Asumir DD/MM/YYYY si el primer número es <= 31
+                if (parseInt(parts[0]) <= 31) {
+                  parsedDate = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+                }
+                // Asumir YYYY/MM/DD si el primer número es > 31 (probablemente un año)
+                else {
+                  parsedDate = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+                }
+              }
+            }
+          }
           
           // Verificar si la fecha es válida
-          if (!isNaN(date.getTime())) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
+          if (parsedDate && !isNaN(parsedDate.getTime())) {
+            const year = parsedDate.getFullYear();
+            const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+            const day = String(parsedDate.getDate()).padStart(2, '0');
             dateStr = `${year}-${month}-${day}`;
           } else {
             // Si la fecha no es válida, usar un identificador genérico
@@ -395,6 +433,7 @@ class ProductsAnalysisService extends BaseExcelService {
           }
         } catch (e) {
           // En caso de error, usar un valor genérico
+          console.error('Error al procesar fecha:', product.fecha, e);
           dateStr = 'fecha-' + String(product.fecha).substring(0, 10);
         }
         
