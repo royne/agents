@@ -57,7 +57,6 @@ const MetricsChart: React.FC<MetricsChartProps> = ({
     return filtered;
   }, [dailyRecords, period]);
   
-  // Preparar datos para el gráfico
   const chartData = useMemo(() => {
     return filteredRecords.map(record => {
       const units = record.units_sold || record.units || 0;
@@ -87,7 +86,6 @@ const MetricsChart: React.FC<MetricsChartProps> = ({
     }).sort((a, b) => a.fullDate.getTime() - b.fullDate.getTime());
   }, [filteredRecords]);
   
-  // Calcular el valor máximo de CPA para escalar correctamente
   const maxCpa = useMemo(() => {
     if (chartData.length === 0) return 100;
     const max = Math.max(...chartData.map(item => item.cpa || 0));
@@ -120,7 +118,6 @@ const MetricsChart: React.FC<MetricsChartProps> = ({
     const totalUnits = chartData.reduce((sum, item) => sum + item.units, 0);
     
     // Calcular cambios respecto al período anterior
-    // (Simplificado - en una implementación real se compararía con datos del período anterior)
     const cpaChange = chartData.length > 1 ? 
       ((chartData[chartData.length-1].cpa / chartData[0].cpa) - 1) * 100 : 0;
     const roiChange = chartData.length > 1 ? 

@@ -4,14 +4,13 @@ import { FaStickyNote, FaSave, FaBold, FaItalic, FaListUl, FaTimes } from 'react
 interface CampaignNotesProps {
   initialNotes?: string;
   onSave: (notes: string) => void;
-  selectedDate?: string; // Fecha seleccionada para mostrar en el componente
+  selectedDate?: string;
 }
 
 const CampaignNotes: React.FC<CampaignNotesProps> = ({ initialNotes = '', onSave, selectedDate }) => {
   const [notes, setNotes] = useState(initialNotes);
   const [isEditing, setIsEditing] = useState(false);
   
-  // Actualizar las notas cuando cambia initialNotes (por ejemplo, al cambiar de fecha)
   useEffect(() => {
     setNotes(initialNotes);
   }, [initialNotes]);
@@ -22,7 +21,6 @@ const CampaignNotes: React.FC<CampaignNotesProps> = ({ initialNotes = '', onSave
   };
   
   const handleCancel = () => {
-    // Restaurar las notas originales y salir del modo edición
     setNotes(initialNotes);
     setIsEditing(false);
   };

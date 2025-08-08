@@ -6,7 +6,7 @@ import { formatCurrency } from '../../../utils/formatters';
 interface CampaignCurrentDataProps {
   dailyRecord: CampaignDailyRecord;
   lastBudgetChange?: CampaignBudgetChange;
-  initialBudget?: number; // Presupuesto inicial real del día
+  initialBudget?: number;
   getStatusColor: (status: string) => string;
   getStatusText: (status: string) => string;
   getChangeTypeColor: (changeType: string) => string;
@@ -16,13 +16,12 @@ interface CampaignCurrentDataProps {
 const CampaignCurrentData: React.FC<CampaignCurrentDataProps> = ({
   dailyRecord,
   lastBudgetChange,
-  initialBudget, // Agregamos el presupuesto inicial
+  initialBudget,
   getStatusColor,
   getStatusText,
   getChangeTypeColor,
   getChangeTypeIcon
 }) => {
-  // Usar el presupuesto inicial proporcionado o caer de nuevo al presupuesto actual
   const budgetToShow = initialBudget !== undefined ? initialBudget : dailyRecord.budget;
   return (
     <div className="bg-gray-800 rounded-lg shadow-lg p-6">

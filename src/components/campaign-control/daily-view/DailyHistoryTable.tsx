@@ -8,24 +8,18 @@ interface DailyHistoryTableProps {
 }
 
 const DailyHistoryTable: React.FC<DailyHistoryTableProps> = ({ dailyRecords }) => {
-  // Función para formatear números con exactamente 2 decimales
   const formatNumberWith2Decimals = (value: number): string => {
     return value.toFixed(2);
   };
   
-  // Función para formatear fechas correctamente
   const formatDateCorrectly = (dateString: string): string => {
-    // Extraer directamente los componentes de la fecha sin crear un objeto Date
-    // para evitar ajustes de zona horaria
     const [year, month, day] = dateString.split('-');
     return `${day}/${month}/${year}`;
   };
-  // Ordenar registros por fecha (más reciente primero)
   const sortedRecords = [...dailyRecords].sort((a, b) => {
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
   
-  // Calcular totales para los contadores
   const totals = useMemo(() => {
     return dailyRecords.reduce((acc, record) => {
       return {
@@ -36,7 +30,6 @@ const DailyHistoryTable: React.FC<DailyHistoryTableProps> = ({ dailyRecords }) =
     }, { totalSpend: 0, totalSales: 0, totalUnits: 0 });
   }, [dailyRecords]);
 
-  // Calcular el CPA (Costo Por Adquisición) para un registro
   const calculateCPA = (record: CampaignDailyRecord): number => {
     const unitsSold = record.units_sold || record.units || 0;
     if (unitsSold === 0 || record.spend === 0) {
@@ -45,17 +38,14 @@ const DailyHistoryTable: React.FC<DailyHistoryTableProps> = ({ dailyRecords }) =
     return record.spend / unitsSold;
   };
 
-  // Calcular el ROI (Retorno de Inversión) para un registro
   const calculateROI = (record: CampaignDailyRecord): number => {
     const sales = record.sales || record.revenue || 0;
     if (record.spend === 0) {
       return 0;
     }
-    // Retornar como número decimal en lugar de porcentaje
     return (sales - record.spend) / record.spend;
   };
 
-  // Obtener el color de estado según el estado de la campaña
   const getStatusColor = (status: string): string => {
     switch (status) {
       case 'active':

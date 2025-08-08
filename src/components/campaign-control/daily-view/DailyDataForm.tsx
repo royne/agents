@@ -6,29 +6,24 @@ import { formatCurrency } from '../../../utils/formatters';
 interface DailyDataFormProps {
   dailyRecord: CampaignDailyRecord;
   onSave: (data: Partial<CampaignDailyRecord>) => void;
-  selectedDate?: string; // Fecha seleccionada para mostrar en el título
+  selectedDate?: string;
 }
 
 const DailyDataForm: React.FC<DailyDataFormProps> = ({ dailyRecord, onSave, selectedDate }) => {
-  // Estado para mostrar mensaje de éxito
   const [showSuccess, setShowSuccess] = useState(false);
   
-  // Estado del formulario con valores iniciales
   const [formData, setFormData] = useState({
     spend: dailyRecord.spend || 0,
     revenue: dailyRecord.revenue || 0,
     units: dailyRecord.units || 0
   });
 
-  // Estado para controlar los valores de los inputs como strings
-  // Esto permite una mejor experiencia de usuario al escribir
   const [inputValues, setInputValues] = useState({
     spend: formData.spend > 0 ? formData.spend.toString() : '',
     revenue: formData.revenue > 0 ? formData.revenue.toString() : '',
     units: formData.units > 0 ? formData.units.toString() : ''
   });
 
-  // Actualizar el formulario cuando cambian los datos externos
   useEffect(() => {
     const newFormData = {
       spend: dailyRecord.spend || 0,
@@ -38,7 +33,6 @@ const DailyDataForm: React.FC<DailyDataFormProps> = ({ dailyRecord, onSave, sele
     
     setFormData(newFormData);
     
-    // Actualizar los valores de los inputs
     setInputValues({
       spend: newFormData.spend > 0 ? newFormData.spend.toString() : '',
       revenue: newFormData.revenue > 0 ? newFormData.revenue.toString() : '',
@@ -46,19 +40,15 @@ const DailyDataForm: React.FC<DailyDataFormProps> = ({ dailyRecord, onSave, sele
     });
   }, [dailyRecord]);
 
-  // Manejar cambios en los inputs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     
-    // Validar que solo se ingresen números y punto decimal
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
-      // Actualizar el valor del input como string
       setInputValues(prev => ({
         ...prev,
         [name]: value
       }));
       
-      // Actualizar el valor numérico en el estado del formulario
       setFormData(prev => ({
         ...prev,
         [name]: value === '' ? 0 : parseFloat(value)
@@ -66,33 +56,27 @@ const DailyDataForm: React.FC<DailyDataFormProps> = ({ dailyRecord, onSave, sele
     }
   };
 
-  // Manejar envío del formulario
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Enviar datos al componente padre
     onSave({
       spend: formData.spend,
       revenue: formData.revenue,
       units: formData.units
     });
     
-    // Mostrar mensaje de éxito
     setShowSuccess(true);
     
-    // Ocultar mensaje después de 3 segundos
     setTimeout(() => {
       setShowSuccess(false);
     }, 3000);
     
-    // Resetear el formulario
     setFormData({
       spend: 0,
       revenue: 0,
       units: 0
     });
     
-    // Resetear los valores de los inputs
     setInputValues({
       spend: '',
       revenue: '',
@@ -100,10 +84,8 @@ const DailyDataForm: React.FC<DailyDataFormProps> = ({ dailyRecord, onSave, sele
     });
   };
 
-  // Cálculos derivados
   const costPerUnit = formData.units > 0 ? formData.spend / formData.units : 0;
   
-  // Cálculo del porcentaje de CPA (gasto sobre ingreso)
   const cpaPercentage = formData.revenue > 0 ? (formData.spend / formData.revenue) * 100 : 0;
 
   return (

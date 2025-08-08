@@ -19,7 +19,6 @@ const DailySummary: React.FC<DailySummaryProps> = ({ summary, onGenerateSummary,
   const [adjustedRevenue, setAdjustedRevenue] = useState<number>(summary.adjusted_revenue || summary.total_revenue);
   const [notes, setNotes] = useState<string>(summary.notes || '');
 
-  // Calcular métricas derivadas
   const calculatedCPA = summary.total_units > 0 
     ? summary.total_spend / summary.total_units 
     : 0;
@@ -48,14 +47,12 @@ const DailySummary: React.FC<DailySummaryProps> = ({ summary, onGenerateSummary,
   };
 
   const handleCancelEdit = () => {
-    // Restaurar valores originales
     setAdjustedUnits(summary.adjusted_units || summary.total_units);
     setAdjustedRevenue(summary.adjusted_revenue || summary.total_revenue);
     setNotes(summary.notes || '');
     setIsEditing(false);
   };
 
-  // Calcular diferencias para mostrar flechas
   const unitsDiff = adjustedUnits - summary.total_units;
   const revenueDiff = adjustedRevenue - summary.total_revenue;
   const cpaDiff = calculatedCPA - adjustedCPA;

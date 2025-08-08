@@ -9,21 +9,18 @@ interface BudgetChangeFormProps {
     reason: string;
     changeType: 'increase' | 'decrease' | 'pause' | 'resume';
   }) => void;
-  selectedDate: string; // Fecha seleccionada para mostrar en el título
+  selectedDate: string;
 }
 
 const BudgetChangeForm: React.FC<BudgetChangeFormProps> = ({ currentBudget, onSave, selectedDate }) => {
-  // Usar useEffect para actualizar el presupuesto cuando cambia currentBudget
   const [formData, setFormData] = useState({
     newBudget: currentBudget,
     reason: '',
     changeType: 'increase' as 'increase' | 'decrease' | 'pause' | 'resume'
   });
   
-  // Estado para mostrar mensaje de éxito
   const [showSuccess, setShowSuccess] = useState(false);
   
-  // Actualizar el presupuesto cuando cambia currentBudget
   useEffect(() => {
     setFormData(prev => ({
       ...prev,
@@ -35,18 +32,13 @@ const BudgetChangeForm: React.FC<BudgetChangeFormProps> = ({ currentBudget, onSa
     const { name, value } = e.target;
     
     if (name === 'changeType') {
-      // Si el tipo de cambio es 'pause' o 'resume', mantenemos el presupuesto actual
-      // para que no se modifique cuando se guarde
       const newChangeType = value as 'increase' | 'decrease' | 'pause' | 'resume';
       setFormData(prev => ({
         ...prev,
         changeType: newChangeType,
-        // Mantenemos el presupuesto actual cuando es pausar o reactivar
         newBudget: (newChangeType === 'pause' || newChangeType === 'resume') ? currentBudget : prev.newBudget
       }));
     } else if (name === 'newBudget') {
-      // Manejar el campo de presupuesto como número
-      // Permitir valores vacíos temporalmente para facilitar la edición
       const numValue = value === '' ? 0 : Number(value);
       setFormData(prev => ({
         ...prev,
@@ -64,21 +56,17 @@ const BudgetChangeForm: React.FC<BudgetChangeFormProps> = ({ currentBudget, onSa
     e.preventDefault();
     onSave(formData);
     
-    // Mostrar mensaje de éxito
     setShowSuccess(true);
     
-    // Ocultar mensaje después de 3 segundos
     setTimeout(() => {
       setShowSuccess(false);
     }, 3000);
     
-    // Limpiar el formulario después de guardar
-    // Usamos setTimeout para asegurar que el reseteo ocurra después de que se complete la acción
     setTimeout(() => {
       setFormData({
-        newBudget: currentBudget, // Restablecer al presupuesto actual
-        reason: '', // Limpiar la razón
-        changeType: 'increase' // Restablecer al tipo por defecto
+        newBudget: currentBudget, 
+        reason: '', 
+        changeType: 'increase' 
       });
     }, 100);
   };

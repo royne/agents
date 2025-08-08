@@ -112,10 +112,21 @@ export const dailySummaryService = {
       campaignsWithRecords?.forEach(campaign => {
         const record = campaign.campaign_daily_records[0];
         if (record) {
-          if (record.status === 'active') {
+          // Determinar si la campaña tuvo actividad durante el día
+          const hadActivity = record.status === 'active' || // Está activa actualmente
+                             (record.spend && record.spend > 0); // O tuvo gasto (estuvo activa en algún momento)
+          
+          // Solo sumar el presupuesto si la campaña tuvo actividad
+          if (hadActivity) {
             totalBudget += record.budget || 0;
+          }
+          
+          // Solo contar como activas las que tienen ese estado actualmente
+          if (record.status === 'active') {
             activeCampaignsCount++;
           }
+          
+          // Sumar el resto de métricas para todas las campañas con registros
           totalSpend += record.spend || 0;
           totalRevenue += record.revenue || 0;
           totalUnits += record.units || 0;

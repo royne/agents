@@ -14,7 +14,6 @@ import {
   CampaignWithDailyData 
 } from '../../types/campaign-control';
 
-// Importación de componentes modulares
 import DateSelector from '../../components/campaign-control/DateSelector';
 import DailySummaryComponent from '../../components/campaign-control/DailySummary';
 import RecentChanges from '../../components/campaign-control/RecentChanges';
@@ -26,7 +25,6 @@ export default function CampaignControl() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [campaignsWithData, setCampaignsWithData] = useState<CampaignWithDailyData[]>([]);
   const [loading, setLoading] = useState(true);
-  // Inicializar con la fecha local actual en formato YYYY-MM-DD
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     const today = new Date();
     const year = today.getFullYear();
@@ -35,7 +33,6 @@ export default function CampaignControl() {
     return `${year}-${month}-${day}`;
   });
 
-  // Estado para los datos del resumen diario - inicializado vacío para evitar datos quemados
   const [dailySummary, setDailySummary] = useState<DailySummary>({
     company_id: authData?.company_id || '',
     date: selectedDate,
@@ -49,30 +46,23 @@ export default function CampaignControl() {
     notes: ''
   });
 
-  // Estado para los cambios recientes - inicializado vacío para usar solo datos reales
   const [recentChanges, setRecentChanges] = useState<CampaignBudgetChange[]>([]);
 
-  // Estado para los registros diarios de campañas
   const [campaignDailyRecords, setCampaignDailyRecords] = useState<CampaignDailyRecord[]>([]);
 
-  // Cargar todos los datos necesarios
   useEffect(() => {
     const loadDashboardData = async () => {
       if (authData?.company_id) {
         setLoading(true);
         try {
-          // 1. Cargar las campañas
           const campaignsData = await campaignDatabaseService.getCampaigns(authData.company_id);
           setCampaigns(campaignsData);
           
-          // 2. Intentar cargar el resumen diario desde la base de datos
           const summary = await dailySummaryService.getDailySummary(authData.company_id, selectedDate);
           if (summary) {
             setDailySummary(summary);
           } else {
-            // Si no existe un resumen para la fecha seleccionada, generarlo automáticamente
             try {
-              console.log('Generando resumen diario automáticamente...');
               const generatedSummary = await dailySummaryService.generateDailySummary(
                 authData.company_id,
                 selectedDate
@@ -86,14 +76,11 @@ export default function CampaignControl() {
             }
           }
           
-          // 3. Cargar los cambios recientes reales
-          const recentChangesData = await campaignBudgetChangeService.getRecentChanges(authData.company_id, 5);
+          const recentChangesData = await campaignBudgetChangeService.getRecentChanges(authData.company_id, 20);
+
           if (recentChangesData.length > 0) {
             setRecentChanges(recentChangesData);
           }
-          
-          // 4. Los registros diarios se cargan en un useEffect separado
-          // para mejorar la modularidad y el rendimiento
           
         } catch (error) {
           console.error('Error al cargar datos del dashboard:', error);
@@ -106,12 +93,10 @@ export default function CampaignControl() {
     loadDashboardData();
   }, [authData, selectedDate]);
 
-  // Cargar registros diarios para la fecha seleccionada
   useEffect(() => {
     const loadDailyRecords = async () => {
       if (authData?.company_id) {
         try {
-          // Cargar registros diarios para la fecha seleccionada
           const records = await campaignDailyRecordService.getCompanyDailyRecords(authData.company_id, selectedDate);
           if (records && records.length > 0) {
             setCampaignDailyRecords(records);
@@ -125,39 +110,29 @@ export default function CampaignControl() {
     loadDailyRecords();
   }, [authData, selectedDate]);
 
-  // Usar datos reales cuando estén disponibles, de lo contrario usar valores por defecto
   useEffect(() => {
     if (campaigns.length > 0) {
-      // Obtener la fecha de ayer para verificar si necesita actualización
+
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayString = yesterday.toISOString().split('T')[0];
       
-      // Combinar datos de campañas con datos diarios
       const combinedData: CampaignWithDailyData[] = campaigns.map(campaign => {
-        // Buscar si hay un registro diario para esta campaña en la fecha seleccionada
         const dailyRecord = campaignDailyRecords.find(
           record => record.campaign_id === campaign.id && record.date === selectedDate
         );
         
-        // Buscar último cambio para esta campaña
         const lastChange = recentChanges.find(change => change.campaign_id === campaign.id);
         
-        // Convertir el status booleano a string para la comparación
         const campaignStatus = typeof campaign.status === 'boolean' ? 
           (campaign.status ? 'active' : 'paused') : 
           campaign.status;
           
-        // Una campaña necesita actualización si:
-        // 1. Está activa
-        // 2. La fecha seleccionada es hoy o anterior
-        // 3. No tiene registro para la fecha seleccionada
         const needsUpdate = 
           campaignStatus === 'active' && 
           selectedDate <= new Date().toISOString().split('T')[0] &&
           !dailyRecord;
         
-        // Si hay datos diarios, usarlos; de lo contrario, crear un objeto con valores por defecto
         const campaignDailyData: CampaignDailyRecord = dailyRecord || {
           id: '',
           campaign_id: campaign.id || '',
@@ -185,14 +160,11 @@ export default function CampaignControl() {
     }
   }, [campaigns, recentChanges, campaignDailyRecords, selectedDate]);
 
-  // Manejador de cambio de fecha
   const handleDateChange = (date: string) => {
-    console.log('Selected date:', date);
+
     setSelectedDate(date);
-    // La recarga de datos está manejada por el useEffect que observa selectedDate
   };
 
-  // Función para generar un nuevo resumen diario a partir de los datos actuales
   const handleGenerateSummary = async () => {
     if (authData?.company_id) {
       try {
@@ -210,7 +182,6 @@ export default function CampaignControl() {
     }
   };
 
-  // Función para guardar ajustes del resumen diario
   const handleSaveAdjustments = async (adjustments: {
     adjusted_units: number;
     adjusted_revenue: number;
