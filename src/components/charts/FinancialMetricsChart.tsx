@@ -17,6 +17,9 @@ interface FinancialMetricsChartProps {
   totalShippingCost: number;
   totalReturnCost: number;
   profitWithoutReturns: number;
+  optimisticProfit?: number;
+  pessimisticProfit?: number;
+  inProgressProfit?: number;
 }
 
 /**
@@ -27,29 +30,47 @@ const FinancialMetricsChart: React.FC<FinancialMetricsChartProps> = ({
   totalProfit,
   totalShippingCost,
   totalReturnCost,
-  profitWithoutReturns
+  profitWithoutReturns,
+  optimisticProfit = 0,
+  pessimisticProfit = 0,
+  inProgressProfit = 0
 }) => {
   // Preparar los datos para el gráfico
   const data = [
     {
       name: 'Ganancia Total',
       valor: totalProfit,
-      color: '#4CAF50'
+      color: '#43A047' // Verde medio
     },
     {
-      name: 'Ganancia sin Inefectividad',
+      name: 'Escenario Optimista',
+      valor: optimisticProfit,
+      color: '#00C853' // Verde brillante
+    },
+    {
+      name: 'Potencial Órdenes en Proceso',
+      valor: inProgressProfit,
+      color: '#64FFDA' // Verde agua
+    },
+    {
+      name: 'Escenario Pesimista',
+      valor: pessimisticProfit,
+      color: pessimisticProfit < 0 ? '#D50000' : '#8BC34A' // Rojo intenso si es negativo o verde lima
+    },
+    {
+      name: 'Ganancia Confirmada',
       valor: profitWithoutReturns,
-      color: '#2196F3'
+      color: '#2196F3' // Azul
     },
     {
       name: 'Costo de Envíos',
       valor: totalShippingCost,
-      color: '#FFC107'
+      color: '#FF9800' // Naranja
     },
     {
       name: 'Costo Devoluciones',
       valor: totalReturnCost,
-      color: '#F44336'
+      color: '#F44336' // Rojo
     }
   ];
 

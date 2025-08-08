@@ -74,7 +74,7 @@ const ExcelAnalysis = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto">
+      <div className="mx-auto">
         <h1 className="text-2xl mb-8"><FaBrain className="inline-block mr-2 text-primary-color" /> Análisis de Archivos Excel</h1>
 
         <div className="bg-theme-component p-6 rounded-lg shadow-md mb-6">

@@ -249,12 +249,15 @@ const OrdersAnalysisViewer: React.FC<OrdersAnalysisViewerProps> = ({ data, summa
         </h3>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Gráfico de métricas financieras */}
+          {/* Gráfico de métricas financieras con escenarios */}
           <FinancialMetricsChart 
             totalProfit={summary.netProfit}
             totalShippingCost={summary.totalShippingCost}
             totalReturnCost={summary.totalReturnCost}
             profitWithoutReturns={summary.confirmedProfit}
+            optimisticProfit={summary.optimisticProfit}
+            pessimisticProfit={summary.pessimisticProfit}
+            inProgressProfit={summary.inProgressProfit}
           />
           
           {/* Gráfico de distribución por estado */}
@@ -286,49 +289,114 @@ const OrdersAnalysisViewer: React.FC<OrdersAnalysisViewerProps> = ({ data, summa
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-theme-component p-4 rounded-lg">
-            <h4 className="text-md font-semibold mb-3 text-center">Por Estado</h4>
+            <h4 className="text-lg font-semibold mb-3 text-center">Por Estado</h4>
             <div className={`max-h-60 ${scrollbarStyles.scrollContainer}`}>
-              {Object.entries(summary.statusDistribution || {}).map(([key, value]: [string, any]) => (
-                <div key={key} className="flex justify-between mb-2 py-1 border-b border-gray-700">
-                  <span className="text-theme-secondary">{key}:</span>
-                  <span className="font-semibold text-primary-color">{value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="bg-theme-component p-4 rounded-lg">
-            <h4 className="text-md font-semibold mb-3 text-center">Por Transportadora</h4>
-            <div className={`max-h-60 ${scrollbarStyles.scrollContainer}`}>
-              {Object.entries(summary.carrierDistribution || {}).map(([key, value]: [string, any]) => {
-                const shippingCost = summary.carrierShippingCosts?.[key] || 0;
-                const returnCost = summary.carrierReturnCosts?.[key] || 0;
+              {Object.entries(summary.statusDistribution || {}).map(([key, value]: [string, any]) => {
+                // Obtener datos financieros según el estado
+                let financialValue = 0;
+                let financialLabel = "";
+                
+                // Detectar el estado basado en palabras clave, independientemente del formato
+                const statusKey = key.toUpperCase();
+                
+                if (statusKey.includes('ENTREG')) {
+                  financialValue = summary.confirmedProfit || 0;
+                  financialLabel = "Ganancia";
+                } else if (statusKey.includes('PROCES') || statusKey.includes('RECLAME') || 
+                          statusKey.includes('BODEGA') || statusKey.includes('NOVEDAD') || 
+                          statusKey.includes('TELEMERCADEO')) {
+                  // Estados que indican que la orden está en proceso
+                  // Calcular la ganancia proporcional para este estado específico
+                  const stateCount = value || 0;
+                  const totalInProgressOrders = summary.inProgressOrders || 1; // Evitar división por cero
+                  const stateRatio = stateCount / totalInProgressOrders;
+                  financialValue = Math.round((summary.inProgressProfit || 0) * stateRatio);
+                  financialLabel = "Ganancia Estimada";
+                } else if (statusKey.includes('DEVOL')) {
+                  financialValue = summary.totalReturnCost || 0;
+                  financialLabel = "Costo Devolución";
+                } else if (statusKey.includes('CANCEL') || statusKey.includes('RECHAZ')) {
+                  financialValue = 0;
+                  financialLabel = "Sin impacto";
+                }
+                
                 return (
-                  <div key={key} className="mb-3 py-1 border-b border-gray-700">
+                  <div key={key} className="mb-2 py-1 border-b border-gray-700">
                     <div className="flex justify-between">
                       <span className="text-theme-secondary">{key}:</span>
                       <span className="font-semibold text-primary-color">{value}</span>
                     </div>
+                    {financialValue > 0 && (
+                      <div className="flex justify-between mt-1">
+                        <span className="text-sm text-theme-secondary">{financialLabel}:</span>
+                        <span className={`text-sm font-semibold ${
+                          financialLabel.includes("Ganancia") ? "text-green-500" : 
+                          financialLabel.includes("Costo") ? "text-red-500" : "text-gray-500"
+                        }`}>
+                          {financialValue.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          
+          <div className="bg-theme-component p-4 rounded-lg">
+            <h4 className="text-lg font-semibold mb-3 text-center">Por Transportadora</h4>
+            <div className={`max-h-60 ${scrollbarStyles.scrollContainer}`}>
+              {Object.entries(summary.carrierDistribution || {}).map(([key, value]: [string, any]) => {
+                const shippingCost = summary.carrierShippingCosts?.[key] || 0;
+                const returnCost = summary.carrierReturnCosts?.[key] || 0;
+                
+                // Calcular rentabilidad (Total órdenes entregadas - costo fletes - costo devoluciones)
+                // Esto es una aproximación, ya que no tenemos la ganancia exacta por transportadora
+                const totalShippingValue = shippingCost || 0;
+                const totalReturnValue = returnCost || 0;
+                const costImpact = totalShippingValue + totalReturnValue;
+                
+                // Calcular costo promedio por orden
+                const costPerOrder = value > 0 ? (costImpact / value).toFixed(0) : 0;
+                
+                return (
+                  <div key={key} className="mb-3 py-1 border-b border-gray-700">
+                    <div className="flex justify-between">
+                      <span className="text-theme-secondary">{key}:</span>
+                      <span className="font-semibold text-primary-color">{value} órdenes</span>
+                    </div>
+                    
                     <div className="flex justify-between mt-1">
-                      <span className="text-xs text-theme-secondary">Flete:</span>
-                      <span className="text-xs font-semibold text-yellow-500">
+                      <span className="text-sm text-theme-secondary">Costo promedio/orden:</span>
+                      <span className="text-sm font-semibold text-blue-400">
+                        {Number(costPerOrder) > 0 
+                          ? Number(costPerOrder).toLocaleString('es-CO', { style: 'currency', currency: 'COP' })
+                          : '$0'}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between mt-1">
+                      <span className="text-sm text-theme-secondary">Flete total:</span>
+                      <span className="text-sm font-semibold text-yellow-500">
                         {shippingCost > 0 
                           ? shippingCost.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })
                           : '$0'}
                       </span>
                     </div>
+                    
                     <div className="flex justify-between mt-1">
-                      <span className="text-xs text-theme-secondary">Devoluciones:</span>
-                      <span className="text-xs font-semibold text-red-500">
+                      <span className="text-sm text-theme-secondary">Devoluciones:</span>
+                      <span className="text-sm font-semibold text-red-500">
                         {returnCost > 0 
                           ? returnCost.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })
                           : '$0'}
                       </span>
                     </div>
+                    
                     {summary.carrierEfficiency && summary.carrierEfficiency[key] !== undefined && (
                       <div className="flex justify-between mt-1">
-                        <span className="text-xs text-theme-secondary">Eficiencia:</span>
-                        <span className={`text-xs font-semibold ${summary.carrierEfficiency[key] > 80 ? 'text-green-500' : summary.carrierEfficiency[key] > 50 ? 'text-yellow-500' : 'text-red-500'}`}>
+                        <span className="text-sm text-theme-secondary">Eficiencia de entrega:</span>
+                        <span className={`text-sm font-semibold ${summary.carrierEfficiency[key] > 80 ? 'text-green-500' : summary.carrierEfficiency[key] > 50 ? 'text-yellow-500' : 'text-red-500'}`}>
                           {summary.carrierEfficiency[key].toFixed(1)}%
                         </span>
                       </div>
