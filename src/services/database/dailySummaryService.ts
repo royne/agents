@@ -41,8 +41,7 @@ export const dailySummaryService = {
       adjusted_units?: number,
       adjusted_revenue?: number,
       notes?: string
-    },
-    userId: string
+    }
   ): Promise<DailySummary | null> {
     // Obtener resumen actual para calcular métricas ajustadas
     const { data: summary, error: fetchError } = await supabase
@@ -72,7 +71,6 @@ export const dailySummaryService = {
         adjusted_cpa,
         adjusted_roas,
         last_adjusted_at: new Date().toISOString(),
-        last_adjusted_by: userId,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)

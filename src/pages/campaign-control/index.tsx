@@ -210,6 +210,28 @@ export default function CampaignControl() {
     }
   };
 
+  // Función para guardar ajustes del resumen diario
+  const handleSaveAdjustments = async (adjustments: {
+    adjusted_units: number;
+    adjusted_revenue: number;
+    notes?: string;
+  }) => {
+    if (dailySummary.id) {
+      try {
+        const updatedSummary = await dailySummaryService.adjustDailySummary(
+          dailySummary.id,
+          adjustments
+        );
+        
+        if (updatedSummary) {
+          setDailySummary(updatedSummary);
+        }
+      } catch (error) {
+        console.error('Error al guardar ajustes del resumen diario:', error);
+      }
+    }
+  };
+
   return (
     <DashboardLayout>
       <PageHeader 
@@ -235,6 +257,7 @@ export default function CampaignControl() {
             <DailySummaryComponent 
               summary={dailySummary} 
               onGenerateSummary={handleGenerateSummary} 
+              onSaveAdjustments={handleSaveAdjustments}
             />
             
             {/* Últimos cambios importantes */}
