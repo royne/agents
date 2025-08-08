@@ -17,6 +17,15 @@ export interface OrderData {
   [key: string]: any; // Para campos adicionales
 }
 
+// Enumeración para los estados de órdenes
+export enum OrderStatus {
+  DELIVERED = 'entregado',
+  RETURNED = 'devolucion',
+  CANCELED = 'cancelado',
+  REJECTED = 'rechazado',
+  IN_PROGRESS = 'en_proceso'
+}
+
 // Campos requeridos para el análisis de órdenes
 export const requiredOrderFields = [
   'id', 'fecha', 'numeroGuia', 'estatus', 'tipoEnvio', 'departamento', 
@@ -54,14 +63,43 @@ export interface OrderAnalysisResult {
   totalProfit: number;
   totalShippingCost: number;
   totalReturnCost: number;
+  
+  // Nuevas métricas financieras
+  confirmedOrders: number;    // Órdenes entregadas
+  confirmedValue: number;     // Valor de órdenes entregadas
+  confirmedProfit: number;    // Ganancia de órdenes entregadas
+  
+  inProgressOrders: number;   // Órdenes en proceso
+  inProgressValue: number;    // Valor de órdenes en proceso
+  inProgressProfit: number;   // Ganancia potencial de órdenes en proceso
+  
+  returnedOrders: number;     // Órdenes devueltas
+  returnedValue: number;      // Valor perdido por devoluciones
+  returnedProfit: number;     // Ganancia perdida por devoluciones
+  
+  canceledOrders: number;     // Órdenes canceladas/rechazadas
+  
+  // Cálculos financieros
+  netProfit: number;
+  deliveryEfficiency: number;
+  
+  // Escenarios optimista y pesimista
+  optimisticProfit: number;             // Ganancia total si todo se entrega
+  optimisticGainFromInProgress: number;  // Ganancia adicional si todas las órdenes en proceso se entregan
+  pessimisticProfit: number;            // Ganancia neta resultante si todas las órdenes en proceso se devuelven
+  pessimisticLoss: number;              // Costo adicional si todas las órdenes en proceso se devuelven
+  potentialReturnCost: number;          // Costo potencial de devolución de órdenes en proceso
+  
+  // Datos agrupados para gráficos
   groupField: string;
   groupedData: Record<string, number>;
-  statusDistribution?: Record<string, number>;
-  shippingTypeDistribution?: Record<string, number>;
-  regionDistribution?: Record<string, number>;
-  carrierDistribution?: Record<string, number>;
-  carrierShippingCosts?: Record<string, number>; // Costo de flete por transportadora
-  carrierReturnCosts?: Record<string, number>; // Costo de devolución por transportadora
+  statusDistribution: Record<string, number>;
+  shippingTypeDistribution: Record<string, number>;
+  regionDistribution: Record<string, number>;
+  carrierDistribution: Record<string, number>;
+  carrierShippingCosts: Record<string, number>;
+  carrierReturnCosts: Record<string, number>;
+  carrierEfficiency: Record<string, number>;
 }
 
 /**
@@ -76,6 +114,37 @@ class OrdersAnalysisService extends BaseExcelService {
   }
 
   /**
+   * Determina el estado de una orden según su campo estatus
+   */
+  private getOrderStatus(status: any): OrderStatus {
+    if (!status) return OrderStatus.IN_PROGRESS;
+    
+    const statusStr = String(status).toUpperCase();
+    
+    // Verificar si es cancelado o rechazado
+    if (statusStr.includes('CANCEL') || statusStr === 'CANCELADO' || statusStr === 'CANCELADA') {
+      return OrderStatus.CANCELED;
+    }
+    
+    if (statusStr.includes('RECHAZ') || statusStr === 'RECHAZADO' || statusStr === 'RECHAZADA') {
+      return OrderStatus.REJECTED;
+    }
+    
+    // Verificar si es una devolución
+    if (statusStr === 'DEVOLUCION' || statusStr === 'DEVOLUCIÓN' || statusStr.includes('DEVOL')) {
+      return OrderStatus.RETURNED;
+    }
+    
+    // Verificar si está entregado
+    if (statusStr.includes('ENTREG') || statusStr === 'ENTREGADO' || statusStr === 'ENTREGADA') {
+      return OrderStatus.DELIVERED;
+    }
+    
+    // Por defecto, consideramos que está en proceso
+    return OrderStatus.IN_PROGRESS;
+  }
+
+  /**
    * Analiza los datos de órdenes para calcular totales y distribuciones
    */
   public analyzeOrdersData(data: any[]): OrderAnalysisResult {
@@ -86,6 +155,24 @@ class OrdersAnalysisService extends BaseExcelService {
         totalProfit: 0,
         totalShippingCost: 0,
         totalReturnCost: 0,
+        confirmedOrders: 0,
+        confirmedValue: 0,
+        confirmedProfit: 0,
+        inProgressOrders: 0,
+        inProgressValue: 0,
+        inProgressProfit: 0,
+        returnedOrders: 0,
+        returnedValue: 0,
+        returnedProfit: 0,
+        canceledOrders: 0,
+        netProfit: 0,
+        deliveryEfficiency: 0,
+        // Escenarios optimista y pesimista
+        optimisticProfit: 0,
+        optimisticGainFromInProgress: 0,
+        pessimisticProfit: 0,
+        pessimisticLoss: 0,
+        potentialReturnCost: 0,
         groupField: 'departamento',
         groupedData: {},
         statusDistribution: {},
@@ -93,7 +180,8 @@ class OrdersAnalysisService extends BaseExcelService {
         regionDistribution: {},
         carrierDistribution: {},
         carrierShippingCosts: {},
-        carrierReturnCosts: {}
+        carrierReturnCosts: {},
+        carrierEfficiency: {}
       };
     }
     
@@ -102,18 +190,43 @@ class OrdersAnalysisService extends BaseExcelService {
     // Asegurar que los datos estén normalizados
     const normalizedData = this.normalizeOrderData(data);
     
+    // Métricas totales
     let totalValue = 0;
     let totalProfit = 0;
     let totalShippingCost = 0;
     let totalReturnCost = 0;
+    
+    // Métricas por estado
+    let confirmedOrders = 0;
+    let confirmedValue = 0;
+    let confirmedProfit = 0;
+    
+    let inProgressOrders = 0;
+    let inProgressValue = 0;
+    let inProgressProfit = 0;
+    
+    let returnedOrders = 0;
+    let returnedValue = 0;
+    let returnedProfit = 0;
+    
+    let canceledOrders = 0;
+    
+    // Métricas por transportadora
+    const carrierStats: Record<string, {
+      total: number,
+      delivered: number,
+      returned: number,
+      shippingCost: number,
+      returnCost: number
+    }> = {};
     
     // Distribuciones para análisis
     const statusDistribution: Record<string, number> = {};
     const shippingTypeDistribution: Record<string, number> = {};
     const regionDistribution: Record<string, number> = {};
     const carrierDistribution: Record<string, number> = {};
-    const carrierShippingCosts: Record<string, number> = {}; // Costos de flete por transportadora
-    const carrierReturnCosts: Record<string, number> = {}; // Costos de devolución por transportadora
+    const carrierShippingCosts: Record<string, number> = {};
+    const carrierReturnCosts: Record<string, number> = {};
     
     // Analizar cada orden
     normalizedData.forEach((order, index) => {
@@ -121,62 +234,101 @@ class OrdersAnalysisService extends BaseExcelService {
         console.log('Procesando primera orden normalizada:', order);
       }
       
-      // Determinar si la orden es una devolución
-      const isReturnOrder = order.estatus && 
-        (String(order.estatus).toUpperCase() === 'DEVOLUCION' || 
-         String(order.estatus).toUpperCase() === 'DEVOLUCIÓN' ||
-         String(order.estatus).toUpperCase().includes('DEVOL'));
+      // Obtener valores principales
+      const orderStatus = this.getOrderStatus(order.estatus);
+      const value = order.valorCompra ? this.extractNumber(order.valorCompra) : 0;
+      const shippingCost = order.precioFlete ? this.extractNumber(order.precioFlete) : 0;
+      const returnCost = order.costoDevolucionFlete ? this.extractNumber(order.costoDevolucionFlete) : 0;
+      const providerPrice = order['TOTAL EN PRECIOS DE PROVEEDOR'] ? 
+        this.extractNumber(order['TOTAL EN PRECIOS DE PROVEEDOR']) : 
+        (order['precioProveedor'] ? this.extractNumber(order['precioProveedor']) : 0);
       
-      // Sumar valores numéricos
-      if (order.valorCompra) {
-        const value = this.extractNumber(order.valorCompra);
-        if (!isNaN(value)) {
-          totalValue += value;
-        }
+      // Calcular ganancia
+      let profit = 0;
+      
+      if (orderStatus === OrderStatus.IN_PROGRESS && (!order.ganancia || order.ganancia.toString().trim() === "")) {
+        // Calcular ganancia con la fórmula: GANANCIA = VALOR DE COMPRA - PRECIO PROVEEDOR - FLETE
+        profit = value - providerPrice - shippingCost;
+        console.log(`Calculando ganancia para orden en proceso: ${order.id || index}`);
+        console.log(`Valor: ${value} - Precio proveedor: ${providerPrice} - Flete: ${shippingCost} = Ganancia: ${profit}`);
+      } else {
+        // Si ya tiene ganancia definida, usarla
+        profit = order.ganancia ? this.extractNumber(order.ganancia) : 0;
       }
       
-      if (order.ganancia) {
-        const profit = this.extractNumber(order.ganancia);
-        if (!isNaN(profit)) {
-          totalProfit += profit;
-        }
-      }
-      
-      // Para órdenes normales, sumar el precio del flete
-      // Para devoluciones, no sumar el precio del flete (se usará el costo de devolución)
-      if (!isReturnOrder && order.precioFlete) {
-        const shippingCost = this.extractNumber(order.precioFlete);
-        if (!isNaN(shippingCost)) {
-          totalShippingCost += shippingCost;
-          
-          // Acumular el costo de flete por transportadora
-          if (order.transportadora) {
-            const carrier = String(order.transportadora || 'Sin transportadora');
-            carrierShippingCosts[carrier] = (carrierShippingCosts[carrier] || 0) + shippingCost;
-          }
-        }
-      }
-      
-      // Sumar el costo de devolución solo para órdenes con estado de devolución
-      if (isReturnOrder && order.costoDevolucionFlete) {
-        const returnCost = this.extractNumber(order.costoDevolucionFlete);
-        if (!isNaN(returnCost)) {
-          totalReturnCost += returnCost;
-          
-          // Acumular el costo de devolución por transportadora
-          if (order.transportadora) {
-            const carrier = String(order.transportadora || 'Sin transportadora');
-            carrierReturnCosts[carrier] = (carrierReturnCosts[carrier] || 0) + returnCost;
-          }
-        }
-      }
-      
-      // Contar distribuciones
+      // Registro de estado en la distribución
       if (order.estatus) {
         const status = String(order.estatus || 'Sin estado');
         statusDistribution[status] = (statusDistribution[status] || 0) + 1;
       }
       
+      // Registrar transportadora
+      const carrier = order.transportadora ? String(order.transportadora) : 'Sin transportadora';
+      
+      // Inicializar estadísticas de transportadora si no existe
+      if (!carrierStats[carrier]) {
+        carrierStats[carrier] = {
+          total: 0,
+          delivered: 0,
+          returned: 0,
+          shippingCost: 0,
+          returnCost: 0
+        };
+      }
+      
+      // Procesar según el estado de la orden
+      switch (orderStatus) {
+        case OrderStatus.CANCELED:
+        case OrderStatus.REJECTED:
+          // Las órdenes canceladas o rechazadas no generan ni valor ni costos
+          canceledOrders++;
+          break;
+          
+        case OrderStatus.DELIVERED:
+          // Órdenes entregadas: generan valor, ganancia y costos de flete
+          confirmedOrders++;
+          confirmedValue += value;
+          confirmedProfit += profit;
+          totalValue += value;
+          totalProfit += profit;
+          totalShippingCost += shippingCost;
+          
+          // Registrar en la transportadora
+          carrierStats[carrier].total++;
+          carrierStats[carrier].delivered++;
+          carrierStats[carrier].shippingCost += shippingCost;
+          carrierShippingCosts[carrier] = (carrierShippingCosts[carrier] || 0) + shippingCost;
+          break;
+          
+        case OrderStatus.RETURNED:
+          // Órdenes devueltas: generan costos de devolución pero no valor ni ganancia
+          returnedOrders++;
+          returnedValue += value;      // Valor que se perdió
+          returnedProfit += profit;    // Ganancia que se perdió
+          totalReturnCost += returnCost;
+          
+          // Registrar en la transportadora
+          carrierStats[carrier].total++;
+          carrierStats[carrier].returned++;
+          carrierStats[carrier].returnCost += returnCost;
+          carrierReturnCosts[carrier] = (carrierReturnCosts[carrier] || 0) + returnCost;
+          break;
+          
+        case OrderStatus.IN_PROGRESS:
+          // Órdenes en proceso: generan costos de flete pero valor y ganancia están pendientes
+          inProgressOrders++;
+          inProgressValue += value;    // Valor potencial
+          inProgressProfit += profit;  // Ganancia potencial
+          totalShippingCost += shippingCost;
+          
+          // Registrar en la transportadora
+          carrierStats[carrier].total++;
+          carrierStats[carrier].shippingCost += shippingCost;
+          carrierShippingCosts[carrier] = (carrierShippingCosts[carrier] || 0) + shippingCost;
+          break;
+      }
+      
+      // Registrar en distribuciones generales
       if (order.tipoEnvio) {
         const type = String(order.tipoEnvio || 'Sin tipo');
         shippingTypeDistribution[type] = (shippingTypeDistribution[type] || 0) + 1;
@@ -188,10 +340,46 @@ class OrdersAnalysisService extends BaseExcelService {
       }
       
       if (order.transportadora) {
-        const carrier = String(order.transportadora || 'Sin transportadora');
         carrierDistribution[carrier] = (carrierDistribution[carrier] || 0) + 1;
       }
     });
+    
+    // Calcular eficiencia por transportadora
+    const carrierEfficiency: Record<string, number> = {};
+    Object.keys(carrierStats).forEach(carrier => {
+      const stats = carrierStats[carrier];
+      // Eficiencia = órdenes entregadas / total órdenes con guía (excluyendo canceladas/rechazadas)
+      if (stats.total > 0) {
+        carrierEfficiency[carrier] = (stats.delivered / stats.total) * 100;
+      } else {
+        carrierEfficiency[carrier] = 0;
+      }
+    });
+    
+    // Calcular eficiencia general de entrega
+    const totalWithTracking = confirmedOrders + inProgressOrders + returnedOrders;
+    const deliveryEfficiency = totalWithTracking > 0 ? (confirmedOrders / totalWithTracking) * 100 : 0;
+    
+    // Calcular ganancia neta (confirmada - costos de devolución)
+    const netProfit = confirmedProfit - totalReturnCost;
+    
+    // Calcular escenarios optimista y pesimista
+    // Escenario optimista: Si todas las órdenes en proceso se entregan
+    const optimisticProfit = confirmedProfit + inProgressProfit - totalReturnCost;
+    const optimisticGainFromInProgress = inProgressProfit; // Ganancia adicional por órdenes en proceso
+    
+    // Para el escenario pesimista, estimamos el costo de devolución para órdenes en proceso
+    // Calculamos un costo promedio de devolución por orden si hay devoluciones, o usamos el costo de flete si no hay datos
+    let avgReturnCost = 0;
+    if (returnedOrders > 0) {
+      avgReturnCost = totalReturnCost / returnedOrders;
+    } else if (confirmedOrders + inProgressOrders > 0) {
+      avgReturnCost = totalShippingCost / (confirmedOrders + inProgressOrders); // Usamos el costo promedio de flete como aproximación
+    }
+    
+    const potentialReturnCost = avgReturnCost * inProgressOrders;
+    const pessimisticProfit = confirmedProfit - totalReturnCost - potentialReturnCost; // Ganancia si todo se devuelve
+    const pessimisticLoss = potentialReturnCost; // Costo adicional por devoluciones en proceso
     
     // Determinar el campo de agrupación y los datos agrupados
     let groupField = 'estatus';
@@ -212,12 +400,40 @@ class OrdersAnalysisService extends BaseExcelService {
       Object.entries(groupedData).sort(([, a], [, b]) => b - a)
     );
     
+    // Actualizar valores totales para compatibilidad con código existente
+    totalValue = confirmedValue + inProgressValue;
+    totalProfit = confirmedProfit + inProgressProfit;
+    
     const result: OrderAnalysisResult = {
+      // Métricas antiguas para compatibilidad
       totalOrders: normalizedData.length,
       totalValue,
       totalProfit,
       totalShippingCost,
       totalReturnCost,
+      
+      // Nuevas métricas detalladas
+      confirmedOrders,
+      confirmedValue,
+      confirmedProfit,
+      inProgressOrders,
+      inProgressValue,
+      inProgressProfit,
+      returnedOrders,
+      returnedValue,
+      returnedProfit,
+      canceledOrders,
+      netProfit,
+      deliveryEfficiency,
+      
+      // Escenarios optimista y pesimista
+      optimisticProfit,
+      optimisticGainFromInProgress,
+      pessimisticProfit,
+      pessimisticLoss,
+      potentialReturnCost,
+      
+      // Distribuciones y agrupaciones
       groupField,
       groupedData: sortedGroupedData,
       statusDistribution,
@@ -225,7 +441,8 @@ class OrdersAnalysisService extends BaseExcelService {
       regionDistribution,
       carrierDistribution,
       carrierShippingCosts,
-      carrierReturnCosts
+      carrierReturnCosts,
+      carrierEfficiency
     };
     
     console.log('Resultado del análisis de órdenes:', result);

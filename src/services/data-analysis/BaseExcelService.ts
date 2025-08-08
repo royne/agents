@@ -88,6 +88,7 @@ class BaseExcelService {
 
   /**
    * Extrae un número de un valor que puede ser string o number
+   * Maneja correctamente el formato colombiano (puntos como separadores de miles, comas para decimales)
    */
   protected extractNumber(value: any): number {
     if (value === null || value === undefined) return 0;
@@ -98,22 +99,28 @@ class BaseExcelService {
       // Verificar si el valor es una cadena vacía
       if (value.trim() === '') return 0;
       
-      // Manejar formato de moneda (eliminar símbolos de moneda y separadores de miles)
-      const cleanValue = value
-        .replace(/[^0-9.,]/g, '') // Eliminar todo excepto números, puntos y comas
-        .replace(/,/g, '.'); // Reemplazar comas por puntos para manejar decimales
+      // Detectar formato de moneda colombiano (puntos como separador de miles, coma para decimales)
+      let processedValue = value;
       
-      // Si hay múltiples puntos, solo mantener el último como decimal
-      const parts = cleanValue.split('.');
-      let finalValue = cleanValue;
+      // Paso 1: Eliminar símbolos no numéricos (excepto puntos y comas)
+      processedValue = processedValue.replace(/[^0-9.,]/g, '');
       
+      // Paso 2: Manejar formato colombiano - primero eliminar puntos (separadores de miles)
+      processedValue = processedValue.replace(/\./g, '');
+      
+      // Paso 3: Reemplazar coma decimal por punto para JavaScript
+      processedValue = processedValue.replace(/,/g, '.');
+      
+      // Si hay múltiples puntos después de las transformaciones, conservar solo el último como decimal
+      const parts = processedValue.split('.');
       if (parts.length > 2) {
         const lastPart = parts.pop() || '';
-        finalValue = parts.join('') + '.' + lastPart;
+        processedValue = parts.join('') + '.' + lastPart;
       }
       
-      console.log(`Convirtiendo valor: '${value}' a número: ${parseFloat(finalValue) || 0}`);
-      return parseFloat(finalValue) || 0;
+      const numericValue = parseFloat(processedValue) || 0;
+      console.log(`Procesando valor: '${value}' → formato: '${processedValue}' → resultado: ${numericValue}`);
+      return numericValue;
     }
     
     return 0;
