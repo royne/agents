@@ -10,6 +10,18 @@ interface RecentChangesProps {
 }
 
 const RecentChanges: React.FC<RecentChangesProps> = ({ changes }) => {
+  
+  const latestChangesByCampaign = changes.reduce((acc: Record<string, CampaignBudgetChange>, change) => {
+    if (!acc[change.campaign_id] || new Date(change.date) > new Date(acc[change.campaign_id].date)) {
+      acc[change.campaign_id] = change;
+    }
+    return acc;
+  }, {});
+  
+  const latestChanges = Object.values(latestChangesByCampaign).sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  
   return (
     <div className="bg-gray-800 rounded-lg shadow-lg p-6">
       <h2 className="text-xl font-bold mb-4 flex items-center">
@@ -17,9 +29,9 @@ const RecentChanges: React.FC<RecentChangesProps> = ({ changes }) => {
         Últimos Cambios y Notificaciones
       </h2>
       
-      {changes.length > 0 ? (
+      {latestChanges.length > 0 ? (
         <div className="space-y-3">
-          {changes.map(change => (
+          {latestChanges.map(change => (
             <div key={change.id} className="bg-gray-700 p-4 rounded-lg">
               <div className="flex items-start">
                 <div className="flex-shrink-0 mr-3 mt-1">
