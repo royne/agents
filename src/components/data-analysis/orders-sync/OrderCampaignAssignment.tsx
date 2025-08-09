@@ -177,7 +177,7 @@ const OrderCampaignAssignment: React.FC = () => {
                         />
                       </td>
                       <td className="px-4 py-2 text-sm">{order.external_id}</td>
-                      <td className="px-4 py-2 text-sm">{order.customer_id}</td>
+                      <td className="px-4 py-2 text-sm">{order.customer_name}</td>
                       <td className="px-4 py-2 text-sm">{order.status}</td>
                       <td className="px-4 py-2 text-sm">${order.order_value.toLocaleString('es-CO')}</td>
                       <td className="px-4 py-2 text-sm">

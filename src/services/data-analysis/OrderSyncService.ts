@@ -1,5 +1,4 @@
-import { ExcelOrderData, Order, Customer, OrderStatus, OrderSyncResult } from '../../types/orders';
-import { customersDatabaseService } from '../database/customersService';
+import { ExcelOrderData, Order, OrderStatus, OrderSyncResult } from '../../types/orders';
 import { ordersDatabaseService } from '../database/ordersService';
 
 class OrderSyncService {
@@ -36,102 +35,129 @@ class OrderSyncService {
   }
   
   /**
-   * Extrae datos del cliente del registro Excel
+   * Normaliza un ID externo para asegurar consistencia
    */
-  private extractCustomerData(excelData: ExcelOrderData): Omit<Customer, 'id' | 'created_at' | 'updated_at'> {
-    console.log('=== DEBUG: extractCustomerData ===');
-    console.log('Datos del Excel para cliente:', excelData);
-    
-    const phone = String(excelData["TELÉFONO"] || excelData["TELEFONO"] || '');
-    
-    const customerData = {
-      name: String(excelData["NOMBRE CLIENTE"] || ''),
-      phone,
-      address: String(excelData["DIRECCION"] || ''),
-      city: String(excelData["CIUDAD DESTINO"] || ''),
-      state: String(excelData["DEPARTAMENTO DESTINO"] || ''), // Cambiado de region a state
-      company_id: '' // Se llenará en el método de sincronización
-    };
-    
-    console.log('Datos del cliente extraídos:', customerData);
-    return customerData;
+  private normalizeExternalId(externalId: any): string {
+    if (!externalId) return '';
+    return String(externalId).trim();
   }
   
   /**
-   * Extrae datos de la orden del registro Excel
+   * Normaliza una fecha en varios formatos posibles
    */
-  private extractOrderData(excelData: ExcelOrderData, customerId: string): Omit<Order, 'id' | 'created_at' | 'updated_at'> {
+  private normalizeDate(dateValue: any): string | undefined {
+    if (!dateValue) return undefined;
+    
+    const dateStr = String(dateValue).trim();
+    if (!dateStr) return undefined;
+    
+    // Intentar parsear la fecha
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return undefined;
+      return date.toISOString();
+    } catch (e) {
+      console.log('Error al parsear fecha:', dateStr, e);
+      return undefined;
+    }
+  }
+  
+  /**
+   * Normaliza un valor monetario asegurando que sea un número
+   */
+  private normalizeMonetaryValue(value: any): number | undefined {
+    if (value === undefined || value === null || value === '') return undefined;
+    
+    // Convertir a string y limpiar
+    const valueStr = String(value).trim()
+      .replace(/\$/g, '') // Eliminar símbolos de moneda
+      .replace(/,/g, ''); // Eliminar comas
+    
+    // Intentar convertir a número
+    const numValue = parseFloat(valueStr);
+    
+    // Verificar si es un número válido
+    if (isNaN(numValue)) return undefined;
+    
+    return numValue;
+  }
+  
+  /**
+   * Extrae datos de la orden del registro Excel, incluyendo datos del cliente
+   */
+  private extractOrderData(excelData: ExcelOrderData): Omit<Order, 'id' | 'created_at' | 'updated_at'> {
     console.log('=== DEBUG: extractOrderData ===');
     console.log('Datos del Excel para orden:', excelData);
     
-    // Convertir valores monetarios asegurando que sean números
-    const orderValue = parseFloat(String(excelData["VALOR DE COMPRA EN PRODUCTOS"] || 0)) || 0;
-    const shippingCost = parseFloat(String(excelData["PRECIO FLETE"] || excelData.precioFlete || excelData.flete || 0)) || 0;
-    const providerCost = parseFloat(String(excelData["TOTAL EN PRECIOS DE PROVEEDOR"] || excelData.precioProveedor || 0)) || 0;
+    // Normalizar ID externo
+    const externalId = this.normalizeExternalId(excelData.ID);
+    console.log('ID externo normalizado:', externalId);
     
-    // Calcular ganancia estimada
-    const profit = orderValue - providerCost;
+    // Normalizar valores monetarios
+    const orderValue = this.normalizeMonetaryValue(excelData["VALOR DE COMPRA EN PRODUCTOS"]);
+    const shippingCost = this.normalizeMonetaryValue(excelData["PRECIO FLETE"]);
+    const providerCost = this.normalizeMonetaryValue(excelData["TOTAL EN PRECIOS DE PROVEEDOR"]);
     
-    // Extraer fecha de orden si existe
-    const orderDate = excelData["FECHA"] || excelData["FECHA DE ORDEN"] || excelData["FECHA ORDEN"] || null;
-    
-    // Extraer método de pago si existe
-    const paymentMethod = excelData["METODO DE PAGO"] || excelData["FORMA DE PAGO"] || null;
-    
-    // Extraer notas si existen
-    const notes = excelData["NOTAS"] || excelData["OBSERVACIONES"] || null;
-    
-    // Extraer datos de ubicación
-    const destinationCity = excelData["CIUDAD DESTINO"] || null;
-    const destinationState = excelData["DEPARTAMENTO DESTINO"] || null;
-    const shippingAddress = excelData["DIRECCION"] || null;
-    
-    // Extraer último movimiento y su fecha
-    const lastMovement = excelData["CONCEPTO ÚLTIMO MOVIMIENTO"] || excelData["ÚLTIMO MOVIMIENTO"] || excelData["ULTIMO MOVIMIENTO"] || null;
-    const lastMovementDate = excelData["FECHA DE ÚLTIMO MOVIMIENTO"] || excelData["FECHA ULTIMO MOVIMIENTO"] || null;
-    const lastMovementTime = excelData["HORA DE ÚLTIMO MOVIMIENTO"] || excelData["HORA ULTIMO MOVIMIENTO"] || null;
-    
-    // Combinar fecha y hora de último movimiento si ambos existen
-    let combinedLastMovementDate = undefined;
-    if (lastMovementDate) {
-      combinedLastMovementDate = lastMovementTime ? `${lastMovementDate} ${lastMovementTime}` : lastMovementDate;
+    // Calcular ganancia si tenemos los datos necesarios
+    let profit = undefined;
+    if (orderValue !== undefined && providerCost !== undefined) {
+      profit = orderValue - providerCost;
     }
     
-    // Extraer tipo de envío
-    const shippingType = excelData["TIPO DE ENVIO"] || null;
+    // Normalizar fechas
+    const lastMovementDate = this.normalizeDate(
+      excelData["FECHA DE ÚLTIMO MOVIMIENTO"] || excelData["FECHA DE ULTIMO MOVIMIENTO"]
+    );
     
-    // Extraer si la novedad fue solucionada
-    const issueSolved = excelData["FUE SOLUCIONADA LA NOVEDAD"] === "SI" || 
-                      excelData["FUE SOLUCIONADA LA NOVEDAD"] === true || 
-                      excelData["FUE SOLUCIONADA LA NOVEDAD"] === "true" || 
-                      excelData["FUE SOLUCIONADA LA NOVEDAD"] === 1 || 
-                      excelData["FUE SOLUCIONADA LA NOVEDAD"] === "1";
+    // Extraer fecha de la orden
+    const orderDate = this.normalizeDate(
+      excelData["FECHA DE ORDEN"] || excelData["FECHA DE COMPRA"] || excelData["FECHA"]
+    );
     
-    const orderData = {
-      external_id: String(excelData.ID || ''),
-      customer_id: customerId,
-      status: this.getOrderStatus(excelData["ESTATUS"] || excelData.estado),
-      order_date: orderDate ? String(orderDate) : undefined,
-      payment_method: paymentMethod ? String(paymentMethod) : undefined,
+    // Determinar estado
+    const status = this.getOrderStatus(excelData["ESTATUS"] || excelData["estado"]);
+    
+    // Extraer datos del cliente
+    const customerPhone = String(excelData["TELÉFONO"] || excelData["TELEFONO"] || '');
+    const customerName = String(excelData["NOMBRE CLIENTE"] || '');
+    const customerAddress = String(excelData["DIRECCION"] || '');
+    const customerCity = String(excelData["CIUDAD DESTINO"] || '');
+    const customerState = String(excelData["DEPARTAMENTO DESTINO"] || '');
+    
+    const orderData: Omit<Order, 'id' | 'created_at' | 'updated_at'> = {
+      external_id: externalId,
+      status,
+      order_value: orderValue || 0,
+      shipping_cost: shippingCost || 0,
+      order_date: orderDate,
+      
+      // Datos del cliente integrados en la orden
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      customer_address: customerAddress,
+      customer_city: customerCity,
+      customer_state: customerState,
+      customer_email: undefined,
+      customer_postal_code: undefined,
+      customer_country: undefined,
+      
+      // Campos opcionales
       tracking_number: String(excelData["NÚMERO GUIA"] || excelData["NUMERO GUIA"] || ''),
-      shipping_company: String(excelData["TRANSPORTADORA"] || excelData.transportadora || ''),
-      carrier: String(excelData["TRANSPORTADORA"] || excelData.transportadora || ''), // Duplicamos para mantener compatibilidad
-      order_value: orderValue,
-      shipping_cost: shippingCost,
+      shipping_company: String(excelData["TRANSPORTADORA"] || ''),
+      carrier: String(excelData["TRANSPORTADORA"] || ''), // Duplicamos para compatibilidad
+      
+      // Campos adicionales del Excel
+      destination_city: String(excelData["CIUDAD DESTINO"] || ''),
+      destination_state: String(excelData["DEPARTAMENTO DESTINO"] || ''),
+      shipping_address: String(excelData["DIRECCION"] || ''),
+      last_movement: String(excelData["ÚLTIMO MOVIMIENTO"] || excelData["ULTIMO MOVIMIENTO"] || ''),
+      last_movement_date: lastMovementDate,
+      shipping_type: String(excelData["TIPO DE ENVIO"] || excelData["TIPO ENVIO"] || ''),
       provider_cost: providerCost,
-      profit: profit,
-      notes: notes ? String(notes) : undefined,
+      profit,
       
-      // Campos adicionales que ahora están en la BD
-      destination_city: destinationCity ? String(destinationCity) : undefined,
-      destination_state: destinationState ? String(destinationState) : undefined,
-      shipping_address: shippingAddress ? String(shippingAddress) : undefined,
-      last_movement: lastMovement ? String(lastMovement) : undefined,
-      last_movement_date: combinedLastMovementDate ? String(combinedLastMovementDate) : undefined,
-      issue_solved: issueSolved !== undefined ? issueSolved : undefined,
-      shipping_type: shippingType ? String(shippingType) : undefined,
-      
-      company_id: '', // Se llenará en el método de sincronización
+      // Estos campos se llenarán en el método de sincronización
+      company_id: ''
     };
     
     console.log('Datos de la orden extraídos:', orderData);
@@ -146,34 +172,29 @@ class OrderSyncService {
     console.log('Orden existente:', existingOrder);
     console.log('Nuevos datos:', newOrderData);
     
-    // Verificar cambios en los campos principales
-    const changes: Record<string, boolean> = {
-      status: existingOrder.status !== newOrderData.status,
-      order_value: existingOrder.order_value !== newOrderData.order_value,
-      shipping_cost: existingOrder.shipping_cost !== newOrderData.shipping_cost,
-      shipping_company: existingOrder.shipping_company !== newOrderData.shipping_company,
-      carrier: existingOrder.carrier !== newOrderData.carrier,
-      tracking_number: existingOrder.tracking_number !== newOrderData.tracking_number,
-      payment_method: existingOrder.payment_method !== newOrderData.payment_method,
-      notes: existingOrder.notes !== newOrderData.notes
-    };
+    // Verificar cambios en campos clave
+    if (existingOrder.status !== newOrderData.status) return true;
+    if (existingOrder.order_value !== newOrderData.order_value) return true;
+    if (existingOrder.shipping_cost !== newOrderData.shipping_cost) return true;
+    if (existingOrder.tracking_number !== newOrderData.tracking_number) return true;
+    if (existingOrder.shipping_company !== newOrderData.shipping_company) return true;
     
-    // Verificar campos adicionales que no están en la BD pero usamos en el código
-    if (newOrderData.provider_cost !== undefined) {
-      changes.provider_cost = existingOrder.provider_cost !== newOrderData.provider_cost;
-    }
+    // Verificar cambios en campos adicionales
+    if (existingOrder.last_movement !== newOrderData.last_movement) return true;
+    if (existingOrder.last_movement_date !== newOrderData.last_movement_date) return true;
+    if (existingOrder.provider_cost !== newOrderData.provider_cost) return true;
+    if (existingOrder.order_date !== newOrderData.order_date) return true;
+    if (existingOrder.shipping_type !== newOrderData.shipping_type) return true;
     
-    if (newOrderData.last_movement !== undefined) {
-      changes.last_movement = existingOrder.last_movement !== newOrderData.last_movement;
-    }
+    // Verificar cambios en datos del cliente
+    if (existingOrder.customer_name !== newOrderData.customer_name) return true;
+    if (existingOrder.customer_phone !== newOrderData.customer_phone) return true;
+    if (existingOrder.customer_address !== newOrderData.customer_address) return true;
+    if (existingOrder.customer_city !== newOrderData.customer_city) return true;
+    if (existingOrder.customer_state !== newOrderData.customer_state) return true;
     
-    console.log('Cambios detectados:', changes);
-    
-    // Si hay al menos un cambio, retornar true
-    const hasChanges = Object.values(changes).some(changed => changed === true);
-    console.log('¿Tiene cambios significativos?', hasChanges);
-    
-    return hasChanges;
+    console.log('No se detectaron cambios significativos');
+    return false;
   }
   
   /**
@@ -193,7 +214,7 @@ class OrderSyncService {
     
     // Iterar sobre cada registro del Excel
     for (const orderData of excelData) {
-      const externalId = String(orderData.ID || '');
+      const externalId = this.normalizeExternalId(orderData.ID);
       if (!externalId) {
         console.log('Ignorando registro sin ID:', orderData);
         continue; // Ignorar registros sin ID
@@ -202,29 +223,14 @@ class OrderSyncService {
       console.log(`=== DEBUG: Procesando orden con ID externo: ${externalId} ===`);
       
       try {
-        // Paso 1: Extraer y procesar datos del cliente
-        console.log('Paso 1: Extrayendo datos del cliente');
-        const customerData = this.extractCustomerData(orderData);
-        customerData.company_id = companyId;
-        console.log('Datos del cliente extraídos:', customerData);
-        
-        // Paso 2: Encontrar o crear el cliente
-        console.log('Paso 2: Buscando o creando cliente');
-        const customer = await customersDatabaseService.findOrCreateCustomer(customerData, companyId);
-        if (!customer) {
-          console.error('No se pudo procesar el cliente, saltando orden');
-          continue; // Si no se pudo procesar el cliente, pasar al siguiente
-        }
-        console.log('Cliente procesado correctamente:', customer.id);
-        
-        // Paso 3: Extraer datos de la orden
-        console.log('Paso 3: Extrayendo datos de la orden');
-        const newOrderData = this.extractOrderData(orderData, customer.id);
+        // Paso 1: Extraer datos de la orden (incluye datos del cliente)
+        console.log('Paso 1: Extrayendo datos de la orden y cliente');
+        const newOrderData = this.extractOrderData(orderData);
         newOrderData.company_id = companyId;
         console.log('Datos de la orden extraídos:', newOrderData);
         
-        // Paso 4: Verificar si la orden ya existe
-        console.log('Paso 4: Verificando si la orden existe');
+        // Paso 2: Verificar si la orden ya existe
+        console.log('Paso 2: Verificando si la orden existe');
         const existingOrder = await ordersDatabaseService.getOrderByExternalId(externalId, companyId);
         console.log('¿Orden existente?', existingOrder ? 'Sí' : 'No');
         

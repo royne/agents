@@ -7,25 +7,9 @@ export enum OrderStatus {
   PENDING = 'PENDING'
 }
 
-export interface Customer {
-  id: string;
-  name: string;
-  phone: string;
-  address: string;
-  city: string;
-  state: string; // Cambiado de region a state para coincidir con la estructura de la BD
-  email?: string;
-  postal_code?: string;
-  country?: string;
-  company_id: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
 export interface Order {
   id: string;
   external_id: string;
-  customer_id: string;
   status: OrderStatus;
   order_date?: string;
   payment_method?: string;
@@ -34,6 +18,16 @@ export interface Order {
   carrier?: string; // Alias para shipping_company para mantener compatibilidad
   order_value: number;
   shipping_cost: number;
+  
+  // Campos de cliente integrados en la orden
+  customer_name: string;
+  customer_phone: string;
+  customer_address: string;
+  customer_city: string;
+  customer_state: string;
+  customer_email?: string;
+  customer_postal_code?: string;
+  customer_country?: string;
   
   // Campos adicionales del Excel que ahora están en la BD
   destination_city?: string;     // CIUDAD DESTINO

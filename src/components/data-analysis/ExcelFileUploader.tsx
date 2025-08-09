@@ -7,13 +7,15 @@ interface ExcelFileUploaderProps {
   analysisType: 'orders' | 'products';
   onAnalysisTypeChange?: (type: 'orders' | 'products') => void;
   showTypeSelector?: boolean;
+  disabled?: boolean;
 }
 
 const ExcelFileUploader: React.FC<ExcelFileUploaderProps> = ({
   onDataLoaded,
   analysisType,
   onAnalysisTypeChange,
-  showTypeSelector = true
+  showTypeSelector = true,
+  disabled = false
 }) => {
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,8 +43,8 @@ const ExcelFileUploader: React.FC<ExcelFileUploaderProps> = ({
   };
 
   const handleUpload = async () => {
-    if (!file) {
-      alert('Por favor, selecciona un archivo Excel primero');
+    if (!file || disabled) {
+      if (!file) alert('Por favor, selecciona un archivo Excel primero');
       return;
     }
 
@@ -68,6 +70,43 @@ const ExcelFileUploader: React.FC<ExcelFileUploaderProps> = ({
     }
   };
 
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (disabled) return;
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const selectedFile = e.dataTransfer.files[0];
+      // Verificar que sea un archivo Excel
+      if (
+        selectedFile.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        selectedFile.type === 'application/vnd.ms-excel'
+      ) {
+        setFile(selectedFile);
+      } else {
+        alert('Por favor, selecciona un archivo Excel válido (.xlsx o .xls)');
+      }
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const isDragActive = false;
+
   return (
     <div className="bg-theme-component p-6 rounded-lg shadow-md mb-6">
       <h2 className="text-xl font-semibold mb-4 flex items-center">
@@ -78,8 +117,12 @@ const ExcelFileUploader: React.FC<ExcelFileUploaderProps> = ({
         <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-4">
           <div className="flex-1">
             <div 
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-primary-color transition-colors"
-              onClick={triggerFileInput}
+              className={`border-2 border-dashed rounded-lg p-6 text-center ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-theme-component-hover'} transition-colors ${isDragActive ? 'border-primary-color bg-theme-component-hover' : 'border-theme-border'}`}
+              onDragOver={!disabled ? handleDragOver : undefined}
+              onDragEnter={!disabled ? handleDragEnter : undefined}
+              onDragLeave={!disabled ? handleDragLeave : undefined}
+              onDrop={!disabled ? handleDrop : undefined}
+              onClick={() => !disabled && fileInputRef.current?.click()}
             >
               <input
                 type="file"
@@ -118,9 +161,9 @@ const ExcelFileUploader: React.FC<ExcelFileUploaderProps> = ({
           )}
 
           <button
-            className={`flex items-center justify-center px-6 py-2 rounded-md bg-primary-color text-white hover:bg-opacity-90 transition-colors ${!file || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={handleUpload}
-            disabled={!file || isLoading}
+            className={`mt-4 px-4 py-2 rounded-md bg-primary-color text-white flex items-center justify-center ${(file && !disabled) ? '' : 'opacity-50 cursor-not-allowed'}`}
+            disabled={!file || disabled || isLoading}
           >
             {isLoading ? (
               <>

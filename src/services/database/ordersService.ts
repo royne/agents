@@ -48,17 +48,22 @@ export const ordersDatabaseService = {
   },
 
   async getOrders(company_id: string): Promise<Order[]> {
-    const { data, error } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        customers:customer_id (*),
-        campaigns:campaign_id (name)
-      `)
-      .eq('company_id', company_id)
-      .order('created_at', { ascending: false });
-
-    return error ? [] : data;
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          campaigns:campaign_id (*)
+        `)
+        .eq('company_id', company_id)
+        .order('created_at', { ascending: false });
+        
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error al obtener órdenes:', error);
+      return [];
+    }
   },
 
   async getOrderByExternalId(externalId: string, company_id: string): Promise<Order | null> {
@@ -179,17 +184,20 @@ export const ordersDatabaseService = {
   },
 
   async getUnassignedOrders(company_id: string): Promise<Order[]> {
-    const { data, error } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        customers:customer_id (*)
-      `)
-      .is('campaign_id', null)
-      .eq('company_id', company_id)
-      .order('created_at', { ascending: false });
-
-    return error ? [] : data;
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('company_id', company_id)
+        .is('campaign_id', null)
+        .order('created_at', { ascending: false });
+        
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error al obtener órdenes sin asignar:', error);
+      return [];
+    }
   },
 
   async assignOrdersToCampaign(orderIds: string[], campaignId: string, company_id: string): Promise<boolean> {
@@ -203,17 +211,22 @@ export const ordersDatabaseService = {
   },
 
   async getOrdersByStatus(status: OrderStatus, company_id: string): Promise<Order[]> {
-    const { data, error } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        customers:customer_id (*),
-        campaigns:campaign_id (name)
-      `)
-      .eq('status', status)
-      .eq('company_id', company_id)
-      .order('created_at', { ascending: false });
-
-    return error ? [] : data;
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          campaigns:campaign_id (name)
+        `)
+        .eq('status', status)
+        .eq('company_id', company_id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error(`Error al obtener órdenes con estado ${status}:`, error);
+      return [];
+    }
   }
 };

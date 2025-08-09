@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../../../contexts/AppContext';
-import { FaUpload, FaSync, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaUpload, FaSync, FaCheckCircle, FaTimesCircle, FaSpinner } from 'react-icons/fa';
 import ExcelFileUploader from '../../data-analysis/ExcelFileUploader';
 import OrderSyncService from '../../../services/data-analysis/OrderSyncService';
 import { OrderSyncResult } from '../../../types/orders';
@@ -59,7 +59,15 @@ export const OrdersSyncComponent: React.FC = () => {
           onDataLoaded={handleExcelUpload}
           analysisType="orders"
           showTypeSelector={false}
+          disabled={isLoading}
         />
+        
+        {isLoading && (
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200 flex items-center justify-center">
+            <FaSpinner className="animate-spin text-blue-500 mr-3 text-xl" />
+            <span className="text-blue-700 font-medium">Sincronizando órdenes, por favor espere...</span>
+          </div>
+        )}
         
         {error && (
           <div className="mt-4 p-3 bg-red-100 border-l-4 border-red-500 text-red-700">
@@ -77,17 +85,17 @@ export const OrdersSyncComponent: React.FC = () => {
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-green-100 rounded-lg">
+            <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200 shadow-sm">
               <h3 className="text-lg font-medium text-green-800">Nuevas órdenes</h3>
-              <p className="text-3xl font-bold">{syncResults.created}</p>
+              <p className="text-3xl font-bold text-green-600">{syncResults.created}</p>
             </div>
-            <div className="p-4 bg-blue-100 rounded-lg">
+            <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 shadow-sm">
               <h3 className="text-lg font-medium text-blue-800">Órdenes actualizadas</h3>
-              <p className="text-3xl font-bold">{syncResults.updated}</p>
+              <p className="text-3xl font-bold text-blue-600">{syncResults.updated}</p>
             </div>
-            <div className="p-4 bg-gray-100 rounded-lg">
-              <h3 className="text-lg font-medium text-gray-800">Sin cambios</h3>
-              <p className="text-3xl font-bold">{syncResults.unchanged}</p>
+            <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200 shadow-sm">
+              <h3 className="text-lg font-medium text-purple-800">Sin cambios</h3>
+              <p className="text-3xl font-bold text-purple-600">{syncResults.unchanged}</p>
             </div>
           </div>
           
