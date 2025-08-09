@@ -54,11 +54,17 @@ const ExcelFileUploader: React.FC<ExcelFileUploaderProps> = ({
       // Utilizar el servicio para leer y procesar el archivo Excel
       let jsonData = await ExcelAnalysisService.readExcelFile(file);
       
+      // Verificar que los datos sean válidos antes de procesarlos
+      if (!Array.isArray(jsonData) || jsonData.length === 0) {
+        throw new Error('El archivo no contiene datos válidos');
+      }
+      
       // Pasar los datos al componente padre
       onDataLoaded(jsonData);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al procesar el archivo:', error);
-      alert('Ocurrió un error al procesar el archivo Excel');
+      // Mostrar un mensaje de error más específico
+      alert(error?.message || 'Ocurrió un error al procesar el archivo Excel');
     } finally {
       setIsLoading(false);
     }

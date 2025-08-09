@@ -5,7 +5,7 @@ import ExcelDataViewer from '../../components/data-analysis/ExcelDataViewer';
 import ExcelFileUploader from '../../components/data-analysis/ExcelFileUploader';
 import PageHeader from '../../components/common/PageHeader';
 
-const ExcelAnalysis = () => {
+const Analysis = () => {
   const [analysisType, setAnalysisType] = useState<'orders' | 'products'>('orders');
   const [excelData, setExcelData] = useState<any[] | null>(null);
 
@@ -16,7 +16,13 @@ const ExcelAnalysis = () => {
   };
 
   const handleDataLoaded = (data: any[]) => {
-    setExcelData(data);
+    // Verificar que los datos sean válidos antes de establecerlos
+    if (Array.isArray(data) && data.length > 0) {
+      setExcelData(data);
+    } else {
+      console.error('Datos inválidos recibidos del componente ExcelFileUploader');
+      setExcelData(null);
+    }
   };
 
 
@@ -53,4 +59,4 @@ const ExcelAnalysis = () => {
   );
 };
 
-export default ExcelAnalysis;
+export default Analysis;

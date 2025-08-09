@@ -14,15 +14,34 @@ class BaseExcelService {
       
       reader.onload = (e) => {
         try {
-          const data = e.target?.result;
+          if (!e.target?.result) {
+            throw new Error('No se pudo leer el contenido del archivo');
+          }
+          
+          const data = e.target.result;
           const workbook = XLSX.read(data, { type: 'binary' });
+          
+          // Verificar que el workbook tenga hojas
+          if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+            throw new Error('El archivo Excel no contiene hojas');
+          }
           
           // Obtener la primera hoja
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
           
+          if (!worksheet) {
+            throw new Error('No se pudo acceder a la hoja de cálculo');
+          }
+          
           // Convertir a JSON
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          
+          // Verificar que se hayan obtenido datos
+          if (!Array.isArray(jsonData) || jsonData.length === 0) {
+            throw new Error('No se encontraron datos en el archivo Excel');
+          }
+          
           console.log('Datos del Excel:', jsonData[0]);
           resolve(jsonData);
         } catch (error) {
@@ -31,7 +50,8 @@ class BaseExcelService {
         }
       };
       
-      reader.onerror = () => {
+      reader.onerror = (event) => {
+        console.error('Error en FileReader:', event);
         reject(new Error('Error al leer el archivo Excel'));
       };
       
