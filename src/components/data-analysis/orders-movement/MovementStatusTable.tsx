@@ -1,12 +1,12 @@
 import React from 'react';
-import { FaChartBar } from 'react-icons/fa';
-import { MovementAnalysisResult } from '../../../services/data-analysis/OrdersMovementService';
+import { MovementAnalysisResult, MovementOrder } from '../../../services/data-analysis/OrdersMovementService';
 
 interface MovementStatusTableProps {
   analysisResult: MovementAnalysisResult;
+  onStatusClick?: (status: string, orders: MovementOrder[]) => void;
 }
 
-const MovementStatusTable: React.FC<MovementStatusTableProps> = ({ analysisResult }) => {
+const MovementStatusTable: React.FC<MovementStatusTableProps> = ({ analysisResult, onStatusClick }) => {
   const { ordersByStatus } = analysisResult;
 
   return (
@@ -33,7 +33,11 @@ const MovementStatusTable: React.FC<MovementStatusTableProps> = ({ analysisResul
               const averageValue = totalValue / orders.length;
               
               return (
-                <tr key={status} className="border-b border-theme-border hover:bg-theme-component-hover">
+                <tr 
+                  key={status} 
+                  className="border-b border-theme-border hover:bg-theme-component-hover cursor-pointer"
+                  onClick={() => onStatusClick && onStatusClick(status, orders)}
+                >
                   <td className="px-4 py-3 text-sm text-theme-primary">{status}</td>
                   <td className="px-4 py-3 text-sm text-theme-primary">{orders.length}</td>
                   <td className="px-4 py-3 text-sm text-theme-primary">${totalValue.toLocaleString('es-CO')}</td>

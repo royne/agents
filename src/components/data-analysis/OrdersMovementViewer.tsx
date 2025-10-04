@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FaExclamationTriangle } from 'react-icons/fa';
 
 // Servicios
@@ -9,6 +9,8 @@ import MovementSummaryCards from './orders-movement/MovementSummaryCards';
 import MovementStatusTable from './orders-movement/MovementStatusTable';
 import MovementOrdersTable from './orders-movement/MovementOrdersTable';
 import MovementOrderDetailPanel from './orders-movement/MovementOrderDetailPanel';
+import MovementStatusOrdersModal from './orders-movement/MovementStatusOrdersModal';
+import MovementOrdersFilters, { OrdersFiltersValue } from './orders-movement/MovementOrdersFilters';
 
 interface OrdersMovementViewerProps {
   data: any[];
@@ -20,6 +22,12 @@ const OrdersMovementViewer: React.FC<OrdersMovementViewerProps> = ({ data, summa
   const [selectedOrder, setSelectedOrder] = useState<MovementOrder | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<MovementAnalysisResult | null>(null);
+  // Modal de órdenes por estado
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [statusModalName, setStatusModalName] = useState<string | null>(null);
+  const [statusModalOrders, setStatusModalOrders] = useState<MovementOrder[]>([]);
+  // Filtros para la tabla de detalle
+  const [filters, setFilters] = useState<OrdersFiltersValue>({ status: '', carrier: '', region: '', query: '' });
 
   // Efecto para analizar los datos cuando cambian
   useEffect(() => {
@@ -37,6 +45,13 @@ const OrdersMovementViewer: React.FC<OrdersMovementViewerProps> = ({ data, summa
     setSidebarOpen(true);
   };
 
+  // Click en una fila de estado: abrir modal con el detalle de esas órdenes
+  const handleStatusClick = (status: string, orders: MovementOrder[]) => {
+    setStatusModalName(status);
+    setStatusModalOrders(orders);
+    setStatusModalOpen(true);
+  };
+
   // Manejador para cerrar el panel lateral
   const handleClosePanel = () => {
     setSidebarOpen(false);
@@ -46,6 +61,59 @@ const OrdersMovementViewer: React.FC<OrdersMovementViewerProps> = ({ data, summa
   // Verificar si hay datos para analizar
   console.log('Datos de órdenes:', data);
   console.log('Resumen de órdenes:', summary);
+ 
+  // Listas disponibles para filtros (deben declararse antes de cualquier return condicional)
+  const availableStatuses = useMemo(() => Object.keys(analysisResult?.ordersByStatus || {}), [analysisResult]);
+  const availableCarriers = useMemo(() => Array.from(analysisResult?.carriers || new Set<string>()), [analysisResult]);
+  const availableRegions = useMemo(() => Array.from(analysisResult?.regions || new Set<string>()), [analysisResult]);
+
+  // Órdenes filtradas para la sección de detalle (también antes de returns condicionales)
+  const filteredOrders = useMemo(() => {
+    if (!analysisResult) return [] as MovementOrder[];
+    const q = filters.query.trim().toLowerCase();
+    return analysisResult.ordersInMovement.filter((order) => {
+      const status = (order.ESTATUS || order.estado || '');
+      if (filters.status && status !== filters.status) return false;
+      const carrier = (order.TRANSPORTADORA || order.transportadora || '');
+      if (filters.carrier && carrier !== filters.carrier) return false;
+      const region = (order["DEPARTAMENTO DESTINO"] || order.departamento || order["CIUDAD DESTINO"] || order.ciudad || '');
+      if (filters.region && region !== filters.region) return false;
+      if (q) {
+        const idStr = String(order.ID || '').toLowerCase();
+        const client = String(order["NOMBRE CLIENTE"] || '').toLowerCase();
+        if (!idStr.includes(q) && !client.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [analysisResult, filters]);
+
+  // Mapas de conteo para mostrar en opciones de filtros
+  const statusesCount = useMemo(() => {
+    const map: Record<string, number> = {};
+    if (!analysisResult) return map;
+    Object.entries(analysisResult.ordersByStatus || {}).forEach(([k, arr]) => {
+      map[k] = arr.length;
+    });
+    return map;
+  }, [analysisResult]);
+
+  const carriersCount = useMemo(() => {
+    const map: Record<string, number> = {};
+    if (!analysisResult) return map;
+    Object.entries(analysisResult.ordersByCarrier || {}).forEach(([k, arr]) => {
+      map[k] = arr.length;
+    });
+    return map;
+  }, [analysisResult]);
+
+  const regionsCount = useMemo(() => {
+    const map: Record<string, number> = {};
+    if (!analysisResult) return map;
+    Object.entries(analysisResult.ordersByRegion || {}).forEach(([k, arr]) => {
+      map[k] = arr.length;
+    });
+    return map;
+  }, [analysisResult]);
   
   if (!data || data.length === 0) {
     return (
@@ -80,6 +148,7 @@ const OrdersMovementViewer: React.FC<OrdersMovementViewerProps> = ({ data, summa
 
   // La función getOrderStatus se ha movido al servicio OrdersMovementService
 
+
   return (
     <div className="space-y-8 w-full">
       {/* Tarjetas de resumen */}
@@ -87,13 +156,38 @@ const OrdersMovementViewer: React.FC<OrdersMovementViewerProps> = ({ data, summa
       
       {/* Tabla de distribución por estado */}
       <div className="bg-theme-component p-6 rounded-lg shadow-md">
-        <MovementStatusTable analysisResult={analysisResult} />
+        <MovementStatusTable analysisResult={analysisResult} onStatusClick={handleStatusClick} />
       </div>
 
       {/* Tabla detallada de órdenes */}
+      <MovementOrdersFilters
+        availableStatuses={availableStatuses}
+        availableCarriers={availableCarriers}
+        availableRegions={availableRegions}
+        value={filters}
+        onChange={setFilters}
+        totalCount={analysisResult.ordersInMovement.length}
+        filteredCount={filteredOrders.length}
+        onClear={() => setFilters({ status: '', carrier: '', region: '', query: '' })}
+        statusesCount={statusesCount}
+        carriersCount={carriersCount}
+        regionsCount={regionsCount}
+      />
       <MovementOrdersTable 
-        orders={analysisResult.ordersInMovement} 
+        orders={filteredOrders} 
         onOrderSelect={handleOrderSelect} 
+      />
+
+      {/* Modal de detalle por estado */}
+      <MovementStatusOrdersModal
+        isOpen={statusModalOpen}
+        status={statusModalName}
+        orders={statusModalOrders}
+        onClose={() => setStatusModalOpen(false)}
+        onOrderSelect={(o) => {
+          handleOrderSelect(o);
+          setStatusModalOpen(false);
+        }}
       />
 
       {/* Panel lateral para mostrar detalles */}
