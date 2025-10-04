@@ -1,6 +1,8 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
+import { Plan, ModuleKey, isPlanAtLeast, computeModulesForPlan } from '../constants/plans';
+import { FeatureKey, hasFeatureForPlan } from '../constants/features';
 
 type ThemeConfig = {
   primaryColor: string;
@@ -15,6 +17,8 @@ type AppContextType = {
     company_id?: string;
     role?: string;
     name?: string;
+    plan?: Plan;
+    modulesOverride?: Partial<Record<ModuleKey, boolean>>;
   } | null;
   themeConfig: ThemeConfig;
   setApiKey: (key: string) => void;
@@ -23,6 +27,9 @@ type AppContextType = {
   logout: () => void;
   isAdmin: () => boolean;
   isSuperAdmin: () => boolean;
+  hasPlan: (required: Plan) => boolean;
+  canAccessModule: (module: ModuleKey) => boolean;
+  hasFeature: (feature: FeatureKey) => boolean;
   updateTheme: (config: Partial<ThemeConfig>) => void;
 };
 
@@ -36,6 +43,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     company_id?: string;
     role?: string;
     name?: string;
+    plan?: Plan;
+    modulesOverride?: Partial<Record<ModuleKey, boolean>>;
   } | null>(null);
   const [themeConfig, setThemeConfig] = useState<ThemeConfig>({
     primaryColor: '#3B82F6', // Color azul predeterminado
@@ -50,7 +59,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (session) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('company_id, role, name')
+          .select('company_id, role, name, plan, modules_override')
           .eq('user_id', session.user.id)
           .single();
 
@@ -58,7 +67,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           isAuthenticated: true,
           company_id: profile?.company_id,
           role: profile?.role,
-          name: profile?.name
+          name: profile?.name,
+          plan: (profile as any)?.plan as Plan | undefined,
+          modulesOverride: (profile as any)?.modules_override || undefined,
         };
         
         localStorage.setItem('auth_data', JSON.stringify(authData));
@@ -132,7 +143,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (data?.user) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('company_id, role, name')
+        .select('company_id, role, name, plan, modules_override')
         .eq('user_id', data.user.id)
         .single();
 
@@ -140,7 +151,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isAuthenticated: true,
         company_id: profile?.company_id,
         role: profile?.role,
-        name: profile?.name
+        name: profile?.name,
+        plan: (profile as any)?.plan as Plan | undefined,
+        modulesOverride: (profile as any)?.modules_override || undefined,
       };
       
       localStorage.setItem('auth_data', JSON.stringify(authData));
@@ -165,6 +178,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Función para verificar si el usuario es superadministrador
   const isSuperAdmin = (): boolean => {
     return authData?.role === 'superadmin';
+  };
+  
+  // Plan helpers
+  const hasPlan = (required: Plan): boolean => {
+    return isPlanAtLeast((authData?.plan as Plan) || 'basic', required);
+  };
+  
+  const canAccessModule = (module: ModuleKey): boolean => {
+    // Módulo de administración sigue regido por rol
+    if (module === 'admin') return isAdmin();
+    const plan = ((authData?.plan as Plan) || 'basic');
+    const overrides = authData?.modulesOverride;
+    const enabled = computeModulesForPlan(plan, overrides);
+    return enabled.has(module);
+  };
+
+  const hasFeature = (feature: FeatureKey): boolean => {
+    const plan = ((authData?.plan as Plan) || 'basic');
+    // Por ahora no tenemos overrides de features en DB; solo por plan
+    return hasFeatureForPlan(plan, feature);
   };
   
   // Función para actualizar la configuración del tema
@@ -245,6 +278,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       logout, 
       isAdmin,
       isSuperAdmin,
+      hasPlan,
+      canAccessModule,
+      hasFeature,
       updateTheme
     }}>
       {children}

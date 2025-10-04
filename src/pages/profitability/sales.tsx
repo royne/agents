@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import { salesDatabaseService } from '../../services/database/salesService';
 import { campaignDatabaseService } from '../../services/database/campaignService';
 import { adDatabaseService } from '../../services/database/adService';
@@ -230,7 +231,8 @@ export default function Sales() {
   );
 
   return (
-    <DashboardLayout>
+    <ProtectedRoute moduleKey={'profitability'}>
+      <DashboardLayout>
       <div className="space-y-8 max-w-6xl mx-auto">
         <PageHeader
           title={
@@ -375,6 +377,7 @@ export default function Sales() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }

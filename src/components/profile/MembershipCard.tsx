@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaCrown, FaCheckCircle, FaCalendarAlt, FaArrowRight } from 'react-icons/fa';
+import { FaCrown, FaCheckCircle, FaCalendarAlt } from 'react-icons/fa';
 
 interface MembershipCardProps {
   status?: 'active' | 'inactive' | 'trial';
@@ -17,31 +17,31 @@ const MembershipCard: React.FC<MembershipCardProps> = ({
     switch (status) {
       case 'active':
         return {
-          bgColor: 'bg-gradient-to-r from-green-500 to-emerald-600',
-          statusText: 'Membresía Activa',
-          statusIcon: <FaCheckCircle className="text-white mr-2" />,
-          textColor: 'text-white'
+          badgeClass: 'bg-green-600/20 text-green-400',
+          statusText: 'Membresía activa',
+          statusIcon: <FaCheckCircle className="mr-2" />,
+          textColor: 'text-theme-primary'
         };
       case 'trial':
         return {
-          bgColor: 'bg-gradient-to-r from-blue-500 to-indigo-600',
-          statusText: 'Período de Prueba',
-          statusIcon: <FaCalendarAlt className="text-white mr-2" />,
-          textColor: 'text-white'
+          badgeClass: 'bg-blue-600/20 text-blue-400',
+          statusText: 'Período de prueba',
+          statusIcon: <FaCalendarAlt className="mr-2" />,
+          textColor: 'text-theme-primary'
         };
       case 'inactive':
         return {
-          bgColor: 'bg-gradient-to-r from-gray-500 to-gray-600',
-          statusText: 'Membresía Inactiva',
-          statusIcon: <FaCalendarAlt className="text-white mr-2" />,
-          textColor: 'text-white'
+          badgeClass: 'bg-gray-600/20 text-gray-400',
+          statusText: 'Membresía inactiva',
+          statusIcon: <FaCalendarAlt className="mr-2" />,
+          textColor: 'text-theme-primary'
         };
       default:
         return {
-          bgColor: 'bg-gradient-to-r from-green-500 to-emerald-600',
-          statusText: 'Membresía Activa',
-          statusIcon: <FaCheckCircle className="text-white mr-2" />,
-          textColor: 'text-white'
+          badgeClass: 'bg-green-600/20 text-green-400',
+          statusText: 'Membresía activa',
+          statusIcon: <FaCheckCircle className="mr-2" />,
+          textColor: 'text-theme-primary'
         };
     }
   };
@@ -49,36 +49,25 @@ const MembershipCard: React.FC<MembershipCardProps> = ({
   const config = getStatusConfig();
 
   return (
-    <div className={`rounded-lg shadow-lg overflow-hidden ${config.bgColor}`}>
-      <div className="p-6">
-        <div className="flex justify-between items-start">
+    <div className="rounded-lg border border-theme-border bg-theme-component shadow-sm">
+      <div className="p-5">
+        <div className="flex items-start justify-between">
           <div>
-            <div className="flex items-center mb-2">
+            <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${config.badgeClass} mb-2`}>
               {config.statusIcon}
-              <span className={`font-semibold ${config.textColor}`}>{config.statusText}</span>
+              <span className="font-medium">{config.statusText}</span>
             </div>
-            <h3 className={`text-2xl font-bold mb-1 ${config.textColor}`}>
-              Plan {planName}
-            </h3>
-            <div className="flex items-center text-sm opacity-80 text-white">
-              <FaCalendarAlt className="mr-1" />
-              <span>Válido hasta: {expirationDate}</span>
-            </div>
+            <h3 className={`text-xl font-semibold mb-1 ${config.textColor}`}>Plan {planName}</h3>
+            {expirationDate && (
+              <div className="flex items-center text-sm text-theme-secondary">
+                <FaCalendarAlt className="mr-1" />
+                <span>Válido hasta: {expirationDate}</span>
+              </div>
+            )}
           </div>
-          <div className="bg-white bg-opacity-20 p-3 rounded-full">
-            <FaCrown className="text-yellow-300 text-2xl" />
+          <div className="p-2 rounded-md bg-theme-component-hover">
+            <FaCrown className="text-yellow-400 text-xl" />
           </div>
-        </div>
-      </div>
-      
-      <div className="bg-white bg-opacity-10 p-4">
-        <div className="flex justify-between items-center">
-          <div className="text-sm text-white">
-            <span className="opacity-80">Acceso completo a todas las funciones</span>
-          </div>
-          <button className="bg-white text-primary-color hover:bg-opacity-90 px-4 py-2 rounded-full text-sm font-medium flex items-center transition-all">
-            Administrar <FaArrowRight className="ml-2" />
-          </button>
         </div>
       </div>
     </div>

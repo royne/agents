@@ -96,7 +96,6 @@ const DailyOrdersUTMViewer: React.FC<DailyOrdersUTMViewerProps> = ({ data }) => 
   }
 
   const totalOrders = filteredResult.totalOrders;
-  const totalValue = filteredResult.totalValue;
 
   // Desglose de estados POS
   const statusDist = filteredResult.statusDistribution || {};
@@ -112,6 +111,15 @@ const DailyOrdersUTMViewer: React.FC<DailyOrdersUTMViewerProps> = ({ data }) => 
   const devoluciones = sumBy('devol');
   const efectivos = confirmados + empacando;
   const posibles = nuevos;
+
+  // Porcentajes solicitados para la tarjeta "Valor Total"
+  const denomSinAband = Math.max(0, totalOrders - abandonados);
+  const inefectivos = cancelados + nuevos; // Cancelados + Nuevos
+  const pct = (n: number, d: number) => (d > 0 ? (n / d) * 100 : 0);
+  const pctEfectivosSinAband = pct(efectivos, denomSinAband); // Efectivos vs Total sin Abandonados
+  const pctAbandonados = pct(abandonados, totalOrders); // Abandonados vs Total
+  const pctInefectivos = pct(inefectivos, totalOrders); // (Cancelados + Nuevos) vs Total
+  const pctCanceladosSinAband = pct(cancelados, denomSinAband); // Cancelados vs Total sin Abandonados
 
   return (
     <div className="w-full">
@@ -158,11 +166,26 @@ const DailyOrdersUTMViewer: React.FC<DailyOrdersUTMViewerProps> = ({ data }) => 
           <h3 className="text-lg font-semibold mb-3">Total de Órdenes</h3>
           <p className="text-4xl font-bold text-primary-color">{totalOrders}</p>
         </div>
-        <div className="bg-theme-primary p-6 rounded-lg shadow flex flex-col items-center justify-center h-full">
-          <h3 className="text-lg font-semibold mb-3">Valor Total</h3>
-          <p className="text-3xl font-bold text-primary-color">
-            {totalValue > 0 ? totalValue.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) : '$0'}
-          </p>
+        <div className="bg-theme-primary p-6 rounded-lg shadow flex flex-col items-stretch justify-start h-full">
+          <h3 className="text-lg font-semibold mb-3">Indicadores (%)</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+            <div className="rounded-md border border-green-600/30 bg-green-600/10 p-3">
+              <div className="text-xs text-green-300 mb-1">Efectivos s/Total sin Aband.</div>
+              <div className="text-2xl font-bold text-green-400">{pctEfectivosSinAband.toFixed(1)}%</div>
+            </div>
+            <div className="rounded-md border border-amber-600/30 bg-amber-600/10 p-3">
+              <div className="text-xs text-amber-300 mb-1">Abandonados</div>
+              <div className="text-2xl font-bold text-amber-400">{pctAbandonados.toFixed(1)}%</div>
+            </div>
+            <div className="rounded-md border border-orange-600/30 bg-orange-600/10 p-3">
+              <div className="text-xs text-orange-300 mb-1">Inefectivos (Canc + Nuevo)</div>
+              <div className="text-2xl font-bold text-orange-400">{pctInefectivos.toFixed(1)}%</div>
+            </div>
+            <div className="rounded-md border border-red-600/30 bg-red-600/10 p-3">
+              <div className="text-xs text-red-300 mb-1">Cancelados s/Total sin Aband.</div>
+              <div className="text-2xl font-bold text-red-400">{pctCanceladosSinAband.toFixed(1)}%</div>
+            </div>
+          </div>
         </div>
         <div className="bg-theme-primary p-6 rounded-lg shadow flex flex-col items-center justify-center h-full">
           <h3 className="text-lg font-semibold mb-2">Efectivos (Conf + Emp)</h3>

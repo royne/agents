@@ -153,7 +153,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Obtener datos del usuario a crear
-    const { email, password, name, role, company_id, company_name } = req.body;
+    const { email, password, name, role, company_id, company_name, plan } = req.body;
 
     // Validar datos
     if (!email || !password || !name || !role) {
@@ -184,9 +184,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       // Forzar el uso de la compañía del administrador
       var companyId = adminCompanyId;
+      // Plan: admin no puede asignar premium
+      var userPlan = plan || 'basic';
+      if (userPlan === 'premium') {
+        userPlan = 'basic';
+      }
     } else {
       // Para superadmins, permitir crear o seleccionar compañía
       var companyId = company_id;
+      var userPlan = plan || 'basic';
       
       if (!companyId && company_name) {
         const { data: newCompany, error: companyError } = await supabase
@@ -230,7 +236,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         company_id: companyId,
         role,
         name,
-        email
+        email,
+        plan: userPlan
       });
 
     if (profileError) {

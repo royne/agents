@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import CrudLayout from '../../components/layout/CrudLayout';
 import { expensesDatabaseService } from '../../services/database/expensesService';
 import { campaignDatabaseService } from '../../services/database/campaignService';
@@ -124,8 +125,9 @@ export default function Expenses() {
   const totalExpenses = filteredExpenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
 
   return (
-    <DashboardLayout>
-      <div className="space-y-8 max-w-6xl mx-auto">
+    <ProtectedRoute moduleKey={'profitability'}>
+      <DashboardLayout>
+        <div className="space-y-8 max-w-6xl mx-auto">
         <PageHeader
           title={
             <>
@@ -279,7 +281,8 @@ export default function Expenses() {
             </div>
           </div>
         )}
-      </div>
-    </DashboardLayout>
+        </div>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }

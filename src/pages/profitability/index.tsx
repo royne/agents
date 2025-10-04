@@ -1,4 +1,5 @@
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import { FaDollarSign, FaMoneyBillWave, FaStream, FaChartLine } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
@@ -31,7 +32,8 @@ export default function Profitability() {
   const router = useRouter();
 
   return (
-    <DashboardLayout>
+    <ProtectedRoute moduleKey={'profitability'}>
+      <DashboardLayout>
       <div className="max-w-full mx-auto">
         <PageHeader
           title={
@@ -63,6 +65,7 @@ export default function Profitability() {
           ))}
         </div>
       </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import PageHeader from '../../components/common/PageHeader';
 import { campaignDatabaseService } from '../../services/database/campaignService';
 import { campaignDailyRecordService } from '../../services/database/campaignDailyRecordService';
@@ -207,7 +208,8 @@ export default function CampaignControl() {
   };
 
   return (
-    <DashboardLayout>
+    <ProtectedRoute moduleKey={'campaign-control'}>
+      <DashboardLayout>
       <PageHeader 
         title="Control de Campañas"
         description="Monitorea el rendimiento diario y administra tus campañas publicitarias"
@@ -245,6 +247,7 @@ export default function CampaignControl() {
           <CampaignsList campaigns={campaignsWithData} />
         </div>
       )}
-    </DashboardLayout>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }

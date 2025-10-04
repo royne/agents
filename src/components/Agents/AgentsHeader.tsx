@@ -5,12 +5,14 @@ interface AgentsHeaderProps {
   showChat: boolean;
   onToggleView: () => void;
   onCreateAgent: () => void;
+  canCreate?: boolean;
 }
 
 const AgentsHeader: React.FC<AgentsHeaderProps> = ({ 
   showChat, 
   onToggleView, 
-  onCreateAgent 
+  onCreateAgent,
+  canCreate = true,
 }) => {
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
@@ -35,7 +37,9 @@ const AgentsHeader: React.FC<AgentsHeaderProps> = ({
         {!showChat && (
           <button
             onClick={onCreateAgent}
-            className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+            className={`flex items-center px-4 py-2 rounded transition-colors ${canCreate ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-500 text-white opacity-70 cursor-not-allowed'}`}
+            disabled={!canCreate}
+            title={canCreate ? 'Crear Agente' : 'Disponible en planes Premium'}
           >
             <FaPlus className="mr-2" /> Crear Agente
           </button>

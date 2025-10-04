@@ -1,4 +1,5 @@
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import CrudLayout from '../../components/layout/CrudLayout';
 import { useState, useEffect } from 'react';
 import { productDatabaseService } from '../../services/database/productService';
@@ -65,45 +66,47 @@ export default function ProductsPage() {
   };
 
   return (
-    <DashboardLayout>
-      <CrudLayout
-        title="Productos"
-        items={products}
-        onDelete={handleDelete}
-        onEdit={handleEdit}
-        backLink="/dbmanager"
-      >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            placeholder="Nombre del producto"
-            className="w-full p-2 rounded bg-gray-700 text-white"
-            value={currentProduct.name || ''}
-            onChange={(e) => setCurrentProduct({...currentProduct, name: e.target.value})}
-          />
-          <input
-            type="text"
-            placeholder="Descripción del producto"
-            className="w-full p-2 rounded bg-gray-700 text-white"
-            value={currentProduct.description || ''}
-            onChange={(e) => setCurrentProduct({...currentProduct, description: e.target.value})}
-          />
-          <input
-            type="number"
-            placeholder="Precio del producto"
-            className="w-full p-2 rounded bg-gray-700 text-white"
-            value={currentProduct.provider_price || ''}
-            onChange={(e) => setCurrentProduct({...currentProduct, provider_price: Number(e.target.value)})}
-          />
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
-            disabled={loading}
-          >
-            {loading ? 'Guardando...' : 'Guardar'}
-          </button>
-        </form>
-      </CrudLayout>
-    </DashboardLayout>
+    <ProtectedRoute moduleKey={'dbmanager'}>
+      <DashboardLayout>
+        <CrudLayout
+          title="Productos"
+          items={products}
+          onDelete={handleDelete}
+          onEdit={handleEdit}
+          backLink="/dbmanager"
+        >
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <input
+              type="text"
+              placeholder="Nombre del producto"
+              className="w-full p-2 rounded bg-gray-700 text-white"
+              value={currentProduct.name || ''}
+              onChange={(e) => setCurrentProduct({...currentProduct, name: e.target.value})}
+            />
+            <input
+              type="text"
+              placeholder="Descripción del producto"
+              className="w-full p-2 rounded bg-gray-700 text-white"
+              value={currentProduct.description || ''}
+              onChange={(e) => setCurrentProduct({...currentProduct, description: e.target.value})}
+            />
+            <input
+              type="number"
+              placeholder="Precio del producto"
+              className="w-full p-2 rounded bg-gray-700 text-white"
+              value={currentProduct.provider_price || ''}
+              onChange={(e) => setCurrentProduct({...currentProduct, provider_price: Number(e.target.value)})}
+            />
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+              disabled={loading}
+            >
+              {loading ? 'Guardando...' : 'Guardar'}
+            </button>
+          </form>
+        </CrudLayout>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }

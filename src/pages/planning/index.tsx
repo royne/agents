@@ -1,11 +1,13 @@
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import Link from 'next/link';
 import { FaCalendarAlt, FaListUl, FaUsers } from 'react-icons/fa';
 import Head from 'next/head';
 
 export default function Planning() {
   return (
-    <DashboardLayout>
+    <ProtectedRoute moduleKey={'planning'}>
+      <DashboardLayout>
       <Head>
         <title>Unlocked Ecom - Planeación</title>
       </Head>
@@ -59,6 +61,7 @@ export default function Planning() {
           </Link>
         </div>
       </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }

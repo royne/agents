@@ -3,75 +3,94 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase, FaLock, FaDollarSign, FaBrain, FaCalendarAlt, FaAd } from 'react-icons/fa';
 import Link from 'next/link';
 import { useAppContext } from '../contexts/AppContext';
+import type { ModuleKey } from '../constants/plans';
 import WelcomeBanner from '../components/dashboard/WelcomeBanner';
 import MentorQuote from '../components/dashboard/MentorQuote';
 import Head from 'next/head';
 
-const modules = [
+type HomeModule = {
+  name: string;
+  icon: any;
+  description: string;
+  path: string;
+  moduleKey: ModuleKey;
+};
+
+const modules: HomeModule[] = [
   {
     name: 'Agentes',
     icon: FaComments,
     description: 'Chat con múltiples agentes IA',
-    path: '/agents'
+    path: '/agents',
+    moduleKey: 'agents'
   },
   {
     name: 'Rentabilidad',
     icon: FaChartLine,
     description: 'Análisis de ventas y estadísticas',
-    path: '/profitability'
+    path: '/profitability',
+    moduleKey: 'profitability'
   },
   {
     name: 'Control de Campañas',
     icon: FaAd,
     description: 'Gestión y seguimiento de campañas publicitarias',
-    path: '/campaign-control'
+    path: '/campaign-control',
+    moduleKey: 'campaign-control'
   },
   {
     name: 'Calculadora de Precios',
     icon: FaDollarSign,
     description: 'Calculadora de precios',
-    path: '/calculator'
+    path: '/calculator',
+    moduleKey: 'calculator'
   },
   {
     name: 'Logística',
     icon: FaTruck,
     description: 'Gestión de logística y envíos',
-    path: '/logistic'
+    path: '/logistic',
+    moduleKey: 'logistic'
   },
   {
     name: 'Planeación',
     icon: FaCalendarAlt,
     description: 'Gestión de tareas y calendario',
-    path: '/planning'
+    path: '/planning',
+    moduleKey: 'planning'
   },
   {
     name: 'Análisis de Datos',
     icon: FaBrain,
     description: 'Análisis de archivos Excel',
-    path: '/data-analysis'
+    path: '/data-analysis',
+    moduleKey: 'data-analysis'
   },
   {
     name: 'Manager DB',
     icon: FaDatabase,
     description: 'Gestión de base de datos',
-    path: '/dbmanager'
+    path: '/dbmanager',
+    moduleKey: 'dbmanager'
   },
   {
     name: 'Configuración',
     icon: FaCog,
     description: 'Configuración del sistema',
-    path: '/settings'
+    path: '/settings',
+    moduleKey: 'settings'
   },
   {
     name: 'Master Chat',
     icon: FaRobot,
     description: 'Chat con RAG',
-    path: '/chat'
+    path: '/chat',
+    moduleKey: 'chat'
   }
 ];
 
 export default function Dashboard() {
-  const { isAdmin } = useAppContext();
+  const { isAdmin, canAccessModule } = useAppContext();
 
   return (
     <DashboardLayout>
@@ -90,8 +109,14 @@ export default function Dashboard() {
         <h2 className="text-2xl font-bold mb-6 border-l-4 border-primary-color pl-3">Módulos Disponibles</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {modules.map((module) => {
-            const isRagModule = module.path === '/chat';
+          {modules
+            .filter((m) => {
+              // Chat requiere además rol admin
+              if (m.moduleKey === 'chat') return canAccessModule('chat') && isAdmin();
+              return canAccessModule(m.moduleKey);
+            })
+            .map((module) => {
+            const isRagModule = module.moduleKey === 'chat';
             const isDisabled = isRagModule && !isAdmin();
             
             const card = (
@@ -116,11 +141,7 @@ export default function Dashboard() {
               </div>
             );
             
-            return isDisabled ? (
-              <div key={module.path} title="Esta función solo está disponible para administradores">
-                {card}
-              </div>
-            ) : (
+            return (
               <Link key={module.path} href={module.path}>
                 {card}
               </Link>

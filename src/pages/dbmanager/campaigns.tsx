@@ -1,4 +1,5 @@
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import { useState, useEffect } from 'react';
 import { campaignDatabaseService } from '../../services/database/campaignService';
 import { productDatabaseService } from '../../services/database/productService';
@@ -115,7 +116,8 @@ export default function CampaignPage() {
   };
 
   return (
-    <DashboardLayout>
+    <ProtectedRoute moduleKey={'dbmanager'}>
+      <DashboardLayout>
       <div className="max-w-6xl mx-auto">
         <PageHeader
           title="Campañas"
@@ -304,28 +306,29 @@ export default function CampaignPage() {
                     </option>
                   ))}
                 </select>
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="status"
-                    className="mr-2"
-                    checked={currentCampaign.status !== undefined ? currentCampaign.status : true}
-                    onChange={(e) => setCurrentCampaign({...currentCampaign, status: e.target.checked})}
-                  />
-                  <label htmlFor="status" className="text-white">Activa</label>
-                </div>
-                <button
-                  type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
-                  disabled={loading}
-                >
-                  {loading ? 'Guardando...' : 'Guardar'}
-                </button>
-              </form>
-            </div>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="status"
+                  className="mr-2"
+                  checked={currentCampaign.status !== undefined ? currentCampaign.status : true}
+                  onChange={(e) => setCurrentCampaign({...currentCampaign, status: e.target.checked})}
+                />
+                <label htmlFor="status" className="text-white">Activa</label>
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+                disabled={loading}
+              >
+                {loading ? 'Guardando...' : 'Guardar'}
+              </button>
+            </form>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
     </DashboardLayout>
+  </ProtectedRoute>
   );
 }

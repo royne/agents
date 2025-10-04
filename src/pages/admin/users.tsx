@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { FaUsers, FaEdit, FaTrash, FaUserPlus, FaUserShield, FaUser, FaSync } from 'react-icons/fa';
+import { FaUsers, FaEdit, FaTrash, FaUserPlus, FaUserShield, FaUser, FaSync, FaSlidersH } from 'react-icons/fa';
 import Head from 'next/head';
 import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import { useAppContext } from '../../contexts/AppContext';
 import UserFormModal from '../../components/admin/UserFormModal';
 import { adminService, UserWithProfile } from '../../services/database/adminService';
 import PageHeader from '../../components/common/PageHeader';
+import { DEFAULT_PLAN_MODULES, ModuleKey } from '../../constants/plans';
 
 
 
@@ -16,6 +17,66 @@ export default function UsersManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModulesModalOpen, setIsModulesModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserWithProfile | null>(null);
+  const [moduleSelections, setModuleSelections] = useState<Record<ModuleKey, 'default' | 'on' | 'off'>>({} as any);
+
+  const ALL_MODULES: { key: ModuleKey; label: string }[] = [
+    { key: 'agents', label: 'Agentes' },
+    { key: 'profitability', label: 'Rentabilidad' },
+    { key: 'campaign-control', label: 'Control de Campañas' },
+    { key: 'calculator', label: 'Calculadora' },
+    { key: 'logistic', label: 'Logística' },
+    { key: 'planning', label: 'Planeación' },
+    { key: 'data-analysis', label: 'Análisis de Datos' },
+    { key: 'dbmanager', label: 'DB Manager' },
+    { key: 'chat', label: 'Master Chat (requiere admin)' },
+    { key: 'settings', label: 'Configuración' },
+    // 'admin' no es configurable por módulos (solo por rol)
+  ];
+
+  const openModulesModal = (user: UserWithProfile) => {
+    setSelectedUser(user);
+    const plan = user.plan || 'basic';
+    const baseModules = new Set(DEFAULT_PLAN_MODULES[plan]);
+    const selections: Record<ModuleKey, 'default' | 'on' | 'off'> = {} as any;
+    ALL_MODULES.forEach(({ key }) => {
+      selections[key] = 'default';
+    });
+    // Aplicar overrides existentes
+    const overrides = (user.modules_override || {}) as Partial<Record<ModuleKey, boolean>>;
+    Object.entries(overrides).forEach(([k, v]) => {
+      const key = k as ModuleKey;
+      selections[key] = v ? 'on' : 'off';
+    });
+    setModuleSelections(selections);
+    setIsModulesModalOpen(true);
+  };
+
+  const handleSaveOverrides = async () => {
+    if (!selectedUser) return;
+    const plan = selectedUser.plan || 'basic';
+    const baseModules = new Set(DEFAULT_PLAN_MODULES[plan]);
+
+    // Construir overrides: solo incluir claves donde selection !== 'default'
+    const overrides: Partial<Record<ModuleKey, boolean>> = {};
+    (Object.keys(moduleSelections) as ModuleKey[]).forEach((key) => {
+      const sel = moduleSelections[key];
+      if (sel === 'on') overrides[key] = true;
+      if (sel === 'off') overrides[key] = false;
+    });
+
+    // Si no hay overrides, enviar null para limpiar
+    const payload = Object.keys(overrides).length === 0 ? null : overrides;
+    const ok = await adminService.updateUserModulesOverride(selectedUser.id, payload);
+    if (!ok) {
+      alert('No se pudo actualizar los módulos');
+      return;
+    }
+    setIsModulesModalOpen(false);
+    setSelectedUser(null);
+    fetchUsers();
+  };
 
   const fetchUsers = async () => {
     try {
@@ -113,6 +174,7 @@ export default function UsersManagement() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">Nombre</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">Rol</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">Empresa</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">Plan</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">Fecha de Creación</th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-theme-secondary uppercase tracking-wider">Acciones</th>
                     </tr>
@@ -131,8 +193,29 @@ export default function UsersManagement() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-theme-secondary">{user.company_name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-theme-secondary">
-                          {new Date(user.created_at).toLocaleDateString('es-ES')}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <select
+                            className="px-2 py-1 border rounded bg-theme-component text-theme-primary"
+                            value={user.plan || 'basic'}
+                            onChange={async (e) => {
+                              const newPlan = e.target.value as 'basic' | 'tester' | 'premium';
+                              // Si no es superadmin, evitar premium
+                              if (!isSuperAdmin() && newPlan === 'premium') {
+                                alert('Solo el Superadmin puede asignar Premium');
+                                return;
+                              }
+                              const ok = await adminService.updateUserPlan(user.id, newPlan);
+                              if (!ok) {
+                                alert('No se pudo actualizar el plan');
+                              } else {
+                                fetchUsers();
+                              }
+                            }}
+                          >
+                            <option value="basic">Basic</option>
+                            <option value="tester">Tester</option>
+                            <option value="premium" disabled={!isSuperAdmin()}>Premium {(!isSuperAdmin()) ? '(Solo Superadmin)' : ''}</option>
+                          </select>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           {/* Botón de edición, disponible para todos */}
@@ -142,10 +225,18 @@ export default function UsersManagement() {
                           >
                             <FaEdit className="inline" /> Editar
                           </button>
-                          
+                          {/* Botón para overrides de módulos, solo Superadmin */}
+                          {isSuperAdmin() && (
+                            <button
+                              className="text-green-500 hover:text-green-400 mr-3"
+                              title="Editar módulos del usuario"
+                              onClick={() => openModulesModal(user)}
+                            >
+                              <FaSlidersH className="inline" /> Módulos
+                            </button>
+                          )}
                           {/* Botón de eliminación, con restricciones */}
-                          {(isSuperAdmin() || 
-                           (user.role !== 'admin' && user.role !== 'superadmin')) && (
+                          {(isSuperAdmin() || (user.role !== 'admin' && user.role !== 'superadmin')) && (
                             <button 
                               className="text-red-500 hover:text-red-700"
                               onClick={async () => {
@@ -191,6 +282,63 @@ export default function UsersManagement() {
           isSuperAdmin={isSuperAdmin()}
           adminCompanyId={authData?.company_id}
         />
+
+        {/* Modal para overrides de módulos */}
+        {isModulesModalOpen && selectedUser && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-theme-component p-6 rounded-lg w-full max-w-2xl">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-theme-primary">Módulos del usuario</h2>
+                <button
+                  onClick={() => {
+                    setIsModulesModalOpen(false);
+                    setSelectedUser(null);
+                  }}
+                  className="text-theme-secondary hover:text-theme-primary"
+                >
+                  ×
+                </button>
+              </div>
+              <p className="text-theme-secondary mb-4">
+                Selecciona para cada módulo si quieres usar el valor del plan (Por defecto), o forzar habilitar (ON) o forzar deshabilitar (OFF).
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-auto pr-1">
+                {ALL_MODULES.map(({ key, label }) => (
+                  <div key={key} className="flex items-center justify-between bg-theme-component-hover rounded p-3">
+                    <div className="text-theme-primary text-sm mr-3">{label}</div>
+                    <select
+                      className="px-2 py-1 border rounded bg-theme-component text-theme-primary"
+                      value={moduleSelections[key] || 'default'}
+                      onChange={(e) => setModuleSelections((prev) => ({ ...prev, [key]: e.target.value as 'default' | 'on' | 'off' }))}
+                    >
+                      <option value="default">Por defecto</option>
+                      <option value="on">Forzar ON</option>
+                      <option value="off">Forzar OFF</option>
+                    </select>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  className="px-4 py-2 rounded bg-theme-component hover:bg-theme-component-hover text-theme-secondary"
+                  onClick={() => {
+                    setIsModulesModalOpen(false);
+                    setSelectedUser(null);
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="px-4 py-2 rounded bg-primary-color text-white hover:opacity-90"
+                  onClick={handleSaveOverrides}
+                >
+                  Guardar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </DashboardLayout>
     </ProtectedRoute>
   );

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import SimpleMapComponent from '../../components/maps/SimpleMapComponent';
 import TransportadoraFinder from '../../components/Logistics/TransportadoraFinder';
 
@@ -91,8 +92,9 @@ export default function Logistics() {
   }, []);
 
   return (
-    <DashboardLayout>
-      <div className="flex flex-col space-y-6">
+    <ProtectedRoute moduleKey={'logistic'}>
+      <DashboardLayout>
+        <div className="flex flex-col space-y-6">
         <h1 className="text-3xl font-bold">Logística</h1>
         
         {/* Componentes de mapa y notas */}
@@ -205,7 +207,8 @@ export default function Logistics() {
           </div>
         </div>
 
-      </div>
-    </DashboardLayout>
+        </div>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }

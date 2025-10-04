@@ -2,33 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain, FaUsersCog, FaAd, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
+import type { ModuleKey } from '../../constants/plans';
 import Link from 'next/link';
 import Image from 'next/image';
 
-const menuItems = [
-  { name: 'Agentes', icon: FaComments, path: '/agents' },
-  { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability' },
-  { name: 'Control de Campañas', icon: FaAd, path: '/campaign-control' },
-  { name: 'Calculadora de Precios', icon: FaDollarSign, path: '/calculator' },
-  { name: 'Logística', icon: FaTruck, path: '/logistic' },
-  { name: 'Análisis de Datos', icon: FaBrain, path: '/data-analysis' },
-  { name: 'Manager DB', icon: FaDatabase, path: '/dbmanager' },
-  { name: 'Master Chat', icon: FaRobot, path: '/chat' },
-  { name: 'Administración', icon: FaUsersCog, path: '/admin', adminOnly: true, showForAllAdmins: true },
-  { name: 'Configuración', icon: FaCog, path: '/settings' },
+type MenuItem = { name: string; icon: any; path: string; adminOnly?: boolean; showForAllAdmins?: boolean; moduleKey: ModuleKey };
+
+const menuItems: MenuItem[] = [
+  { name: 'Agentes', icon: FaComments, path: '/agents', moduleKey: 'agents' },
+  { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability', moduleKey: 'profitability' },
+  { name: 'Control de Campañas', icon: FaAd, path: '/campaign-control', moduleKey: 'campaign-control' },
+  { name: 'Calculadora de Precios', icon: FaDollarSign, path: '/calculator', moduleKey: 'calculator' },
+  { name: 'Logística', icon: FaTruck, path: '/logistic', moduleKey: 'logistic' },
+  { name: 'Análisis de Datos', icon: FaBrain, path: '/data-analysis', moduleKey: 'data-analysis' },
+  { name: 'Manager DB', icon: FaDatabase, path: '/dbmanager', moduleKey: 'dbmanager' },
+  { name: 'Master Chat', icon: FaRobot, path: '/chat', moduleKey: 'chat' },
+  { name: 'Administración', icon: FaUsersCog, path: '/admin', adminOnly: true, showForAllAdmins: true, moduleKey: 'admin' },
+  { name: 'Configuración', icon: FaCog, path: '/settings', moduleKey: 'settings' },
 ];
 
 // Elementos que se mostrarán en la barra de navegación móvil
-const mobileMenuItems = [
+type MobileMenuItem = { name: string; icon: any; path: string; moduleKey?: ModuleKey };
+const mobileMenuItems: MobileMenuItem[] = [
   { name: 'Dashboard', icon: () => <Image src="/unlocked.png" alt="Unlocked" width={20} height={20} />, path: '/' },
-  { name: 'Agentes', icon: FaComments, path: '/agents' },
-  { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability' },
-  { name: 'Campañas', icon: FaAd, path: '/campaign-control' },
+  { name: 'Agentes', icon: FaComments, path: '/agents', moduleKey: 'agents' },
+  { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability', moduleKey: 'profitability' },
+  { name: 'Campañas', icon: FaAd, path: '/campaign-control', moduleKey: 'campaign-control' },
 ];
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
-  const { logout, themeConfig, isAdmin } = useAppContext();
+  const { logout, themeConfig, isAdmin, canAccessModule } = useAppContext();
   // Por defecto, el sidebar estará abierto en pantallas grandes
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
@@ -104,6 +108,10 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 if (item.adminOnly && !isAdmin() && !item.showForAllAdmins) {
                   return null;
                 }
+                // Ocultar si el plan del usuario no permite el módulo
+                if (!canAccessModule(item.moduleKey)) {
+                  return null;
+                }
                 
                 return (
                   <Link key={item.path} href={item.path}>
@@ -145,17 +153,22 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       {/* Barra de navegación inferior para móviles */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-theme-component z-50">
         <div className="flex justify-around items-center">
-          {mobileMenuItems.map((item) => (
-            <Link key={item.path} href={item.path}>
-              <div
-                className={`flex items-center justify-center py-3 px-3 ${
-                  router.pathname === item.path ? 'text-primary-color' : 'text-theme-secondary'
-                }`}
-              >
-                <item.icon className="text-xl" />
-              </div>
-            </Link>
-          ))}
+          {mobileMenuItems.map((item) => {
+            if (item.moduleKey && !canAccessModule(item.moduleKey)) {
+              return null;
+            }
+            return (
+              <Link key={item.path} href={item.path}>
+                <div
+                  className={`flex items-center justify-center py-3 px-3 ${
+                    router.pathname === item.path ? 'text-primary-color' : 'text-theme-secondary'
+                  }`}
+                >
+                  <item.icon className="text-xl" />
+                </div>
+              </Link>
+            );
+          })}
           <div
             className="flex items-center justify-center py-3 px-3 text-red-400"
             onClick={() => {

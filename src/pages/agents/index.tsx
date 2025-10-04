@@ -7,10 +7,11 @@ import AgentsList from '../../components/Agents/AgentsList';
 import { useAppContext } from '../../contexts/AppContext';
 import { agentDatabaseService } from '../../services/database/agentService';
 import type { Agent } from '../../types/database';
+import ProtectedRoute from '../../components/auth/ProtectedRoute';
 
 export default function AgentsPage() {
   const router = useRouter();
-  const { authData } = useAppContext();
+  const { authData, hasFeature } = useAppContext();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(false);
   const [showChat, setShowChat] = useState(true);
@@ -33,7 +34,10 @@ export default function AgentsPage() {
     }
   };
 
+  const canCreate = hasFeature('agents.create');
+
   const handleCreateAgent = () => {
+    if (!canCreate) return;
     router.push('/agents/form');
   };
 
@@ -60,25 +64,28 @@ export default function AgentsPage() {
   };
 
   return (
-    <DashboardLayout>
-      <div className='w-full md:w-3/4 mx-auto'>
-        <AgentsHeader 
-          showChat={showChat} 
-          onToggleView={toggleView} 
-          onCreateAgent={handleCreateAgent} 
-        />
-
-        {showChat ? (
-          <AgentInterface />
-        ) : (
-          <AgentsList 
-            agents={agents} 
-            loading={loading} 
-            onEdit={handleEditAgent} 
-            onDelete={handleDeleteAgent} 
+    <ProtectedRoute moduleKey={'agents'}>
+      <DashboardLayout>
+        <div className='w-full md:w-3/4 mx-auto'>
+          <AgentsHeader 
+            showChat={showChat} 
+            onToggleView={toggleView} 
+            onCreateAgent={handleCreateAgent}
+            canCreate={canCreate}
           />
-        )}
-      </div>
-    </DashboardLayout>
+
+          {showChat ? (
+            <AgentInterface />
+          ) : (
+            <AgentsList 
+              agents={agents} 
+              loading={loading} 
+              onEdit={handleEditAgent} 
+              onDelete={handleDeleteAgent} 
+            />
+          )}
+        </div>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }

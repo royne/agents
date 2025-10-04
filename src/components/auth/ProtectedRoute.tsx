@@ -1,20 +1,25 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
+import type { Plan, ModuleKey } from '../../constants/plans';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   adminOnly?: boolean;
   superAdminOnly?: boolean;
+  planRequired?: Plan;
+  moduleKey?: ModuleKey;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
   adminOnly = false,
-  superAdminOnly = false 
+  superAdminOnly = false,
+  planRequired,
+  moduleKey,
 }) => {
   const router = useRouter();
-  const { authData, isAdmin, isSuperAdmin } = useAppContext();
+  const { authData, isAdmin, isSuperAdmin, hasPlan, canAccessModule } = useAppContext();
 
   useEffect(() => {
     // Si no hay datos de autenticación, redirigir al login
@@ -34,7 +39,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       router.push('/');
       return;
     }
-  }, [authData, router, adminOnly, superAdminOnly, isAdmin, isSuperAdmin]);
+
+    // Si se requiere un plan mínimo y no se cumple, redirigir
+    if (planRequired && !hasPlan(planRequired)) {
+      router.push('/');
+      return;
+    }
+
+    // Si se requiere un módulo y el plan no lo permite, redirigir
+    if (moduleKey && !canAccessModule(moduleKey)) {
+      router.push('/');
+      return;
+    }
+  }, [authData, router, adminOnly, superAdminOnly, isAdmin, isSuperAdmin, planRequired, moduleKey, hasPlan, canAccessModule]);
 
   // Si no hay datos de autenticación o estamos verificando permisos, mostrar un indicador de carga
   if (!authData || !authData.isAuthenticated) {

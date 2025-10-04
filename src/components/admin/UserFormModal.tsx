@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaUser, FaBuilding, FaLock, FaUserTag, FaPlus } from 'react-icons/fa';
 import { adminService, UserCreateData, Company as CompanyType } from '../../services/database/adminService';
+import type { Plan } from '../../constants/plans';
 
 
 
@@ -24,6 +25,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'admin' | 'user'>('user');
+  const [plan, setPlan] = useState<Plan>('basic');
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const [newCompanyName, setNewCompanyName] = useState('');
   const [createNewCompany, setCreateNewCompany] = useState(false);
@@ -63,6 +65,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
     setPassword('');
     setConfirmPassword('');
     setRole('user');
+    setPlan('basic');
     setNewCompanyName('');
     setCreateNewCompany(false);
     setError(null);
@@ -99,6 +102,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
         name,
         password,
         role: isSuperAdmin ? role : 'user', // Los admin normales solo pueden crear usuarios normales
+        plan: isSuperAdmin ? plan : (plan === 'premium' ? 'basic' : plan), // Admin no puede asignar premium
       };
       
       // Para superadmins, manejar la creación o selección de compañía
@@ -238,6 +242,22 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
                   <option value="user">Usuario</option>
                   <option value="admin">Administrador</option>
                   {isSuperAdmin && <option value="superadmin">Super Administrador</option>}
+                </select>
+              </div>
+
+              {/* Selección de Plan */}
+              <div className="mb-4">
+                <label className="block text-theme-secondary text-sm font-medium mb-2">
+                  Plan del Usuario
+                </label>
+                <select
+                  value={plan}
+                  onChange={(e) => setPlan(e.target.value as Plan)}
+                  className="w-full px-4 py-2 border rounded-lg bg-theme-primary text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary-color"
+                >
+                  <option value="basic">Basic</option>
+                  <option value="tester">Tester</option>
+                  <option value="premium" disabled={!isSuperAdmin}>Premium {(!isSuperAdmin) ? '(Solo Superadmin)' : ''}</option>
                 </select>
               </div>
               

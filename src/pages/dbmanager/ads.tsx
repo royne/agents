@@ -1,4 +1,5 @@
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import CrudLayout from '../../components/layout/CrudLayout';
 import { useState, useEffect } from 'react';
 import { adDatabaseService } from '../../services/database/adService';
@@ -109,7 +110,8 @@ export default function AdsPage() {
   };
 
   return (
-    <DashboardLayout>
+    <ProtectedRoute moduleKey={'dbmanager'}>
+      <DashboardLayout>
       <div className="max-w-6xl mx-auto">
         <PageHeader
           title="Anuncios"
@@ -258,6 +260,7 @@ export default function AdsPage() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }

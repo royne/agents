@@ -1,4 +1,5 @@
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import { FaAlgolia, FaDatabase, FaMegaport, FaStream } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
@@ -28,7 +29,8 @@ export default function DBManager() {
   const router = useRouter();
 
   return (
-    <DashboardLayout>
+    <ProtectedRoute moduleKey={'dbmanager'}>
+      <DashboardLayout>
       <div>
         <h1 className="text-2xl mb-8">Gestión de Base de Datos</h1>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -49,6 +51,7 @@ export default function DBManager() {
           ))}
         </div>
       </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }

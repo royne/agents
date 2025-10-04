@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase';
+import type { Plan, ModuleKey } from '../../constants/plans';
 
 export interface Company {
   id?: string;
@@ -14,6 +15,7 @@ export interface Profile {
   role: 'superadmin' | 'admin' | 'user';
   email?: string;
   name?: string;
+  plan?: Plan;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -25,6 +27,7 @@ export interface UserCreateData {
   role: 'superadmin' | 'admin' | 'user';
   company_id?: string;
   company_name?: string;
+  plan?: Plan;
 }
 
 export interface UserWithProfile {
@@ -34,6 +37,8 @@ export interface UserWithProfile {
   role: string;
   company_id: string;
   company_name?: string;
+  plan?: Plan;
+  modules_override?: Partial<Record<ModuleKey, boolean>>;
   created_at: string;
 }
 
@@ -51,6 +56,35 @@ export const adminService = {
     }
 
     return data || [];
+  },
+
+  async updateUserModulesOverride(userId: string, overrides: Partial<Record<ModuleKey, boolean>> | null): Promise<boolean> {
+    // Si overrides es null, limpiar el campo
+    const updatePayload = overrides === null ? { modules_override: null } : { modules_override: overrides };
+    const { error } = await supabase
+      .from('profiles')
+      .update(updatePayload)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error al actualizar modules_override del usuario:', error);
+      return false;
+    }
+    return true;
+  },
+
+  async updateUserPlan(userId: string, plan: Plan): Promise<boolean> {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ plan })
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error al actualizar plan de usuario:', error);
+      return false;
+    }
+
+    return true;
   },
 
   async createCompany(name: string): Promise<Company | null> {
@@ -127,6 +161,8 @@ export const adminService = {
           role: profile.role || 'user',
           company_id: profile.company_id || '',
           company_name: company?.name || 'Sin empresa',
+          plan: (profile as any)?.plan || 'basic',
+          modules_override: (profile as any)?.modules_override || undefined,
           created_at: profile.created_at || new Date().toISOString()
         };
       });
