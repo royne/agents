@@ -1,6 +1,6 @@
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Link from 'next/link';
-import { FaBrain, FaTruckMoving, FaFileExcel } from 'react-icons/fa';
+import { FaBrain, FaTruckMoving, FaFileExcel, FaChartBar } from 'react-icons/fa';
 
 export default function DataAnalysis() {
   return (
@@ -21,6 +21,20 @@ export default function DataAnalysis() {
                 </h2>
                 <p className="text-theme-secondary text-center">
                   Analiza datos de archivos Excel por órdenes y productos
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/data-analysis/daily-orders">
+            <div className="bg-theme-component p-6 rounded-lg shadow-md cursor-pointer hover:bg-theme-component-hover transform hover:-translate-y-0.5 transition-all duration-200 relative">
+              <div className="flex flex-col gap-4 items-center">
+                <FaChartBar className="w-8 h-8 text-primary-color" />
+                <h2 className="text-xl font-bold text-theme-primary">
+                  Análisis Diario de Órdenes
+                </h2>
+                <p className="text-theme-secondary text-center">
+                  Analiza rendimiento por campaña (UTM term) y anuncio (UTM content)
                 </p>
               </div>
             </div>
