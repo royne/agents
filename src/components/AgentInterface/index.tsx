@@ -11,9 +11,12 @@ import { useAppContext } from '../../contexts/AppContext';
 import { agentDatabaseService } from '../../services/database/agentService';
 import type { Agent } from '../../types/database';
 import { FaExchangeAlt } from 'react-icons/fa';
+import { useApiKey } from '../../hooks/useApiKey';
+import { ApiKeyModal } from '../ApiKeyModal';
 
 export default function AgentInterface() {
   const { apiKey, authData } = useAppContext();
+  const { isApiKeyModalOpen, modalProvider, openApiKeyModal, closeApiKeyModal, saveApiKey } = useApiKey();
   const [customAgents, setCustomAgents] = useState<Agent[]>([]);
   const [defaultAgents, setDefaultAgents] = useState<Agent[]>([]);
   const [showCustomAgents, setShowCustomAgents] = useState(false);
@@ -30,6 +33,14 @@ export default function AgentInterface() {
     setSelectedImage,
     handleSubmit
   } = useChatLogic(apiKey || '');
+
+  const handleSubmitGuard = (e?: React.FormEvent) => {
+    if (!apiKey) {
+      openApiKeyModal('groq');
+      return;
+    }
+    handleSubmit(e);
+  };
   
   useEffect(() => {
     const fetchAgents = async () => {
@@ -127,7 +138,13 @@ export default function AgentInterface() {
         selectedImage={selectedImage}
         onInputChange={setInputText}
         onImageSelect={setSelectedImage}
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmitGuard}
+      />
+      <ApiKeyModal
+        isOpen={isApiKeyModalOpen}
+        provider={(modalProvider as 'groq' | 'openai') || 'groq'}
+        onSave={(key) => saveApiKey(key)}
+        onClose={closeApiKeyModal}
       />
     </div>
   );

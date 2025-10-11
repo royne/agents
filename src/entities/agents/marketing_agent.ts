@@ -37,7 +37,7 @@ export const marketingAgent: Agent = {
   },
   basePayload: {
     ...basePayload,
-    model: 'deepseek-r1-distill-llama-70b',
+    model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'llama-3.3-70b-versatile',
     temperature: 0.5,
     max_tokens: 1024,
     stream: false,

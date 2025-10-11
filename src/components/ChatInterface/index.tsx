@@ -7,9 +7,12 @@ import { AGENTS } from './constants';
 import { useChatLogic } from './hooks/useChatLogic';
 import { chatHistoryService } from '../../services/storage/chatHistory';
 import { useAppContext } from '../../contexts/AppContext';
+import { useApiKey } from '../../hooks/useApiKey';
+import { ApiKeyModal } from '../ApiKeyModal';
 
 export default function ChatInterface() {
   const { apiKey } = useAppContext();
+  const { isApiKeyModalOpen, modalProvider, openApiKeyModal, closeApiKeyModal, saveApiKey, saveOpenaiApiKey } = useApiKey();
   const {
     messages,
     selectedAgentId,
@@ -21,6 +24,14 @@ export default function ChatInterface() {
     setSelectedImage,
     handleSubmit
   } = useChatLogic(apiKey || '');
+
+  const handleSubmitGuard = (e?: React.FormEvent) => {
+    if (!apiKey) {
+      openApiKeyModal('groq');
+      return;
+    }
+    handleSubmit(e);
+  };
 
   const handleSaveChat = () => {
     if (messages.length > 0) {
@@ -52,7 +63,17 @@ export default function ChatInterface() {
         selectedImage={selectedImage}
         onInputChange={setInputText}
         onImageSelect={setSelectedImage}
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmitGuard}
+      />
+
+      <ApiKeyModal
+        isOpen={isApiKeyModalOpen}
+        provider={(modalProvider as 'groq' | 'openai') || 'groq'}
+        onSave={(key) => {
+          if (modalProvider === 'openai') return saveOpenaiApiKey(key);
+          return saveApiKey(key);
+        }}
+        onClose={closeApiKeyModal}
       />
     </div>
   );

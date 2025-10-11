@@ -11,6 +11,8 @@ import { basePayload } from '../../../entities/agents/agent';
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
   const apiKey = req.headers['x-api-key'];
+  const openaiKeyHeader = req.headers['x-openai-key'];
+  const openAIApiKey = typeof openaiKeyHeader === 'string' ? openaiKeyHeader : Array.isArray(openaiKeyHeader) ? openaiKeyHeader[0] : undefined;
   const { company_id } = req.body;
 
   if (!apiKey || typeof apiKey !== 'string') {
@@ -48,11 +50,10 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         },
         basePayload: {
           ...basePayload,
-          model: customAgent.model || 'deepseek-r1-distill-llama-70b',
+          model: customAgent.model || process.env.NEXT_PUBLIC_GROQ_MODEL || 'llama-3.3-70b-versatile',
           temperature: 0.5,
           max_tokens: 1024,
-          stream: false,
-          reasoning_format: "hidden"
+          stream: false
         }
       };
     } catch (error) {
@@ -68,7 +69,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   // Enriquecer con RAG solo si es el agente de scripts predefinido
   if (id === 'script' && isDefaultAgent) {
     try {
-      const enrichedMessages = await enrichWithRAG(safeMessages);
+      console.log('[api/agents/script] enrichWithRAG', { hasOpenAIKey: !!openAIApiKey });
+      const enrichedMessages = await enrichWithRAG(safeMessages, openAIApiKey);
       safeMessages = enrichedMessages;
     } catch (error) {
       console.error('Error al enriquecer con RAG:', error);
@@ -76,21 +78,52 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     }
   }
 
-
   const payload = {
     ...agent.basePayload,
     messages: safeMessages,
-    stream: false as const,
-    reasoning_format: "hidden" as const
+    stream: false as const
   };
 
   try {
-    const completion = await groq.chat.completions.create(payload);
-    res.status(200).json({
-      response: completion.choices[0].message.content
+    console.log(`[api/agents/${id}] solicitando a Groq`, {
+      model: (payload as any).model,
+      messages: payload.messages?.length || 0,
+      hasApiKey: !!apiKey,
+      company_id
     });
-  } catch (error) {
-    console.error('Groq API Error:', error);
-    res.status(500).json({ error: 'Error procesando la solicitud' });
+
+    let completion = await groq.chat.completions.create(payload);
+
+    // Si no hay contenido, intentar fallback de modelo
+    let content = completion?.choices?.[0]?.message?.content;
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+      console.warn(`[api/agents/${id}] Respuesta vacía, intentando fallback de modelo`);
+      const fallbackModel = process.env.NEXT_PUBLIC_GROQ_FALLBACK_MODEL || 'llama-3.3-70b-versatile';
+      const fallbackPayload = { ...payload, model: fallbackModel } as any;
+      console.log(`[api/agents/${id}] Fallback model: ${fallbackModel}`);
+      completion = await groq.chat.completions.create(fallbackPayload);
+      content = completion?.choices?.[0]?.message?.content || content;
+    }
+
+    res.status(200).json({ response: content });
+  } catch (error: any) {
+    const errMsg = (error?.message || 'Unknown error').toString();
+    console.error(`[api/agents/${id}] Groq API Error:`, errMsg);
+
+    // Intento de fallback si parece error de modelo no soportado
+    try {
+      if (/model|unsupported|not found|Invalid model/i.test(errMsg)) {
+        const fallbackModel = process.env.NEXT_PUBLIC_GROQ_FALLBACK_MODEL || 'llama-3.3-70b-versatile';
+        const fallbackPayload = { ...payload, model: fallbackModel } as any;
+        console.log(`[api/agents/${id}] Reintentando con fallback model: ${fallbackModel}`);
+        const completion = await groq.chat.completions.create(fallbackPayload);
+        const content = completion?.choices?.[0]?.message?.content || '';
+        return res.status(200).json({ response: content });
+      }
+    } catch (fallbackErr: any) {
+      console.error(`[api/agents/${id}] Fallback error:`, fallbackErr?.message || fallbackErr);
+    }
+
+    res.status(500).json({ error: 'Error procesando la solicitud', detail: errMsg });
   }
 };

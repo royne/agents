@@ -36,8 +36,16 @@ export const useChatLogic = (apiKey: string) => {
       // Estimar tokens antes de enviar
       const estimatedTokens = chatHistoryService.estimateMessagesTokens(apiMessages);
       const willReduceContext = estimatedTokens > 8000; // Mismo valor que MAX_CONTEXT_TOKENS
-      
-      const response = await fetch(`/api/agents/${selectedAgentId}`, {
+      const endpoint = `/api/agents/${selectedAgentId}`;
+      console.log('[chat] Enviando mensaje', {
+        selectedAgentId,
+        endpoint,
+        hasApiKey: !!apiKey,
+        messagesCount: apiMessages.length,
+        estimatedTokens
+      });
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -50,7 +58,11 @@ export const useChatLogic = (apiKey: string) => {
         })
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
+      console.log('[chat] Respuesta del servidor', { status: response.status, ok: response.ok, data });
+      if (!response.ok) {
+        throw new Error((data && (data.error || data.message)) || `HTTP ${response.status}`);
+      }
 
       // Si se detectó que se reducirá el contexto, mostrar un mensaje al usuario
       if (willReduceContext && !contextReduced) {
@@ -66,9 +78,13 @@ export const useChatLogic = (apiKey: string) => {
         setContextReduced(true);
       }
 
+      const aiText = typeof data.response === 'string' && data.response.trim().length > 0
+        ? data.response
+        : 'No obtuve una respuesta del modelo. Intenta nuevamente o cambia de modelo en la configuración.';
+
       const aiMessage: Message = {
         id: Date.now().toString(),
-        text: data.response,
+        text: aiText,
         isUser: false,
         timestamp: new Date()
       };

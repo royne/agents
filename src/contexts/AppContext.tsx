@@ -21,8 +21,8 @@ type AppContextType = {
     modulesOverride?: Partial<Record<ModuleKey, boolean>>;
   } | null;
   themeConfig: ThemeConfig;
-  setApiKey: (key: string) => void;
-  setOpenaiApiKey: (key: string) => void;
+  setApiKey: (key: string | null) => void;
+  setOpenaiApiKey: (key: string | null) => void;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAdmin: () => boolean;
@@ -59,7 +59,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (session) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('company_id, role, name, plan, modules_override')
+          .select('company_id, role, name, plan, modules_override, groq_api_key, openai_api_key')
           .eq('user_id', session.user.id)
           .single();
 
@@ -74,6 +74,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         
         localStorage.setItem('auth_data', JSON.stringify(authData));
         setAuthData(authData);
+        // Cargar API keys del perfil en el contexto
+        setApiKey((profile as any)?.groq_api_key || null);
+        setOpenaiApiKey((profile as any)?.openai_api_key || null);
       }
     };
     
@@ -81,19 +84,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Cargar la API key de Groq
-    const storedApiKey = localStorage.getItem('groq_api_key');
-    if (storedApiKey) {
-      setApiKey(storedApiKey);
-    }
-    
-    // Cargar la API key de OpenAI
-    const storedOpenaiApiKey = localStorage.getItem('openai_api_key');
-    if (storedOpenaiApiKey) {
-      setOpenaiApiKey(storedOpenaiApiKey);
-    }
-    
-    // Cargar la configuración del tema desde localStorage
+    // Cargar la configuración del tema desde localStorage (NO cargar API keys desde localStorage)
     const storedTheme = localStorage.getItem('theme_config');
     if (storedTheme) {
       try {
@@ -143,7 +134,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (data?.user) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('company_id, role, name, plan, modules_override')
+        .select('company_id, role, name, plan, modules_override, groq_api_key, openai_api_key')
         .eq('user_id', data.user.id)
         .single();
 
@@ -158,6 +149,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       
       localStorage.setItem('auth_data', JSON.stringify(authData));
       setAuthData(authData);
+      // Cargar API keys del perfil en el contexto
+      setApiKey((profile as any)?.groq_api_key || null);
+      setOpenaiApiKey((profile as any)?.openai_api_key || null);
       return true;
     }
     return false;
@@ -167,6 +161,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     localStorage.removeItem('auth_data');
     setAuthData(null);
+    // Limpiar API keys en memoria al cerrar sesión
+    setApiKey(null);
+    setOpenaiApiKey(null);
     router.push('/auth/login');
   };
 

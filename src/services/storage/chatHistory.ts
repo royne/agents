@@ -73,7 +73,12 @@ export const chatHistoryService = {
    * Esta es una estimación aproximada basada en que un token es aproximadamente 4 caracteres en inglés
    * Para español, usamos un factor un poco menor (3.5 caracteres por token)
    */
-  estimateTokens(text: string): number {
+  estimateTokens(text: string | undefined | null): number {
+    if (typeof text !== 'string') {
+      // Para depuración: si llega undefined/null, considerar 0 tokens y registrar
+      // console.debug('[chatHistory] estimateTokens: texto no definido, asumiendo 0 tokens');
+      return 0;
+    }
     return Math.ceil(text.length / 3.5);
   },
 
@@ -83,10 +88,12 @@ export const chatHistoryService = {
   estimateMessagesTokens(messages: ApiMessage[]): number {
     // Cada mensaje tiene un overhead aproximado de 4 tokens por la metadata (role, etc)
     const overheadPerMessage = 4;
-    
-    return messages.reduce((total, message) => {
-      return total + this.estimateTokens(message.content) + overheadPerMessage;
+    const total = messages.reduce((sum, message) => {
+      const content = typeof message.content === 'string' ? message.content : '';
+      return sum + this.estimateTokens(content) + overheadPerMessage;
     }, 0);
+    // console.debug(`[chatHistory] estimateMessagesTokens: mensajes=${messages.length}, tokens=${total}`);
+    return total;
   },
 
   /**

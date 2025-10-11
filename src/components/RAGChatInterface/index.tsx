@@ -7,9 +7,11 @@ import { chatHistoryService } from '../../services/storage/chatHistory';
 import { useAppContext } from '../../contexts/AppContext';
 import { chatExportService } from '../../services/export/chatExport';
 import { Message } from '../ChatInterface/types';
+import { useApiKey } from '../../hooks/useApiKey';
+import { ApiKeyModal } from '../ApiKeyModal';
 
 // Hook personalizado para el chat RAG
-const useRAGChatLogic = (apiKey: string) => {
+const useRAGChatLogic = (groqApiKey: string, openaiApiKey?: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -42,11 +44,21 @@ const useRAGChatLogic = (apiKey: string) => {
       const estimatedTokens = chatHistoryService.estimateMessagesTokens(apiMessages);
       const willReduceContext = estimatedTokens > 8000; // Mismo valor que MAX_CONTEXT_TOKENS
       
-      const response = await fetch(`/api/agents/script`, {
+      const endpoint = `/api/agents/script`;
+      console.log('[rag] Enviando mensaje', {
+        endpoint,
+        hasGroqKey: !!groqApiKey,
+        hasOpenAIKey: !!openaiApiKey,
+        messagesCount: apiMessages.length,
+        estimatedTokens
+      });
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'X-Api-Key': apiKey
+          'X-Api-Key': groqApiKey,
+          'X-OpenAI-Key': openaiApiKey || ''
         },
         body: JSON.stringify({
           messages: apiMessages,
@@ -54,7 +66,11 @@ const useRAGChatLogic = (apiKey: string) => {
         })
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({} as any));
+      console.log('[rag] Respuesta del servidor', { status: response.status, ok: response.ok, data });
+      if (!response.ok) {
+        throw new Error((data && (data.error || data.message || data.detail)) || `HTTP ${response.status}`);
+      }
 
       // Si se detectó que se reducirá el contexto, mostrar un mensaje al usuario
       if (willReduceContext && !contextReduced) {
@@ -70,9 +86,13 @@ const useRAGChatLogic = (apiKey: string) => {
         setContextReduced(true);
       }
 
+      const aiText = typeof data.response === 'string' && data.response.trim().length > 0
+        ? data.response
+        : 'No obtuve una respuesta. Verifica que tu OpenAI API Key sea válida y que existan embeddings. Intenta nuevamente.';
+
       const aiMessage: Message = {
         id: Date.now().toString(),
-        text: data.response,
+        text: aiText,
         isUser: false,
         timestamp: new Date()
       };
@@ -109,7 +129,8 @@ const useRAGChatLogic = (apiKey: string) => {
 };
 
 export default function RAGChatInterface() {
-  const { apiKey } = useAppContext();
+  const { apiKey, openaiApiKey } = useAppContext();
+  const { isApiKeyModalOpen, modalProvider, openApiKeyModal, closeApiKeyModal, saveApiKey, saveOpenaiApiKey } = useApiKey();
   const {
     messages,
     inputText,
@@ -118,7 +139,13 @@ export default function RAGChatInterface() {
     setInputText,
     setSelectedImage,
     handleSubmit
-  } = useRAGChatLogic(apiKey || '');
+  } = useRAGChatLogic(apiKey || '', openaiApiKey || undefined);
+
+  const handleSubmitGuard = (e?: React.FormEvent) => {
+    if (!apiKey) return openApiKeyModal('groq');
+    if (!openaiApiKey) return openApiKeyModal('openai');
+    handleSubmit(e);
+  };
 
   const handleSaveChat = () => {
     if (messages.length > 0) {
@@ -194,7 +221,17 @@ export default function RAGChatInterface() {
         selectedImage={selectedImage}
         onInputChange={setInputText}
         onImageSelect={setSelectedImage}
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmitGuard}
+      />
+
+      <ApiKeyModal
+        isOpen={isApiKeyModalOpen}
+        provider={(modalProvider as 'groq' | 'openai') || 'groq'}
+        onSave={(key) => {
+          if (modalProvider === 'openai') return saveOpenaiApiKey(key);
+          return saveApiKey(key);
+        }}
+        onClose={closeApiKeyModal}
       />
     </div>
   );

@@ -2,10 +2,12 @@ import { useState } from 'react';
 
 interface ApiKeyModalProps {
   isOpen: boolean;
+  provider: 'groq' | 'openai';
   onSave: (apiKey: string) => void;
+  onClose?: () => void;
 }
 
-export const ApiKeyModal = ({ isOpen, onSave }: ApiKeyModalProps) => {
+export const ApiKeyModal = ({ isOpen, provider, onSave, onClose }: ApiKeyModalProps) => {
   const [apiKey, setApiKey] = useState('');
 
   if (!isOpen) return null;
@@ -14,17 +16,25 @@ export const ApiKeyModal = ({ isOpen, onSave }: ApiKeyModalProps) => {
     e.preventDefault();
     if (apiKey.trim()) {
       onSave(apiKey.trim());
+      setApiKey('');
     }
   };
+
+  const title = provider === 'groq' ? 'Ingresa tu API Key de Groq' : 'Ingresa tu API Key de OpenAI';
+  const description = provider === 'groq'
+    ? 'Para usar el chat, necesitas tu API Key de Groq. La clave se guardará asociada a tu perfil (tabla profiles) y se usará solo para tus solicitudes.'
+    : 'Para usar RAG, necesitas tu API Key de OpenAI (embeddings). La clave se guardará asociada a tu perfil (tabla profiles) y se usará solo para tus solicitudes.';
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-theme-component p-6 rounded-lg shadow-xl max-w-md w-full">
-        <h2 className="text-xl font-bold mb-4 text-theme-primary">Ingresa tu API Key de Groq</h2>
-        <p className="text-theme-secondary mb-4">
-          Para usar esta aplicación, necesitas proporcionar tu API Key de Groq. 
-          La clave se guardará en tu navegador y solo será usada para hacer peticiones a la API de Groq.
-        </p>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xl font-bold text-theme-primary">{title}</h2>
+          {onClose && (
+            <button onClick={onClose} className="text-theme-secondary hover:text-theme-primary">✕</button>
+          )}
+        </div>
+        <p className="text-theme-secondary mb-4">{description}</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <input

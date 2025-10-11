@@ -3,16 +3,17 @@ import { supabase } from '../../lib/supabase';
 import { ScriptEmbedding } from '../../types/embeddings';
 import { hybridChunkText } from './hibridChunker';
 
-// Asegurarse de que la clave de API esté disponible
-const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-if (!apiKey) {
-  console.error('Error: OPENAI_API_KEY no está definida en las variables de entorno');
+// Devuelve una instancia de embeddings por petición usando la API key proporcionada o la del entorno
+function getEmbeddings(openAIApiKey?: string) {
+  const key = openAIApiKey || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+  if (!key) {
+    throw new Error('OPENAI_API_KEY is missing');
+  }
+  return new OpenAIEmbeddings({
+    openAIApiKey: key,
+    modelName: 'text-embedding-3-small'
+  });
 }
-
-const embeddings = new OpenAIEmbeddings({
-  openAIApiKey: apiKey,
-  modelName: 'text-embedding-3-small'
-});
 
 export const embeddingService = {
   /**
@@ -31,7 +32,7 @@ export const embeddingService = {
    * @param metadata Metadatos adicionales para guardar con los embeddings
    * @returns Array de IDs de los embeddings creados
    */
-  async createEmbedding(content: string, metadata: Record<string, any> = {}): Promise<string> {
+  async createEmbedding(content: string, metadata: Record<string, any> = {}, openAIApiKey?: string): Promise<string> {
     try {
       // Extraer título si existe en los metadatos o generar uno a partir del contenido
       const title = metadata.title || this.generateTitle(content);
@@ -54,6 +55,7 @@ export const embeddingService = {
       };
       
       // Procesar cada fragmento
+      const client = getEmbeddings(openAIApiKey);
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
         const chunkMetadata = {
@@ -63,7 +65,7 @@ export const embeddingService = {
         };
         
         // Generar embedding para el fragmento
-        const embeddingVector = await embeddings.embedQuery(chunk);
+        const embeddingVector = await client.embedQuery(chunk);
         
         // Guardar en Supabase
         const { data, error } = await supabase
@@ -95,7 +97,7 @@ export const embeddingService = {
    * @param limit Número máximo de resultados a devolver
    * @returns Array de scripts similares con su contenido y similitud
    */
-  async searchSimilarScripts(query: string, limit: number = 5): Promise<ScriptEmbedding[]> {
+  async searchSimilarScripts(query: string, limit: number = 5, openAIApiKey?: string): Promise<ScriptEmbedding[]> {
     try {
       // Verificar si hay embeddings en la base de datos
       const { count, error: countError } = await supabase
@@ -112,7 +114,8 @@ export const embeddingService = {
       }
       
       // Generar embedding para la consulta
-      const queryEmbedding = await embeddings.embedQuery(query);
+      const client = getEmbeddings(openAIApiKey);
+      const queryEmbedding = await client.embedQuery(query);
       
       // Buscar scripts similares usando la función RPC de Supabase
       const { data, error } = await supabase

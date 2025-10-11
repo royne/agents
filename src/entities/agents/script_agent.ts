@@ -2,6 +2,7 @@
 import { basePayload } from './agent';
 import type { Agent, Message } from '../../types/groq';
 import { embeddingService } from '../../services/embeddings/embeddingService';
+import { chatHistoryService } from '../../services/storage/chatHistory';
 
 const AGENT_PROMPT = `
   # Description
@@ -33,11 +34,10 @@ export const scriptAgent: Agent = {
   },
   basePayload: {
     ...basePayload,
-    model: 'deepseek-r1-distill-llama-70b',
+    model: process.env.NEXT_PUBLIC_GROQ_MODEL || 'llama-3.3-70b-versatile',
     temperature: 0.5,
     max_tokens: 1024,
-    stream: false,
-    reasoning_format: "hidden"
+    stream: false
   }
 };
 
@@ -46,7 +46,7 @@ export const scriptAgent: Agent = {
  * @param messages Lista de mensajes de la conversación
  * @returns Lista de mensajes enriquecida con contexto relevante
  */
-export async function enrichWithRAG(messages: Message[]): Promise<Message[]> {
+export async function enrichWithRAG(messages: Message[], openAIApiKey?: string): Promise<Message[]> {
   try {
     // Solo procesamos el último mensaje del usuario
     const lastUserMessageIndex = messages.findLastIndex(msg => msg.role === 'user');
@@ -60,7 +60,7 @@ export async function enrichWithRAG(messages: Message[]): Promise<Message[]> {
 
     
     // Buscar scripts similares
-    const similarScripts = await embeddingService.searchSimilarScripts(userQuery);
+    const similarScripts = await embeddingService.searchSimilarScripts(userQuery, 5, openAIApiKey);
     
     if (similarScripts.length === 0) {
 
@@ -92,6 +92,17 @@ Por favor, utiliza estos ejemplos como referencia para generar una respuesta que
       content: context
     });
     
+    // Intentar reducir nuevamente el contexto tras insertar el bloque RAG
+    try {
+      const systemMsg = messages[0];
+      if (systemMsg && systemMsg.role === 'system') {
+        const reduced = chatHistoryService.reduceContextIfNeeded(enrichedMessages as any, systemMsg as any);
+        return reduced as any;
+      }
+    } catch (e) {
+      console.warn('[RAG] No se pudo reducir el contexto post-enriquecimiento:', e);
+    }
+
     return enrichedMessages;
   } catch (error) {
     console.error('Error al enriquecer mensajes con RAG:', error);

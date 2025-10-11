@@ -10,7 +10,7 @@ export interface BasePayload {
   temperature: number;
   max_tokens: number;
   stream: boolean;
-  reasoning_format: 'hidden';
+  reasoning_format?: 'hidden';
 }
 
 export interface Agent {
