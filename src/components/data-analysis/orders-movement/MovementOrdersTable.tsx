@@ -8,6 +8,18 @@ interface MovementOrdersTableProps {
 }
 
 const MovementOrdersTable: React.FC<MovementOrdersTableProps> = ({ orders, onOrderSelect }) => {
+  const badgeClass = (severity?: 'normal' | 'warn' | 'danger' | 'none') => {
+    switch (severity) {
+      case 'danger':
+        return 'bg-red-900/30 border border-red-600 text-red-300';
+      case 'warn':
+        return 'bg-yellow-900/30 border border-yellow-600 text-yellow-300';
+      case 'normal':
+        return 'bg-green-900/30 border border-green-600 text-green-300';
+      default:
+        return 'bg-slate-800/40 border border-slate-600 text-slate-300';
+    }
+  };
   return (
     <div className="bg-theme-component p-6 rounded-lg shadow-md mt-6">
       <h2 className="text-xl font-semibold mb-4 flex items-center">
@@ -23,6 +35,7 @@ const MovementOrdersTable: React.FC<MovementOrdersTableProps> = ({ orders, onOrd
               <th className="px-4 py-3 text-left text-sm font-medium text-theme-secondary">Ciudad Destino</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-theme-secondary">Departamento</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-theme-secondary">Último Movimiento</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-theme-secondary">Desde último mov.</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-theme-secondary">Cliente</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-theme-secondary">Transportadora</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-theme-secondary">Valor</th>
@@ -45,6 +58,14 @@ const MovementOrdersTable: React.FC<MovementOrdersTableProps> = ({ orders, onOrd
                   <td className="px-4 py-3 text-sm text-theme-primary">{String(order["CIUDAD DESTINO"]) || 'N/A'}</td>
                   <td className="px-4 py-3 text-sm text-theme-primary">{order["DEPARTAMENTO DESTINO"] || 'N/A'}</td>
                   <td className="px-4 py-3 text-sm text-theme-primary">{order["ÚLTIMO MOVIMIENTO"] || order["ULTIMO MOVIMIENTO"] || 'N/A'}</td>
+                  <td className="px-4 py-3 text-sm text-theme-primary">
+                    <span
+                      title={order.lastMovementAt ? new Date(order.lastMovementAt).toLocaleString('es-CO') : 'Sin último movimiento'}
+                      className={`inline-block px-2 py-1 rounded-full text-xs ${badgeClass(order.ageSeverity)}`}
+                    >
+                      {order.ageLabel || 'N/A'}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 text-sm text-theme-primary">{order["NOMBRE CLIENTE"] || 'N/A'}</td>
                   <td className="px-4 py-3 text-sm text-theme-primary">{order["TRANSPORTADORA"] || 'N/A'}</td>
                   <td className="px-4 py-3 text-sm text-theme-primary">${orderValue.toLocaleString('es-CO')}</td>

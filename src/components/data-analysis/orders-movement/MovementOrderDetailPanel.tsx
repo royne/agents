@@ -113,6 +113,22 @@ const MovementOrderDetailPanel: React.FC<MovementOrderDetailPanelProps> = ({
               <p className="text-sm font-medium">{order["HORA DE ÚLTIMO MOVIMIENTO"] || order["HORA DE ULTIMO MOVIMIENTO"] || 'N/A'}</p>
             </div>
             <div>
+              <p className="text-xs text-theme-tertiary">Tiempo transcurrido desde último movimiento</p>
+              <div>
+                <span
+                  title={order.lastMovementAt ? new Date(order.lastMovementAt).toLocaleString('es-CO') : 'Sin último movimiento'}
+                  className={`inline-block px-2 py-1 rounded-full text-xs ${
+                    order.ageSeverity === 'danger' ? 'bg-red-900/30 border border-red-600 text-red-300' :
+                    order.ageSeverity === 'warn' ? 'bg-yellow-900/30 border border-yellow-600 text-yellow-300' :
+                    order.ageSeverity === 'normal' ? 'bg-green-900/30 border border-green-600 text-green-300' :
+                    'bg-slate-800/40 border border-slate-600 text-slate-300'
+                  }`}
+                >
+                  {order.ageLabel || 'N/A'}
+                </span>
+              </div>
+            </div>
+            <div>
               <p className="text-xs text-theme-tertiary">Fecha Generación de Guía</p>
               <p className="text-sm font-medium">{order["FECHA GENERACION DE GUIA"] || 'N/A'}</p>
             </div>

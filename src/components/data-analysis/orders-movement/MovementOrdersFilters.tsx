@@ -1,17 +1,22 @@
 import React from 'react';
 import { FaFilter, FaBroom } from 'react-icons/fa';
+import { MovementAgeBucket, MovementAgeSeverity } from '../../../services/data-analysis/OrdersMovementService';
 
 export interface OrdersFiltersValue {
   status: string;
   carrier: string;
   region: string;
   query: string;
+  age?: '' | MovementAgeBucket;
+  severity?: '' | MovementAgeSeverity;
 }
 
 interface MovementOrdersFiltersProps {
   availableStatuses: string[];
   availableCarriers: string[];
   availableRegions: string[];
+  availableAgeBuckets: MovementAgeBucket[];
+  availableSeverities: MovementAgeSeverity[];
   value: OrdersFiltersValue;
   onChange: (value: OrdersFiltersValue) => void;
   totalCount: number;
@@ -20,12 +25,16 @@ interface MovementOrdersFiltersProps {
   statusesCount: Record<string, number>;
   carriersCount: Record<string, number>;
   regionsCount: Record<string, number>;
+  ageCounts: Record<MovementAgeBucket, number>;
+  severityCounts: Record<MovementAgeSeverity, number>;
 }
 
 const MovementOrdersFilters: React.FC<MovementOrdersFiltersProps> = ({
   availableStatuses,
   availableCarriers,
   availableRegions,
+  availableAgeBuckets,
+  availableSeverities,
   value,
   onChange,
   totalCount,
@@ -34,9 +43,31 @@ const MovementOrdersFilters: React.FC<MovementOrdersFiltersProps> = ({
   statusesCount,
   carriersCount,
   regionsCount,
+  ageCounts,
+  severityCounts,
 }) => {
   const handleChange = (patch: Partial<OrdersFiltersValue>) => {
     onChange({ ...value, ...patch });
+  };
+
+  const bucketLabel = (b: MovementAgeBucket) => {
+    switch (b) {
+      case '<12h': return '<12 h';
+      case '12-24h': return '12–24 h';
+      case '24-48h': return '24–48 h';
+      case '48-72h': return '48–72 h';
+      case '>72h': return '> 72 h';
+      default: return 'Sin último mov.';
+    }
+  };
+
+  const severityLabel = (s: MovementAgeSeverity) => {
+    switch (s) {
+      case 'danger': return 'Rojo (Alarma)';
+      case 'warn': return 'Amarillo (Alerta)';
+      case 'normal': return 'Verde (OK)';
+      default: return 'Gris (Sin último mov.)';
+    }
   };
 
   return (
@@ -72,7 +103,7 @@ const MovementOrdersFilters: React.FC<MovementOrdersFiltersProps> = ({
           <div className="font-semibold">{availableRegions.length}</div>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         <div>
           <label className="block text-sm text-theme-secondary mb-1">Estado</label>
           <select
@@ -113,6 +144,32 @@ const MovementOrdersFilters: React.FC<MovementOrdersFiltersProps> = ({
           </select>
         </div>
         <div>
+          <label className="block text-sm text-theme-secondary mb-1">Antigüedad</label>
+          <select
+            className="w-full bg-theme-component border border-theme-border rounded px-3 py-2"
+            value={value.age || ''}
+            onChange={(e) => handleChange({ age: (e.target.value || '') as '' | MovementAgeBucket })}
+          >
+            <option value="">Todas</option>
+            {availableAgeBuckets.map((b) => (
+              <option key={b} value={b}>{bucketLabel(b)}{ageCounts[b] !== undefined ? ` (${ageCounts[b]})` : ''}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm text-theme-secondary mb-1">Semáforo</label>
+          <select
+            className="w-full bg-theme-component border border-theme-border rounded px-3 py-2"
+            value={value.severity || ''}
+            onChange={(e) => handleChange({ severity: (e.target.value || '') as '' | MovementAgeSeverity })}
+          >
+            <option value="">Todos</option>
+            {availableSeverities.map((s) => (
+              <option key={s} value={s}>{severityLabel(s)}{typeof severityCounts[s] === 'number' ? ` (${severityCounts[s]})` : ''}</option>
+            ))}
+          </select>
+        </div>
+        <div>
           <label className="block text-sm text-theme-secondary mb-1">Buscar (ID o Cliente)</label>
           <input
             type="text"
@@ -125,7 +182,7 @@ const MovementOrdersFilters: React.FC<MovementOrdersFiltersProps> = ({
       </div>
 
       {/* Chips de filtros activos */}
-      {(value.status || value.carrier || value.region || value.query) && (
+      {(value.status || value.carrier || value.region || value.query || value.age || value.severity) && (
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           {value.status && (
             <span className="px-2 py-1 rounded-full border border-theme-border bg-theme-primary/40">Estado: {value.status}</span>
@@ -135,6 +192,12 @@ const MovementOrdersFilters: React.FC<MovementOrdersFiltersProps> = ({
           )}
           {value.region && (
             <span className="px-2 py-1 rounded-full border border-theme-border bg-theme-primary/40">Región: {value.region}</span>
+          )}
+          {value.age && (
+            <span className="px-2 py-1 rounded-full border border-theme-border bg-theme-primary/40">Antigüedad: {value.age}</span>
+          )}
+          {value.severity && (
+            <span className="px-2 py-1 rounded-full border border-theme-border bg-theme-primary/40">Semáforo: {severityLabel(value.severity as MovementAgeSeverity)}</span>
           )}
           {value.query && (
             <span className="px-2 py-1 rounded-full border border-theme-border bg-theme-primary/40">Buscar: “{value.query}”</span>

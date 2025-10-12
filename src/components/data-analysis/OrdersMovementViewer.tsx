@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { FaExclamationTriangle } from 'react-icons/fa';
 
 // Servicios
-import ordersMovementService, { MovementAnalysisResult, MovementOrder } from '../../services/data-analysis/OrdersMovementService';
+import ordersMovementService, { MovementAnalysisResult, MovementOrder, MovementAgeSeverity } from '../../services/data-analysis/OrdersMovementService';
 
 // Componentes modularizados
 import MovementSummaryCards from './orders-movement/MovementSummaryCards';
@@ -11,6 +11,7 @@ import MovementOrdersTable from './orders-movement/MovementOrdersTable';
 import MovementOrderDetailPanel from './orders-movement/MovementOrderDetailPanel';
 import MovementStatusOrdersModal from './orders-movement/MovementStatusOrdersModal';
 import MovementOrdersFilters, { OrdersFiltersValue } from './orders-movement/MovementOrdersFilters';
+import MovementAgeAlertsPanel from './orders-movement/MovementAgeAlertsPanel';
 
 interface OrdersMovementViewerProps {
   data: any[];
@@ -26,8 +27,10 @@ const OrdersMovementViewer: React.FC<OrdersMovementViewerProps> = ({ data, summa
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [statusModalName, setStatusModalName] = useState<string | null>(null);
   const [statusModalOrders, setStatusModalOrders] = useState<MovementOrder[]>([]);
+  // Resaltado de fila dentro del modal de lista
+  const [highlightedRowKey, setHighlightedRowKey] = useState<string | null>(null);
   // Filtros para la tabla de detalle
-  const [filters, setFilters] = useState<OrdersFiltersValue>({ status: '', carrier: '', region: '', query: '' });
+  const [filters, setFilters] = useState<OrdersFiltersValue>({ status: '', carrier: '', region: '', query: '', age: '', severity: '' });
 
   // Efecto para analizar los datos cuando cambian
   useEffect(() => {
@@ -45,6 +48,16 @@ const OrdersMovementViewer: React.FC<OrdersMovementViewerProps> = ({ data, summa
     setSidebarOpen(true);
   };
 
+  // Clave estable para resaltar filas en el modal de lista
+  const rowKeyFromOrder = (order: MovementOrder): string => {
+    return String(
+      order.ID ||
+      order["NÚMERO GUIA"] ||
+      order["NUMERO GUIA"] ||
+      ''
+    );
+  };
+
   // Click en una fila de estado: abrir modal con el detalle de esas órdenes
   const handleStatusClick = (status: string, orders: MovementOrder[]) => {
     setStatusModalName(status);
@@ -52,10 +65,20 @@ const OrdersMovementViewer: React.FC<OrdersMovementViewerProps> = ({ data, summa
     setStatusModalOpen(true);
   };
 
+  // Click en un rango de antigüedad
+  const handleAgeBucketClick = (label: string, orders: MovementOrder[]) => {
+    setStatusModalName(`Antigüedad: ${label}`);
+    setStatusModalOrders(orders);
+    setStatusModalOpen(true);
+  };
+
   // Manejador para cerrar el panel lateral
   const handleClosePanel = () => {
     setSidebarOpen(false);
-    setTimeout(() => setSelectedOrder(null), 300); // Limpiar la orden seleccionada después de la animación
+    setTimeout(() => {
+      setSelectedOrder(null);
+      setHighlightedRowKey(null); // Quitar resaltado al cerrar detalle
+    }, 300); // Limpiar la orden seleccionada después de la animación
   };
 
   // Verificar si hay datos para analizar
@@ -78,6 +101,8 @@ const OrdersMovementViewer: React.FC<OrdersMovementViewerProps> = ({ data, summa
       if (filters.carrier && carrier !== filters.carrier) return false;
       const region = (order["DEPARTAMENTO DESTINO"] || order.departamento || order["CIUDAD DESTINO"] || order.ciudad || '');
       if (filters.region && region !== filters.region) return false;
+      if (filters.age && order.ageBucket !== filters.age) return false;
+      if (filters.severity && (order.ageSeverity || 'none') !== filters.severity) return false;
       if (q) {
         const idStr = String(order.ID || '').toLowerCase();
         const client = String(order["NOMBRE CLIENTE"] || '').toLowerCase();
@@ -112,6 +137,26 @@ const OrdersMovementViewer: React.FC<OrdersMovementViewerProps> = ({ data, summa
     Object.entries(analysisResult.ordersByRegion || {}).forEach(([k, arr]) => {
       map[k] = arr.length;
     });
+    return map;
+  }, [analysisResult]);
+
+  // Buckets de antigüedad disponibles y conteos
+  const availableAgeBuckets = useMemo(() => {
+    if (!analysisResult) return [] as Array<'<12h' | '12-24h' | '24-48h' | '48-72h' | '>72h' | 'sin'>;
+    return Object.keys(analysisResult.ageBucketsCount) as Array<'<12h' | '12-24h' | '24-48h' | '48-72h' | '>72h' | 'sin'>;
+  }, [analysisResult]);
+
+  const ageCounts = useMemo(() => analysisResult?.ageBucketsCount || ({}) as any, [analysisResult]);
+
+  // Severidades disponibles y conteos para el filtro de semáforo
+  const availableSeverities = useMemo<MovementAgeSeverity[]>(() => ['danger', 'warn', 'normal', 'none'], []);
+  const severityCounts = useMemo(() => {
+    const map: Record<MovementAgeSeverity, number> = { danger: 0, warn: 0, normal: 0, none: 0 };
+    if (!analysisResult) return map;
+    for (const o of analysisResult.ordersInMovement) {
+      const sev = (o.ageSeverity || 'none') as MovementAgeSeverity;
+      map[sev] = (map[sev] || 0) + 1;
+    }
     return map;
   }, [analysisResult]);
   
@@ -153,6 +198,12 @@ const OrdersMovementViewer: React.FC<OrdersMovementViewerProps> = ({ data, summa
     <div className="space-y-8 w-full">
       {/* Tarjetas de resumen */}
       <MovementSummaryCards analysisResult={analysisResult} />
+
+      {/* Panel de alertas por antigüedad del último movimiento */}
+      <MovementAgeAlertsPanel 
+        analysisResult={analysisResult}
+        onBucketClick={(bucket, orders, label) => handleAgeBucketClick(label, orders)}
+      />
       
       {/* Tabla de distribución por estado */}
       <div className="bg-theme-component p-6 rounded-lg shadow-md">
@@ -164,14 +215,18 @@ const OrdersMovementViewer: React.FC<OrdersMovementViewerProps> = ({ data, summa
         availableStatuses={availableStatuses}
         availableCarriers={availableCarriers}
         availableRegions={availableRegions}
+        availableAgeBuckets={availableAgeBuckets}
+        availableSeverities={availableSeverities}
         value={filters}
         onChange={setFilters}
         totalCount={analysisResult.ordersInMovement.length}
         filteredCount={filteredOrders.length}
-        onClear={() => setFilters({ status: '', carrier: '', region: '', query: '' })}
+        onClear={() => setFilters({ status: '', carrier: '', region: '', query: '', age: '', severity: '' })}
         statusesCount={statusesCount}
         carriersCount={carriersCount}
         regionsCount={regionsCount}
+        ageCounts={ageCounts}
+        severityCounts={severityCounts}
       />
       <MovementOrdersTable 
         orders={filteredOrders} 
@@ -183,11 +238,13 @@ const OrdersMovementViewer: React.FC<OrdersMovementViewerProps> = ({ data, summa
         isOpen={statusModalOpen}
         status={statusModalName}
         orders={statusModalOrders}
-        onClose={() => setStatusModalOpen(false)}
+        onClose={() => { setStatusModalOpen(false); setHighlightedRowKey(null); }}
         onOrderSelect={(o) => {
+          setHighlightedRowKey(rowKeyFromOrder(o));
           handleOrderSelect(o);
-          setStatusModalOpen(false);
+          // No cerramos el modal: se mantiene abierto para mejor UX
         }}
+        highlightedKey={highlightedRowKey || undefined}
       />
 
       {/* Panel lateral para mostrar detalles */}
