@@ -3,7 +3,7 @@ import { Message } from '../types';
 import { chatHistoryService } from '../../../services/storage/chatHistory';
 import { useAppContext } from '../../../contexts/AppContext';
 
-export const useChatLogic = (apiKey: string) => {
+export const useChatLogic = (apiKey: string, openaiApiKey?: string) => {
   const { authData } = useAppContext();
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedAgentId, setSelectedAgentId] = useState('research');
@@ -49,7 +49,8 @@ export const useChatLogic = (apiKey: string) => {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'X-Api-Key': apiKey
+          'X-Api-Key': apiKey,
+          'X-OpenAI-Key': openaiApiKey || ''
         },
         body: JSON.stringify({
           messages: apiMessages,

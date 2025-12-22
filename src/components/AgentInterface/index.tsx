@@ -15,13 +15,13 @@ import { useApiKey } from '../../hooks/useApiKey';
 import { ApiKeyModal } from '../ApiKeyModal';
 
 export default function AgentInterface() {
-  const { apiKey, authData } = useAppContext();
-  const { isApiKeyModalOpen, modalProvider, openApiKeyModal, closeApiKeyModal, saveApiKey } = useApiKey();
+  const { apiKey, openaiApiKey, authData } = useAppContext();
+  const { isApiKeyModalOpen, modalProvider, openApiKeyModal, closeApiKeyModal, saveApiKey, saveOpenaiApiKey } = useApiKey();
   const [customAgents, setCustomAgents] = useState<Agent[]>([]);
   const [defaultAgents, setDefaultAgents] = useState<Agent[]>([]);
   const [showCustomAgents, setShowCustomAgents] = useState(false);
   const [isLoadingAgents, setIsLoadingAgents] = useState(false);
-  
+
   const {
     messages,
     selectedAgentId,
@@ -32,7 +32,7 @@ export default function AgentInterface() {
     setInputText,
     setSelectedImage,
     handleSubmit
-  } = useChatLogic(apiKey || '');
+  } = useChatLogic(apiKey || '', openaiApiKey || undefined);
 
   const handleSubmitGuard = (e?: React.FormEvent) => {
     if (!apiKey) {
@@ -41,7 +41,7 @@ export default function AgentInterface() {
     }
     handleSubmit(e);
   };
-  
+
   useEffect(() => {
     const fetchAgents = async () => {
       if (authData?.company_id) {
@@ -50,7 +50,7 @@ export default function AgentInterface() {
           // Cargar agentes personalizados de la base de datos
           const dbAgents = await agentDatabaseService.getAllAgents(authData.company_id);
           setCustomAgents(dbAgents || []);
-          
+
           // Preparar agentes predeterminados
           const mappedDefaultAgents = NON_RAG_AGENTS.map(agent => ({
             ...agent,
@@ -82,7 +82,7 @@ export default function AgentInterface() {
         }
       }
     };
-    
+
     fetchAgents();
   }, [authData?.company_id]);
 
@@ -94,8 +94,8 @@ export default function AgentInterface() {
   };
 
   // Determinar qué agentes mostrar según la selección
-  const currentAgents = showCustomAgents ? 
-    (customAgents.length > 0 ? customAgents : defaultAgents) : 
+  const currentAgents = showCustomAgents ?
+    (customAgents.length > 0 ? customAgents : defaultAgents) :
     defaultAgents;
 
   const toggleAgentType = () => {
@@ -119,7 +119,7 @@ export default function AgentInterface() {
               isLoading={isLoadingAgents}
             />
           </div>
-          <button 
+          <button
             onClick={toggleAgentType}
             className="ml-2 flex items-center px-3 py-1 bg-primary-color text-white rounded text-sm hover:bg-blue-600 transition-colors"
             title={showCustomAgents ? "Mostrar agentes predeterminados" : "Mostrar agentes personalizados"}
@@ -143,7 +143,10 @@ export default function AgentInterface() {
       <ApiKeyModal
         isOpen={isApiKeyModalOpen}
         provider={(modalProvider as 'groq' | 'openai') || 'groq'}
-        onSave={(key) => saveApiKey(key)}
+        onSave={(key) => {
+          if (modalProvider === 'openai') return saveOpenaiApiKey(key);
+          return saveApiKey(key);
+        }}
         onClose={closeApiKeyModal}
       />
     </div>

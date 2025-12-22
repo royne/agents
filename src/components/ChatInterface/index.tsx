@@ -11,7 +11,7 @@ import { useApiKey } from '../../hooks/useApiKey';
 import { ApiKeyModal } from '../ApiKeyModal';
 
 export default function ChatInterface() {
-  const { apiKey } = useAppContext();
+  const { apiKey, openaiApiKey } = useAppContext();
   const { isApiKeyModalOpen, modalProvider, openApiKeyModal, closeApiKeyModal, saveApiKey, saveOpenaiApiKey } = useApiKey();
   const {
     messages,
@@ -23,7 +23,7 @@ export default function ChatInterface() {
     setInputText,
     setSelectedImage,
     handleSubmit
-  } = useChatLogic(apiKey || '');
+  } = useChatLogic(apiKey || '', openaiApiKey || undefined);
 
   const handleSubmitGuard = (e?: React.FormEvent) => {
     if (!apiKey) {

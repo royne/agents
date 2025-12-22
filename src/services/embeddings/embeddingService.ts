@@ -5,9 +5,9 @@ import { hybridChunkText } from './hibridChunker';
 
 // Devuelve una instancia de embeddings por petición usando la API key proporcionada o la del entorno
 function getEmbeddings(openAIApiKey?: string) {
-  const key = openAIApiKey || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+  const key = openAIApiKey;
   if (!key) {
-    throw new Error('OPENAI_API_KEY is missing');
+    throw new Error('CONFIGURACIÓN REQUERIDA: Falta la OpenAI API Key en tu perfil para usar esta función.');
   }
   return new OpenAIEmbeddings({
     openAIApiKey: key,
