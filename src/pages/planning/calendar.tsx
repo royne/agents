@@ -11,7 +11,7 @@ import PageHeader from '../../components/common/PageHeader';
 
 export default function CalendarPage() {
   const [viewType, setViewType] = useState<'month' | 'schedule' | 'kanban'>('schedule');
-  
+
   // Manejador para añadir un nuevo evento en una hora y sala específica
   const handleAddEvent = (roomId: string, hour: string) => {
     console.log(`Añadir evento en sala ${roomId} a las ${hour}`);
@@ -21,7 +21,7 @@ export default function CalendarPage() {
   return (
     <DashboardLayout>
       <Head>
-        <title>Unlocked Ecom - Calendario</title>
+        <title>DROPLAB - Calendario</title>
       </Head>
       <div className="max-w-6xl mx-auto">
         <PageHeader
@@ -34,22 +34,22 @@ export default function CalendarPage() {
             </button>
           }
         />
-        
+
         {/* Selector de tipo de vista */}
         <div className="flex flex-wrap mb-4 bg-theme-component rounded-lg p-1 w-fit">
-          <button 
+          <button
             className={`px-4 py-2 rounded-md flex items-center ${viewType === 'month' ? 'bg-primary-color text-white' : 'text-theme-secondary hover:text-theme-primary'}`}
             onClick={() => setViewType('month')}
           >
             <FaCalendarAlt className="mr-2" /> Vista Mensual
           </button>
-          <button 
+          <button
             className={`px-4 py-2 rounded-md flex items-center ${viewType === 'schedule' ? 'bg-primary-color text-white' : 'text-theme-secondary hover:text-theme-primary'}`}
             onClick={() => setViewType('schedule')}
           >
             <FaTasks className="mr-2" /> Vista Horario
           </button>
-          <button 
+          <button
             className={`px-4 py-2 rounded-md flex items-center ${viewType === 'kanban' ? 'bg-primary-color text-white' : 'text-theme-secondary hover:text-theme-primary'}`}
             onClick={() => setViewType('kanban')}
           >

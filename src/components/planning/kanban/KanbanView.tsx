@@ -38,20 +38,20 @@ const KanbanView: React.FC = () => {
       if (!authData?.isAuthenticated || !authData?.company_id) {
         return;
       }
-      
+
       try {
         setLoading(true);
-        
+
         // Obtener el usuario autenticado
         const { data: { user } } = await supabase.auth.getUser();
-        
+
         if (!user) {
           return;
         }
-        
+
         // Configurar el servicio de tareas con el usuario y compañía actuales
         taskService.setUserAndCompany(user.id, authData.company_id);
-        
+
         // Obtener las tareas según el tipo seleccionado
         let tasksData = [];
         try {
@@ -63,19 +63,19 @@ const KanbanView: React.FC = () => {
         } catch (error) {
           tasksData = [];
         }
-        
+
         // Asegurarse de que tasksData es un array
         if (!Array.isArray(tasksData)) {
           tasksData = [];
         }
-        
+
         setTasks(tasksData);
-        
+
         // Clasificar tareas por estado
         const todo: Task[] = [];
         const inProgress: Task[] = [];
         const done: Task[] = [];
-        
+
         tasksData.forEach((task: Task) => {
           switch (task.status?.toLowerCase()) {
             case 'to do':
@@ -98,18 +98,18 @@ const KanbanView: React.FC = () => {
               todo.push(task); // Por defecto, las tareas sin estado van a "Por hacer"
           }
         });
-        
+
         setTodoTasks(todo);
         setInProgressTasks(inProgress);
         setDoneTasks(done);
-        
+
       } catch (error) {
         // Si hay un error, simplemente continuar
       } finally {
         setLoading(false);
       }
     };
-    
+
     loadTasks();
   }, [authData, showTeamTasks]);
 
@@ -119,20 +119,20 @@ const KanbanView: React.FC = () => {
       // Encontrar la tarea a mover
       const taskToMove = tasks.find(t => t.id === taskId);
       if (!taskToMove) return;
-      
+
       // Actualizar el estado local primero para una respuesta inmediata en la UI
       const updatedTask = { ...taskToMove, status: newStatus };
-      
+
       // Actualizar el array de tareas
       setTasks(prevTasks => prevTasks.map(t => t.id === taskId ? updatedTask : t));
-      
+
       // Actualizar las columnas
       const updateColumns = () => {
         // Eliminar la tarea de todas las columnas
         setTodoTasks(prev => prev.filter(t => t.id !== taskId));
         setInProgressTasks(prev => prev.filter(t => t.id !== taskId));
         setDoneTasks(prev => prev.filter(t => t.id !== taskId));
-        
+
         // Añadir la tarea a la columna correspondiente
         switch (newStatus.toLowerCase()) {
           case 'to do':
@@ -153,12 +153,12 @@ const KanbanView: React.FC = () => {
             break;
         }
       };
-      
+
       updateColumns();
-      
+
       // Actualizar en la base de datos
       await taskService.updateTask(taskId, { status: newStatus });
-      
+
     } catch (error) {
       // Si hay error, recargar las tareas
       const loadTasks = async () => {
@@ -178,7 +178,7 @@ const KanbanView: React.FC = () => {
               <span className="text-sm text-theme-secondary">
                 {showTeamTasks ? 'Tareas del equipo' : 'Mis tareas'}
               </span>
-              <Switch 
+              <Switch
                 checked={showTeamTasks}
                 onChange={() => {
                   setShowTeamTasks(!showTeamTasks);
@@ -186,38 +186,38 @@ const KanbanView: React.FC = () => {
                 label=""
               />
             </div>
-            
+
             {loading && (
               <div className="flex items-center gap-2 bg-theme-component px-3 py-1.5 rounded-lg">
-                <div className="animate-pulse h-3 w-3 rounded-full bg-primary-color"></div>
+                <div className="h-3 w-3 rounded-full bg-primary-color"></div>
                 <span className="text-sm text-theme-secondary">Cargando...</span>
               </div>
             )}
           </div>
-          
+
           <div className="text-sm text-theme-secondary bg-theme-component px-3 py-1.5 rounded-lg">
             {tasks.length} {tasks.length === 1 ? 'tarea' : 'tareas'} en el tablero
           </div>
         </div>
-        
+
         {/* Tablero Kanban */}
         <div className="flex-grow overflow-auto">
           <div className="flex gap-4 h-full">
-            <KanbanColumn 
-              title="Por hacer" 
-              tasks={todoTasks} 
+            <KanbanColumn
+              title="Por hacer"
+              tasks={todoTasks}
               onTaskMove={(taskId) => handleTaskMove(taskId, 'todo')}
               status="todo"
             />
-            <KanbanColumn 
-              title="En progreso" 
-              tasks={inProgressTasks} 
+            <KanbanColumn
+              title="En progreso"
+              tasks={inProgressTasks}
               onTaskMove={(taskId) => handleTaskMove(taskId, 'in progress')}
               status="in progress"
             />
-            <KanbanColumn 
-              title="Completado" 
-              tasks={doneTasks} 
+            <KanbanColumn
+              title="Completado"
+              tasks={doneTasks}
               onTaskMove={(taskId) => handleTaskMove(taskId, 'done')}
               status="done"
             />

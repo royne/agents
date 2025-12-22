@@ -8,7 +8,7 @@ export default function TeamPage() {
   return (
     <DashboardLayout>
       <Head>
-        <title>Unlocked Ecom - Asignaciones de Equipo</title>
+        <title>DROPLAB - Asignaciones de Equipo</title>
       </Head>
       <div className="max-w-6xl mx-auto">
         <PageHeader

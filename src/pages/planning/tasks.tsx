@@ -10,7 +10,7 @@ export default function TasksPage() {
   return (
     <DashboardLayout>
       <Head>
-        <title>Unlocked Ecom - Lista de Tareas</title>
+        <title>DROPLAB - Lista de Tareas</title>
       </Head>
       <div className="max-w-6xl mx-auto">
         <PageHeader

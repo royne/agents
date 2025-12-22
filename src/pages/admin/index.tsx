@@ -13,7 +13,7 @@ const adminModules = [
     icon: FaUsers,
     description: 'Administrar usuarios y permisos',
     path: '/admin/users',
-    superAdminOnly: false 
+    superAdminOnly: false
   },
   {
     name: 'Embeddings',
@@ -45,7 +45,7 @@ export default function AdminDashboard() {
     <ProtectedRoute adminOnly={true}>
       <DashboardLayout>
         <Head>
-          <title>Unlocked Ecom - Panel de Administración</title>
+          <title>DROPLAB - Panel de Administración</title>
         </Head>
         <div>
           <PageHeader
@@ -61,36 +61,36 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {adminModules.map((module) => {
               // Si el módulo es solo para superadmin y el usuario no es superadmin, no mostrar
               if (module.superAdminOnly && !isSuperAdmin()) {
                 return null;
               }
-              
+
               return (
                 <Link key={module.path} href={module.path}>
                   <div className="bg-theme-component p-6 rounded-lg shadow-md cursor-pointer hover:bg-theme-component-hover transform hover:-translate-y-0.5 transition-all duration-200 h-full">
-                  <div className="flex flex-col gap-4 items-center h-full">
-                    <module.icon className="w-8 h-8 text-primary-color" />
-                    <h2 className="text-xl font-bold text-theme-primary">
-                      {module.name}
-                    </h2>
-                    <p className="text-theme-secondary text-center">
-                      {module.description}
-                    </p>
-                    <div className="flex-grow"></div>
-                    {module.superAdminOnly ? (
-                      <div className="mt-2 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
-                        Solo SuperAdmin
-                      </div>
-                    ) : (
-                      <div className="mt-2 opacity-0 px-2 py-1 text-xs">
-                        Espaciador invisible
-                      </div>
-                    )}
-                  </div>
+                    <div className="flex flex-col gap-4 items-center h-full">
+                      <module.icon className="w-8 h-8 text-primary-color" />
+                      <h2 className="text-xl font-bold text-theme-primary">
+                        {module.name}
+                      </h2>
+                      <p className="text-theme-secondary text-center">
+                        {module.description}
+                      </p>
+                      <div className="flex-grow"></div>
+                      {module.superAdminOnly ? (
+                        <div className="mt-2 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                          Solo SuperAdmin
+                        </div>
+                      ) : (
+                        <div className="mt-2 opacity-0 px-2 py-1 text-xs">
+                          Espaciador invisible
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </Link>
               );

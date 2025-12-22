@@ -10,7 +10,7 @@ interface WelcomeBannerProps {
 const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ userName }) => {
   const router = useRouter();
   const { authData } = useAppContext();
-  
+
   // Obtener la hora actual para personalizar el saludo
   const getCurrentGreeting = () => {
     const hour = new Date().getHours();
@@ -30,17 +30,17 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ userName }) => {
             {getCurrentGreeting()}, <span className="text-primary-color">{displayName}</span> 👋
           </h1>
           <p className="text-theme-secondary text-lg">
-            Bienvenido a <span className="font-semibold text-primary-color">Unlocked Ecom</span>. ¿Qué deseas hacer hoy?
+            Bienvenido a <span className="font-semibold text-primary-color">DROPLAB</span>. ¿Qué deseas hacer hoy?
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <button 
-              onClick={() => router.push('/agents')} 
+            <button
+              onClick={() => router.push('/agents')}
               className="px-3 py-1.5 bg-primary-color text-white rounded-md hover:bg-primary-color/80 transition-all text-sm"
             >
               Iniciar Chat
             </button>
-            <button 
-              onClick={() => router.push('/data-analysis')} 
+            <button
+              onClick={() => router.push('/data-analysis')}
               className="px-3 py-1.5 border border-primary-color text-primary-color rounded-md hover:bg-primary-color/10 transition-all text-sm"
             >
               Analizar Datos
@@ -48,12 +48,12 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ userName }) => {
           </div>
         </div>
         <div className="flex items-center justify-center bg-theme-component p-6 rounded-full shadow-inner">
-          <div className="relative w-24 h-24 animate-pulse">
-            <Image 
-              src="/unlocked.png" 
-              alt="Unlocked Ecom" 
-              fill 
-              className="object-contain" 
+          <div className="relative w-24 h-24 rounded-full overflow-hidden">
+            <Image
+              src="/droplab.png"
+              alt="DROPLAB"
+              fill
+              className="object-cover"
             />
           </div>
         </div>

@@ -29,20 +29,19 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-theme-primary px-4">
       <div className="bg-theme-component p-8 rounded-xl shadow-lg max-w-md w-full">
         <div className="flex flex-col items-center mb-8">
-          {/* Logo Unlocked */}
-          <div className="bg-theme-primary p-6 rounded-full mb-6 shadow-inner flex items-center justify-center">
-            <Image 
-              src="/unlocked.png" 
-              alt="Unlocked Ecom" 
-              width={80} 
-              height={80} 
-              className="animate-pulse" 
+          {/* Logo DROPLAB */}
+          <div className="bg-theme-primary p-6 rounded-full mb-6 shadow-inner flex items-center justify-center overflow-hidden w-32 h-32 relative">
+            <Image
+              src="/droplab.png"
+              alt="DROPLAB"
+              fill
+              className="object-cover"
             />
           </div>
           <h1 className="text-3xl font-bold text-theme-primary">Bienvenido</h1>
           <p className="text-theme-secondary mt-2">Inicia sesión para continuar</p>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="w-full">
           <div className="flex flex-col gap-5 w-full">
             <div className="relative">
@@ -56,7 +55,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            
+
             <div className="relative">
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary-color">
                 <FaLock />
@@ -69,14 +68,14 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            
+
             {error && (
               <div className="bg-red-500/10 border border-red-500/30 text-red-500 p-3 rounded-lg text-sm">
                 {error}
               </div>
             )}
-            
-            <button 
+
+            <button
               type="submit"
               className="w-full bg-primary-color text-white p-3 rounded-lg hover:bg-primary-color/90 transition-all font-medium mt-2"
             >
@@ -84,11 +83,8 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
-        
+
         <div className="mt-8 text-center">
-          <div className="text-sm text-theme-secondary">
-            Powered by <strong className="text-primary-color">Unlocked Ecom</strong>
-          </div>
           <div className="text-xs text-theme-secondary mt-1">
             Desarrollado por <strong className="text-primary-color">RAC</strong>
           </div>

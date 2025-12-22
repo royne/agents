@@ -1,10 +1,10 @@
 {
-  "name": "Unlocked Ecom",
-  "short_name": "Unlocked",
-  "description": "Plataforma de gestión Unlocked Ecom",
+  "name": "DROPLAB",
+  "short_name": "DROPLAB",
+  "description": "Plataforma de gestión Ecommerce",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1A202C",
+  "background_color": "#0B0E14",
   "theme_color": "#1F1F1F",
   "icons": [
     {

@@ -17,7 +17,7 @@ export default function ProfilePage() {
     <ProtectedRoute>
       <DashboardLayout>
         <Head>
-          <title>Unlocked Ecom - Mi Perfil</title>
+          <title>DROPLAB - Mi Perfil</title>
         </Head>
         <div className="max-w-6xl mx-auto">
           <PageHeader
@@ -29,13 +29,13 @@ export default function ProfilePage() {
             }
             description="Gestiona tu información personal y preferencias de cuenta."
           />
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 w-full">
             <div className="w-full">
               <h2 className="text-xl font-bold text-theme-primary mb-4">Estado de Suscripción</h2>
               <MembershipCard status={status} planName={planLabel} />
             </div>
-            
+
             <div className="w-full">
               <h2 className="text-xl font-bold text-theme-primary mb-4">Información Personal</h2>
               <UserProfile showEditButton={true} />

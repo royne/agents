@@ -17,7 +17,9 @@ const MovementOrderDetailPanel: React.FC<MovementOrderDetailPanelProps> = ({
 
   return (
     <div 
-      className={`fixed top-0 right-0 h-full w-full md:w-1/2 lg:w-1/3 bg-theme-component border-l border-theme-border shadow-xl transition-transform duration-300 transform ${isOpen ? 'translate-x-0' : 'translate-x-full'} z-50 overflow-y-auto`}
+      role="dialog"
+      aria-hidden={!isOpen}
+      className={`fixed top-0 right-0 h-full w-full md:w-1/2 lg:w-1/3 bg-theme-component border-l border-theme-border shadow-xl transition-transform duration-300 transform ${isOpen ? 'translate-x-0 pointer-events-auto' : 'translate-x-full pointer-events-none'} z-50 overflow-y-auto`}
     >
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">

@@ -82,19 +82,19 @@ export default function AgentForm() {
         <div className="mb-4 bg-green-100 border-l-4 border-green-500 text-green-700 py-2 px-3 rounded text-sm dark:bg-green-900 dark:border-green-600 dark:text-green-200">
           <span className="font-bold">{id ? 'Editar' : 'Crear'} Asistente:</span> Configura tu asistente de marketing personalizado
         </div>
-        
+
         <div className="flex justify-center mb-6">
           <div className="relative w-24 h-24 bg-theme-component rounded-full flex items-center justify-center shadow-inner border-2 border-primary-color">
-            <FaRobot className="text-primary-color text-5xl animate-pulse" />
+            <FaRobot className="text-primary-color text-5xl" />
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-theme-component p-6 rounded-lg shadow-md">
-          <AgentFormFields 
+          <AgentFormFields
             formData={formData}
             handleChange={handleChange}
           />
-          
+
           <div className="flex justify-end space-x-3">
             <button
               type="button"

@@ -82,13 +82,13 @@ export default function UsersManagement() {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Si es superadmin, obtener todos los usuarios
       // Si es admin normal, obtener solo los usuarios de su compañía
       const usersList = isSuperAdmin()
         ? await adminService.getAllUsers()
         : await adminService.getAllUsers(authData?.company_id);
-        
+
       setUsers(usersList);
     } catch (err: any) {
       console.error('Error al cargar usuarios:', err);
@@ -130,7 +130,7 @@ export default function UsersManagement() {
     <ProtectedRoute adminOnly={true}>
       <DashboardLayout>
         <Head>
-          <title>Unlocked Ecom - Gestión de Usuarios</title>
+          <title>DROPLAB - Gestión de Usuarios</title>
         </Head>
         <div>
           <PageHeader
@@ -147,7 +147,7 @@ export default function UsersManagement() {
           <div className="bg-theme-component p-6 rounded-lg shadow-md mb-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-theme-primary">Usuarios Registrados</h2>
-              <button 
+              <button
                 onClick={() => setIsModalOpen(true)}
                 className="px-4 py-2 bg-primary-color text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
               >
@@ -219,7 +219,7 @@ export default function UsersManagement() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           {/* Botón de edición, disponible para todos */}
-                          <button 
+                          <button
                             className="text-primary-color hover:text-blue-700 mr-3"
                             onClick={() => alert('Funcionalidad de edición en desarrollo')}
                           >
@@ -237,7 +237,7 @@ export default function UsersManagement() {
                           )}
                           {/* Botón de eliminación, con restricciones */}
                           {(isSuperAdmin() || (user.role !== 'admin' && user.role !== 'superadmin')) && (
-                            <button 
+                            <button
                               className="text-red-500 hover:text-red-700"
                               onClick={async () => {
                                 if (window.confirm(`¿Estás seguro de eliminar al usuario ${user.email}?`)) {
