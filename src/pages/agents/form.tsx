@@ -14,7 +14,7 @@ export default function AgentForm() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    model: 'deepseek-r1-distill-llama-70b',
+    model: 'llama-3.3-70b-versatile',
     system_prompt: ''
   });
 

@@ -1,6 +1,7 @@
 import { agentConfig } from '../../../entities/agents/agent_config';
 import { extractMessages } from '../../../services/messages/extractor';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs';
 import { Groq } from 'groq-sdk';
 import { agentsData } from './agents-data';
 import type { Message } from '../../../types/groq';
@@ -10,14 +11,39 @@ import { basePayload } from '../../../entities/agents/agent';
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
-  const apiKey = req.headers['x-api-key'];
-  const openaiKeyHeader = req.headers['x-openai-key'];
-  const openAIApiKey = typeof openaiKeyHeader === 'string' ? openaiKeyHeader : Array.isArray(openaiKeyHeader) ? openaiKeyHeader[0] : undefined;
-  const { company_id } = req.body;
+  
+  // Crear cliente de Supabase para el servidor para obtener la sesión
+  const supabaseServer = createPagesServerClient({ req, res });
+  const { data: { session } } = await supabaseServer.auth.getSession();
+  
+  let apiKey = req.headers['x-api-key'] as string | undefined;
+  let openAIApiKey = req.headers['x-openai-key'] as string | undefined;
+  
+  // Si hay sesión, intentar recuperar las llaves desde el perfil (Prioridad sobre headers para mayor seguridad)
+  if (session) {
+    try {
+      const { data: profile } = await supabaseServer
+        .from('profiles')
+        .select('groq_api_key, openai_api_key, company_id')
+        .eq('user_id', session.user.id)
+        .single();
+        
+      if (profile) {
+        if (profile.groq_api_key) apiKey = profile.groq_api_key;
+        if (profile.openai_api_key) openAIApiKey = profile.openai_api_key;
+        // Si no viene company_id en el body, usar el del perfil
+        if (!req.body.company_id) req.body.company_id = profile.company_id;
+      }
+    } catch (profileErr) {
+      console.error('[api/agents] Error recuperando perfil:', profileErr);
+    }
+  }
 
   if (!apiKey || typeof apiKey !== 'string') {
-    return res.status(401).json({ error: 'API Key is required' });
+    return res.status(401).json({ error: 'API Key is required (Groq)' });
   }
+
+  const { company_id } = req.body;
 
   // Verificar si es un agente predefinido o personalizado
   const isDefaultAgent = Object.keys(agentConfig).includes(id as string);
