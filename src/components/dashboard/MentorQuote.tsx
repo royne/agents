@@ -51,16 +51,22 @@ const MentorQuote: React.FC = () => {
   }, []);
 
   return (
-    <blockquote className="relative mx-auto max-w-2xl text-center py-6">
-      <FaQuoteLeft className="text-4xl text-primary-color/20 absolute top-0 left-0" />
-      <p className="text-xl text-theme-primary px-12 relative z-10 leading-relaxed font-light tracking-wide">
-        {quote.quote}
-      </p>
-      <FaQuoteRight className="text-4xl text-primary-color/20 absolute bottom-0 right-0" />
-      <footer className="mt-6">
-        <cite className="text-primary-color font-semibold not-italic text-lg tracking-wider uppercase">— {quote.author}</cite>
-      </footer>
-    </blockquote>
+    <div className="relative w-full py-2 group">
+      <FaQuoteLeft className="text-6xl text-primary-color/5 absolute -top-4 -left-4 group-hover:text-primary-color/10 transition-colors duration-500" />
+      <div className="relative z-10 text-center px-4">
+        <p className="text-xl md:text-2xl text-white font-light italic leading-relaxed tracking-wide opacity-90 group-hover:opacity-100 transition-opacity">
+          "{quote.quote}"
+        </p>
+        <footer className="mt-6 flex items-center justify-center gap-3">
+          <div className="h-px w-8 bg-primary-color/30"></div>
+          <cite className="text-primary-color font-bold not-italic text-sm tracking-[0.2em] uppercase">
+            {quote.author}
+          </cite>
+          <div className="h-px w-8 bg-primary-color/30"></div>
+        </footer>
+      </div>
+      <FaQuoteRight className="text-6xl text-primary-color/5 absolute -bottom-4 -right-4 group-hover:text-primary-color/10 transition-colors duration-500" />
+    </div>
   );
 };
 

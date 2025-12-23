@@ -26,67 +26,83 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-theme-primary px-4">
-      <div className="bg-theme-component p-8 rounded-xl shadow-lg max-w-md w-full">
-        <div className="flex flex-col items-center mb-8">
-          {/* Logo DROPLAB */}
-          <div className="bg-theme-primary p-6 rounded-full mb-6 shadow-inner flex items-center justify-center overflow-hidden w-32 h-32 relative">
-            <Image
-              src="/droplab.png"
-              alt="DROPLAB"
-              fill
-              className="object-cover"
-            />
+    <div className="min-h-screen flex items-center justify-center bg-[#0A0C10] px-4 relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary-color/10 rounded-full blur-[120px] -mr-64 -mt-64 opacity-50"></div>
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] -ml-64 -mb-64 opacity-50"></div>
+
+      <div className="soft-card p-10 md:p-12 max-w-md w-full relative z-10 border-white/5 shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col items-center mb-10">
+          {/* Logo DROPLAB Premium */}
+          <div className="relative group mb-8">
+            <div className="absolute -inset-2 bg-primary-color/20 rounded-[2rem] blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-700"></div>
+            <div className="relative p-1 rounded-[1.5rem] bg-gradient-to-br from-white/20 to-transparent border border-white/10 shadow-xl backdrop-blur-md">
+              <div className="bg-[#0A0C10] rounded-[1.3rem] overflow-hidden p-4">
+                <div className="relative w-20 h-20">
+                  <Image
+                    src="/droplab.png"
+                    alt="DROPLAB"
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-theme-primary">Bienvenido</h1>
-          <p className="text-theme-secondary mt-2">Inicia sesión para continuar</p>
+          <h1 className="text-4xl font-black text-white tracking-tighter">Bienvenido</h1>
+          <p className="text-gray-500 font-medium mt-2 text-sm uppercase tracking-widest">Portal de acceso inteligente</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="w-full">
-          <div className="flex flex-col gap-5 w-full">
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary-color">
-                <FaEnvelope />
+        <form onSubmit={handleSubmit} className="w-full space-y-6">
+          <div className="space-y-4">
+            <div className="relative group">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-color transition-colors">
+                <FaEnvelope className="text-lg" />
               </div>
               <input
-                className="w-full p-3 pl-10 rounded-lg border border-theme-component-hover bg-theme-component focus:outline-none focus:ring-2 focus:ring-primary-color/50 transition-all"
+                type="email"
+                className="w-full py-4 pl-12 pr-4 rounded-2xl bg-white/5 border border-white/10 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-color/30 focus:border-primary-color/30 transition-all font-medium"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </div>
 
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary-color">
-                <FaLock />
+            <div className="relative group">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-color transition-colors">
+                <FaLock className="text-lg" />
               </div>
               <input
-                className="w-full p-3 pl-10 rounded-lg border border-theme-component-hover bg-theme-component focus:outline-none focus:ring-2 focus:ring-primary-color/50 transition-all"
+                className="w-full py-4 pl-12 pr-4 rounded-2xl bg-white/5 border border-white/10 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-color/30 focus:border-primary-color/30 transition-all font-medium"
                 type="password"
-                placeholder="Contraseña"
+                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
             </div>
-
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/30 text-red-500 p-3 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="w-full bg-primary-color text-white p-3 rounded-lg hover:bg-primary-color/90 transition-all font-medium mt-2"
-            >
-              Ingresar
-            </button>
           </div>
+
+          {error && (
+            <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-4 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></div>
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="w-full bg-primary-color text-white py-4 rounded-2xl font-black text-lg hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_20px_-5px_rgba(59,130,246,0.3)] btn-modern"
+          >
+            INGRESAR
+          </button>
         </form>
 
-        <div className="mt-8 text-center">
-          <div className="text-xs text-theme-secondary mt-1">
-            Desarrollado por <strong className="text-primary-color">RAC</strong>
+        <div className="mt-12 text-center">
+          <div className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">
+            Digital Engine by <span className="text-primary-color">RAC</span>
           </div>
         </div>
       </div>

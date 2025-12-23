@@ -102,54 +102,54 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       {/* Sidebar para escritorio/tablet - Oculto en móviles */}
       <div
         className={`${isSidebarOpen ? 'w-64' : 'w-16'
-          } bg-theme-component ${(hasHydrated && !navInProgress) ? 'transition-all duration-300' : 'transition-none'} fixed h-screen z-40 hidden md:block`}
+          } bg-[#0A0C10] border-r border-white/5 ${(hasHydrated && !navInProgress) ? 'transition-all duration-500' : 'transition-none'} fixed h-screen z-40 hidden md:block`}
       >
         {/* Botón flotante para mostrar/ocultar el sidebar */}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className={`absolute ${isSidebarOpen ? '-right-4' : 'right-0'} top-3 bg-theme-component shadow-lg rounded-r-md p-1 flex items-center justify-center z-50 hover:bg-theme-component-hover transition-colors border-r border-t border-b border-gray-700 pointer-events-auto`}
+          className={`absolute -right-4 top-10 bg-[#0A0C10] shadow-xl rounded-full p-2.5 flex items-center justify-center z-50 hover:bg-white/5 transition-all border border-white/10 group/btn shadow-primary-color/5`}
           aria-label={isSidebarOpen ? "Ocultar menú" : "Mostrar menú"}
-          style={{ width: '20px', height: '40px' }}
+          style={{ width: '32px', height: '32px' }}
         >
           {isSidebarOpen ?
-            <FaChevronLeft className="text-primary-color text-xs" /> :
-            <FaChevronRight className="text-primary-color text-xs" />}
+            <FaChevronLeft className="text-primary-color text-[10px] group-hover/btn:-translate-x-0.5 transition-transform" /> :
+            <FaChevronRight className="text-primary-color text-[10px] group-hover/btn:translate-x-0.5 transition-transform" />}
         </button>
-        <div className="p-4 flex flex-col h-full justify-between overflow-y-auto">
-          <div className="space-y-4">
-            <div className="flex flex-col items-center">
-              {/* Logo siempre visible y clickeable */}
-              <Link href={'/'} className="flex items-center justify-center w-full py-4">
-                <div className='flex items-center justify-center w-8 h-8 rounded-full overflow-hidden relative'>
-                  <Image src="/droplab.png" alt="DROPLAB" fill className="object-cover" />
+
+        <div className="p-4 flex flex-col h-full justify-between overflow-hidden">
+          <div className="space-y-10">
+            <div className={`flex flex-col ${isSidebarOpen ? 'items-start px-2' : 'items-center'}`}>
+              {/* Logo Premium */}
+              <Link href={'/'} className={`flex items-center ${isSidebarOpen ? 'justify-start w-full gap-3' : 'justify-center'} group`}>
+                <div className={`flex items-center justify-center rounded-xl bg-white/5 border border-white/10 group-hover:scale-110 transition-all duration-500 shadow-inner translate-z-0 ${isSidebarOpen ? 'w-10 h-10 p-2' : 'w-9 h-9 p-1.5'}`}>
+                  <div className="relative w-full h-full">
+                    <Image src="/droplab.png" alt="DROPLAB" fill className="object-cover" />
+                  </div>
                 </div>
                 {isSidebarOpen && (
-                  <span className="text-theme-primary font-bold text-xl ml-2">DROPLAB</span>
+                  <span className="text-white font-black text-xl tracking-tighter group-hover:text-primary-color transition-colors">DROPLAB</span>
                 )}
               </Link>
             </div>
 
-            <nav className="flex-1 mt-6">
+            <nav className="space-y-2">
               {menuItems.map((item) => {
-                // No mostrar elementos marcados como adminOnly si el usuario no es admin
-                // Si showForAllAdmins es true, mostrar para cualquier tipo de admin
-                if (item.adminOnly && !isAdmin() && !item.showForAllAdmins) {
-                  return null;
-                }
-                // Ocultar si el plan del usuario no permite el módulo
-                if (!canAccessModule(item.moduleKey)) {
-                  return null;
-                }
+                if (item.adminOnly && !isAdmin() && !item.showForAllAdmins) return null;
+                if (!canAccessModule(item.moduleKey)) return null;
+
+                const isActive = router.pathname === item.path || router.pathname.startsWith(item.path + '/');
 
                 return (
                   <Link key={item.path} href={item.path}>
                     <div
-                      className={`flex items-center py-3 px-2 rounded hover:bg-theme-component-hover transition-colors cursor-pointer ${router.pathname === item.path || router.pathname.startsWith(item.path + '/') ? 'bg-theme-component-active' : ''
-                        }`}
+                      className={`flex items-center py-3 rounded-2xl transition-all duration-300 cursor-pointer group/item relative ${isSidebarOpen ? 'px-3' : 'px-2 justify-center'} ${isActive ? 'bg-primary-color/10 ring-1 ring-primary-color/20' : 'hover:bg-white/5'}`}
                     >
-                      <item.icon className={`${router.pathname === item.path || router.pathname.startsWith(item.path + '/') ? 'text-primary-color active-item' : 'text-theme-secondary'} text-xl`} />
+                      {isActive && isSidebarOpen && (
+                        <div className="absolute left-0 w-1 h-6 bg-primary-color rounded-full -ml-1"></div>
+                      )}
+                      <item.icon className={`text-xl transition-transform duration-300 group-hover/item:scale-110 ${isActive ? 'text-primary-color' : 'text-gray-500 group-hover/item:text-white'}`} />
                       {isSidebarOpen && (
-                        <span className={`${router.pathname === item.path || router.pathname.startsWith(item.path + '/') ? 'text-primary-color active-item' : 'text-theme-secondary'} ml-3 whitespace-nowrap`}>
+                        <span className={`ml-4 text-sm font-bold transition-all duration-300 whitespace-nowrap ${isActive ? 'text-white' : 'text-gray-500 group-hover/item:text-gray-300'}`}>
                           {item.name}
                         </span>
                       )}
@@ -160,17 +160,17 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
             </nav>
           </div>
 
-          <div className="border-t border-theme-color pt-4">
+          <div className="border-t border-white/5 pt-6">
             <button
               onClick={() => {
                 router.push('/auth/login');
                 logout();
               }}
-              className="w-full flex items-center p-3 rounded hover:bg-theme-component-hover transition-colors text-red-400"
+              className={`w-full flex items-center p-3 rounded-2xl hover:bg-rose-500/10 transition-all group/logout text-gray-500 hover:text-rose-400 ${isSidebarOpen ? 'px-4' : 'px-2 justify-center'}`}
             >
-              <FaSignOutAlt className="text-xl" />
+              <FaSignOutAlt className="text-xl transition-transform group-hover/logout:-translate-x-1" />
               {isSidebarOpen && (
-                <span className="ml-3 whitespace-nowrap">Cerrar Sesión</span>
+                <span className="ml-4 text-sm font-bold whitespace-nowrap">Cerrar Sesión</span>
               )}
             </button>
           </div>
