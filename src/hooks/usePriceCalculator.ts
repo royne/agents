@@ -24,7 +24,7 @@ export const usePriceCalculator = () => {
   const [showAdditionalCosts, setShowAdditionalCosts] = useState<boolean>(false);
   const [configs, setConfigs] = useState<PriceConfig[]>([
     { name: 'Inefectividad', value: 25 },
-    { name: 'Flete', value: 18000 },
+    { name: 'Flete', value: 20000 },
     { name: 'CPA base', value: 15000 },
     { name: 'Costo Administrativo', value: 0 },
     { name: 'Otros Gastos', value: 0 },

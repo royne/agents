@@ -110,12 +110,12 @@ export default function ImageProPage() {
           </div>
 
           <div className="flex gap-4">
-            <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-theme-component border border-gray-700 hover:border-primary-color transition-all text-theme-secondary">
+            <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-theme-component border border-white/10 hover:border-primary-color/50 transition-all text-theme-secondary btn-modern">
               <FaHistory /> Historial
             </button>
             <button
               onClick={() => setIsConfigModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-theme-component border border-gray-700 hover:border-primary-color transition-all text-theme-secondary"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-theme-component border border-white/10 hover:border-primary-color/50 transition-all text-theme-secondary btn-modern"
             >
               <FaCog /> Configuración
             </button>
@@ -125,7 +125,7 @@ export default function ImageProPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Lado Izquierdo: Configuración y Carga */}
           <div className="lg:col-span-4 space-y-6">
-            <div className="bg-theme-component p-6 rounded-2xl border border-gray-800 shadow-xl overflow-hidden relative">
+            <div className="soft-card p-6 overflow-hidden relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary-color/5 blur-3xl rounded-full -mr-16 -mt-16"></div>
 
               <h2 className="text-lg font-semibold text-theme-primary mb-6 flex items-center gap-2">
@@ -172,7 +172,7 @@ export default function ImageProPage() {
                 <button
                   onClick={() => handleGenerate(false)}
                   disabled={isGenerating || !productData.name}
-                  className="w-full py-4 mt-4 bg-primary-color text-black font-bold rounded-xl flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(18,216,250,0.4)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-4 mt-4 bg-primary-color text-black font-bold rounded-xl flex items-center justify-center gap-2 hover:shadow-[0_0_30px_rgba(18,216,250,0.3)] transition-all btn-modern disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isGenerating ? (
                     <div className="w-6 h-6 border-2 border-black border-t-transparent animate-spin rounded-full"></div>
@@ -207,7 +207,7 @@ export default function ImageProPage() {
 
           {/* Lado Derecho: Resultado */}
           <div className="lg:col-span-8">
-            <div className="bg-theme-component rounded-2xl border border-gray-800 overflow-hidden shadow-2xl min-h-[600px] flex flex-col">
+            <div className="soft-card overflow-hidden min-h-[600px] flex flex-col">
               <div className="p-4 border-b border-gray-800 bg-gray-900/50 flex items-center justify-between">
                 <span className="text-sm font-medium text-theme-secondary flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -243,7 +243,7 @@ export default function ImageProPage() {
                     <img
                       src={generatedImageUrl}
                       alt="Generada"
-                      className="rounded-xl shadow-2xl border border-gray-700 max-h-[500px]"
+                      className="rounded-2xl shadow-2xl border border-white/5 max-h-[500px]"
                     />
                     <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-xl"></div>
                   </div>
@@ -271,42 +271,42 @@ export default function ImageProPage() {
       {/* Modal de Configuración de Generación */}
       {isConfigModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsConfigModalOpen(false)}></div>
-          <div className="relative w-full max-w-md bg-theme-component border border-gray-800 rounded-2xl shadow-2xl overflow-hidden">
-            <div className="p-6 border-b border-gray-800 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-theme-primary flex items-center gap-2">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsConfigModalOpen(false)}></div>
+          <div className="relative w-full max-w-md bg-theme-component border border-white/10 rounded-3xl shadow-2xl overflow-hidden glass-effect">
+            <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/5">
+              <h3 className="text-xl font-bold text-theme-primary flex items-center gap-3">
                 <FaCog className="text-primary-color" /> Configuración Pro
               </h3>
-              <button onClick={() => setIsConfigModalOpen(false)} className="text-theme-tertiary hover:text-white">✕</button>
+              <button onClick={() => setIsConfigModalOpen(false)} className="text-theme-tertiary hover:text-white transition-colors">✕</button>
             </div>
 
-            <div className="p-6 space-y-6">
-              <div className="space-y-3">
-                <label className="text-sm font-bold text-theme-tertiary uppercase tracking-wider">Formato de Salida</label>
-                <div className="flex gap-3">
+            <div className="p-8 space-y-8">
+              <div className="space-y-4">
+                <label className="text-xs font-bold text-theme-tertiary uppercase tracking-[0.2em]">Formato de Salida</label>
+                <div className="flex gap-4">
                   <button
                     onClick={() => setAspectRatio('1:1')}
-                    className={`flex-1 p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${aspectRatio === '1:1' ? 'border-primary-color bg-primary-color/10' : 'border-gray-700 hover:border-gray-500'}`}
+                    className={`flex-1 p-5 rounded-2xl border flex flex-col items-center gap-3 transition-all ${aspectRatio === '1:1' ? 'border-primary-color bg-primary-color/10 shadow-[0_0_20px_rgba(18,216,250,0.1)]' : 'border-white/5 hover:border-white/20'}`}
                   >
-                    <div className="w-8 h-8 border-2 border-current rounded"></div>
-                    <span className={aspectRatio === '1:1' ? 'text-primary-color' : 'text-theme-secondary'}>Cuadrado</span>
+                    <div className="w-10 h-10 border-2 border-current rounded-lg"></div>
+                    <span className={`text-sm font-medium ${aspectRatio === '1:1' ? 'text-primary-color' : 'text-theme-secondary'}`}>Cuadrado</span>
                   </button>
                   <button
                     onClick={() => setAspectRatio('9:16')}
-                    className={`flex-1 p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${aspectRatio === '9:16' ? 'border-primary-color bg-primary-color/10' : 'border-gray-700 hover:border-gray-500'}`}
+                    className={`flex-1 p-5 rounded-2xl border flex flex-col items-center gap-3 transition-all ${aspectRatio === '9:16' ? 'border-primary-color bg-primary-color/10 shadow-[0_0_20px_rgba(18,216,250,0.1)]' : 'border-white/5 hover:border-white/20'}`}
                   >
-                    <div className="w-6 h-10 border-2 border-current rounded"></div>
-                    <span className={aspectRatio === '9:16' ? 'text-primary-color' : 'text-theme-secondary'}>Historia</span>
+                    <div className="w-7 h-11 border-2 border-current rounded-lg"></div>
+                    <span className={`text-sm font-medium ${aspectRatio === '9:16' ? 'text-primary-color' : 'text-theme-secondary'}`}>Historia</span>
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <label className="text-sm font-bold text-theme-tertiary uppercase tracking-wider">Estilo e Instrucciones</label>
+              <div className="space-y-4">
+                <label className="text-xs font-bold text-theme-tertiary uppercase tracking-[0.2em]">Estilo e Instrucciones</label>
                 <textarea
                   placeholder="Ej: Estilo minimalista, fondo blanco, iluminación de estudio..."
                   rows={4}
-                  className="w-full bg-theme-primary border border-gray-700 rounded-xl p-4 text-theme-primary focus:border-primary-color outline-none resize-none"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-theme-primary focus:border-primary-color outline-none resize-none transition-all placeholder:text-theme-tertiary/50"
                   value={productData.details}
                   onChange={(e) => setProductData({ ...productData, details: e.target.value })}
                 />
@@ -314,7 +314,7 @@ export default function ImageProPage() {
 
               <button
                 onClick={() => setIsConfigModalOpen(false)}
-                className="w-full py-4 bg-primary-color text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(18,216,250,0.3)] transition-all"
+                className="w-full py-4 bg-primary-color text-black font-bold rounded-2xl hover:shadow-[0_0_30px_rgba(18,216,250,0.3)] transition-all btn-modern"
               >
                 Listo, guardar
               </button>

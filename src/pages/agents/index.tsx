@@ -4,6 +4,8 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import AgentInterface from '../../components/AgentInterface';
 import AgentsHeader from '../../components/Agents/AgentsHeader';
 import AgentsList from '../../components/Agents/AgentsList';
+import PageHeader from '../../components/common/PageHeader';
+import { FaMagic } from 'react-icons/fa';
 import { useAppContext } from '../../contexts/AppContext';
 import { agentDatabaseService } from '../../services/database/agentService';
 import type { Agent } from '../../types/database';
@@ -22,7 +24,7 @@ export default function AgentsPage() {
 
   const fetchAgents = async () => {
     if (!authData?.company_id) return;
-    
+
     setLoading(true);
     try {
       const agentsData = await agentDatabaseService.getAllAgents(authData.company_id);
@@ -47,7 +49,7 @@ export default function AgentsPage() {
 
   const handleDeleteAgent = async (id: string) => {
     if (!authData?.company_id) return;
-    
+
     if (window.confirm('¿Estás seguro de que deseas eliminar este agente?')) {
       try {
         await agentDatabaseService.deleteAgent(id);
@@ -67,21 +69,38 @@ export default function AgentsPage() {
     <ProtectedRoute moduleKey={'agents'}>
       <DashboardLayout>
         <div className='w-full md:w-3/4 mx-auto'>
-          <AgentsHeader 
-            showChat={showChat} 
-            onToggleView={toggleView} 
-            onCreateAgent={handleCreateAgent}
-            canCreate={canCreate}
+          <PageHeader
+            title="Agentes"
+            description="Gestiona y chatea con tus agentes de IA personalizados."
+            actions={
+              <div className="flex gap-3">
+                <button
+                  onClick={toggleView}
+                  className="px-5 py-2.5 bg-theme-component border border-white/10 rounded-xl text-theme-primary hover:border-primary-color/50 transition-all btn-modern text-sm font-medium flex items-center gap-2"
+                >
+                  <FaMagic className={showChat ? 'text-primary-color' : ''} />
+                  {showChat ? 'Ver Lista' : 'Ir al Chat'}
+                </button>
+                {canCreate && (
+                  <button
+                    onClick={handleCreateAgent}
+                    className="px-5 py-2.5 bg-primary-color text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(18,216,250,0.3)] transition-all btn-modern text-sm"
+                  >
+                    Nuevo Agente
+                  </button>
+                )}
+              </div>
+            }
           />
 
           {showChat ? (
             <AgentInterface />
           ) : (
-            <AgentsList 
-              agents={agents} 
-              loading={loading} 
-              onEdit={handleEditAgent} 
-              onDelete={handleDeleteAgent} 
+            <AgentsList
+              agents={agents}
+              loading={loading}
+              onEdit={handleEditAgent}
+              onDelete={handleDeleteAgent}
             />
           )}
         </div>

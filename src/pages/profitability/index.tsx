@@ -34,37 +34,41 @@ export default function Profitability() {
   return (
     <ProtectedRoute moduleKey={'profitability'}>
       <DashboardLayout>
-      <div className="max-w-full mx-auto">
-        <PageHeader
-          title={
-            <>
-              <FaChartLine className="inline-block mr-2 mb-1" />
-              Control de Rentabilidad
-            </>
-          }
-          description="Monitorea y analiza las ventas, gastos y rentabilidad de tu negocio."
-        />
-        <div className="mb-6">
-          <SalesGrafic periodDays={14} />
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {modules.map((module) => (
-            <Link key={module.path} href={module.path}>
-              <div className="bg-gray-800 p-6 rounded-lg shadow-md cursor-pointer hover:bg-gray-700 transform hover:-translate-y-0.5 transition-all duration-200">
-                <div className="flex flex-col gap-4 items-center">
-                  <module.icon className="w-8 h-8 text-blue-500" />
-                  <h2 className="text-xl font-bold">
-                    {module.name}
-                  </h2>
-                  <p className="text-gray-100 text-center">
-                    {module.description}
-                  </p>
+        <div className="max-w-full mx-auto">
+          <PageHeader
+            title={
+              <>
+                <FaChartLine className="inline-block mr-2 mb-1" />
+                Control de Rentabilidad
+              </>
+            }
+            description="Monitorea y analiza las ventas, gastos y rentabilidad de tu negocio."
+          />
+          <div className="mb-6">
+            <SalesGrafic periodDays={14} />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {modules.map((module) => (
+              <Link key={module.path} href={module.path}>
+                <div className="soft-card p-8 group cursor-pointer transition-all duration-300">
+                  <div className="flex flex-col gap-5 items-center">
+                    <div className="p-4 rounded-2xl bg-primary-color/10 group-hover:bg-primary-color/20 transition-colors">
+                      <module.icon className="w-8 h-8 text-primary-color group-hover:scale-110 transition-transform" />
+                    </div>
+                    <div className="text-center">
+                      <h2 className="text-xl font-bold text-theme-primary mb-2 group-hover:text-primary-color transition-colors">
+                        {module.name}
+                      </h2>
+                      <p className="text-theme-secondary text-sm leading-relaxed">
+                        {module.description}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
       </DashboardLayout>
     </ProtectedRoute>
   );

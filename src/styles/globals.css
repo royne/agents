@@ -8,17 +8,19 @@
 
 /* Tema oscuro (predeterminado) */
 .dark-theme {
-  --bg-primary: #0B0F19;
-  --bg-secondary: #0F172A;
-  --bg-tertiary: #1E293B;
-  --bg-component: #111827;
-  --bg-component-hover: #1F2937;
-  --bg-component-active: #374151;
-  --text-primary: #ffffff;
-  --text-secondary: #d1d5db;
-  --text-tertiary: #9ca3af;
-  --border-color: #374151;
-  --assistant-bubble: rgba(59, 130, 246, 0.3);
+  --bg-primary: #05070A;
+  --bg-secondary: #0A0F1A;
+  --bg-tertiary: #111827;
+  --bg-component: #111A2E;
+  --bg-component-hover: #1E293B;
+  --bg-component-active: #334155;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #64748B;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --assistant-bubble: rgba(18, 216, 250, 0.1);
+  --soft-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  --glow-shadow: 0 0 20px -5px rgba(18, 216, 250, 0.3);
 }
 
 /* Tema personalizado (basado en el color primario) */
@@ -109,6 +111,61 @@ body {
 
 .border-theme-color {
   border-color: var(--border-color) !important;
+}
+
+/* Clases para el nuevo diseño suave */
+.soft-card {
+  background-color: var(--bg-component);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  box-shadow: var(--soft-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.soft-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(18, 216, 250, 0.3), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.soft-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(18, 216, 250, 0.2);
+  box-shadow: var(--glow-shadow), var(--soft-shadow);
+}
+
+.soft-card:hover::before {
+  opacity: 1;
+}
+
+.glass-effect {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: rgba(17, 26, 46, 0.8);
+}
+
+.btn-modern {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-modern:hover {
+  filter: brightness(110%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(18, 216, 250, 0.2);
+}
+
+.btn-modern:active {
+  transform: translateY(0);
 }
 
 .bg-primary-color {

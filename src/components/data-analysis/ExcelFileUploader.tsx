@@ -53,12 +53,12 @@ const ExcelFileUploader: React.FC<ExcelFileUploaderProps> = ({
     try {
       // Utilizar el servicio para leer y procesar el archivo Excel
       let jsonData = await ExcelAnalysisService.readExcelFile(file);
-      
+
       // Verificar que los datos sean válidos antes de procesarlos
       if (!Array.isArray(jsonData) || jsonData.length === 0) {
         throw new Error('El archivo no contiene datos válidos');
       }
-      
+
       // Pasar los datos al componente padre
       onDataLoaded(jsonData);
     } catch (error: any) {
@@ -79,9 +79,9 @@ const ExcelFileUploader: React.FC<ExcelFileUploaderProps> = ({
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (disabled) return;
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const selectedFile = e.dataTransfer.files[0];
       // Verificar que sea un archivo Excel
@@ -114,16 +114,19 @@ const ExcelFileUploader: React.FC<ExcelFileUploaderProps> = ({
   const isDragActive = false;
 
   return (
-    <div className="bg-theme-component p-6 rounded-lg shadow-md mb-6">
-      <h2 className="text-xl font-semibold mb-4 flex items-center">
-        <FaFileExcel className="mr-2 text-primary-color" /> Cargador de Archivos
+    <div className="soft-card p-8 mb-8">
+      <h2 className="text-xl font-bold mb-6 flex items-center">
+        <div className="p-2 bg-primary-color/10 rounded-lg mr-3">
+          <FaFileExcel className="text-primary-color" />
+        </div>
+        Cargador de Archivos
       </h2>
 
       <div className="mb-6">
         <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-4">
           <div className="flex-1">
-            <div 
-              className={`border-2 border-dashed rounded-lg p-6 text-center ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-theme-component-hover'} transition-colors ${isDragActive ? 'border-primary-color bg-theme-component-hover' : 'border-theme-border'}`}
+            <div
+              className={`border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-300 ${disabled ? 'opacity-60 cursor-not-allowed border-white/5' : 'cursor-pointer hover:bg-primary-color/5 hover:border-primary-color/50 border-white/10'} ${isDragActive ? 'border-primary-color bg-primary-color/10' : ''}`}
               onDragOver={!disabled ? handleDragOver : undefined}
               onDragEnter={!disabled ? handleDragEnter : undefined}
               onDragLeave={!disabled ? handleDragLeave : undefined}
@@ -137,12 +140,14 @@ const ExcelFileUploader: React.FC<ExcelFileUploaderProps> = ({
                 accept=".xlsx,.xls"
                 className="hidden"
               />
-              <FaUpload className="mx-auto text-3xl mb-2 text-gray-400" />
-              <p className="text-theme-secondary mb-1">
-                {file ? file.name : 'Haz clic para seleccionar un archivo Excel'}
+              <div className="mb-4 inline-flex p-4 bg-white/5 rounded-full ring-8 ring-white/5 group-hover:ring-primary-color/10 transition-all">
+                <FaUpload className="text-3xl text-theme-tertiary" />
+              </div>
+              <p className="text-theme-primary font-bold mb-2">
+                {file ? file.name : 'Suelta tu archivo aquí o haz clic para buscar'}
               </p>
-              <p className="text-xs text-theme-tertiary">
-                Formatos soportados: .xlsx, .xls
+              <p className="text-xs text-theme-tertiary font-medium">
+                Solo archivos .xlsx o .xls de hasta 25MB
               </p>
             </div>
           </div>
@@ -150,25 +155,27 @@ const ExcelFileUploader: React.FC<ExcelFileUploaderProps> = ({
 
         <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4">
           {showTypeSelector && (
-            <div className="flex space-x-4">
+            <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
               <button
-                className={`flex items-center px-4 py-2 rounded-md ${analysisType === 'orders' ? 'bg-primary-color text-white' : 'bg-gray-200 text-gray-700'}`}
+                className={`flex items-center px-5 py-2.5 rounded-lg text-sm font-bold transition-all ${analysisType === 'orders' ? 'bg-primary-color text-black shadow-lg shadow-primary-color/20' : 'text-theme-tertiary hover:text-theme-primary'}`}
                 onClick={() => handleAnalysisTypeChange('orders')}
               >
-                <FaShoppingCart className="mr-2" /> Por Órdenes
+                <FaShoppingCart className="mr-2" /> Órdenes
               </button>
               <button
-                className={`flex items-center px-4 py-2 rounded-md ${analysisType === 'products' ? 'bg-primary-color text-white' : 'bg-gray-200 text-gray-700'}`}
+                className={`flex items-center px-5 py-2.5 rounded-lg text-sm font-bold transition-all ${analysisType === 'products' ? 'bg-primary-color text-black shadow-lg shadow-primary-color/20' : 'text-theme-tertiary hover:text-theme-primary'}`}
                 onClick={() => handleAnalysisTypeChange('products')}
               >
-                <FaBoxOpen className="mr-2" /> Por Productos
+                <FaBoxOpen className="mr-2" /> Productos
               </button>
             </div>
           )}
 
+          <div className="flex-grow"></div>
+
           <button
             onClick={handleUpload}
-            className={`mt-4 px-4 py-2 rounded-md bg-primary-color text-white flex items-center justify-center ${(file && !disabled) ? '' : 'opacity-50 cursor-not-allowed'}`}
+            className={`px-8 py-3 rounded-xl font-bold text-sm tracking-widest uppercase flex items-center justify-center transition-all ${isLoading ? 'bg-white/10 text-theme-tertiary' : 'bg-primary-color text-black hover:shadow-[0_0_20px_rgba(18,216,250,0.4)] btn-modern'} ${(file && !disabled) ? '' : 'opacity-50 cursor-not-allowed'}`}
             disabled={!file || disabled || isLoading}
           >
             {isLoading ? (

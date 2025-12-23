@@ -8,11 +8,11 @@ import { campaignBudgetChangeService } from '../../services/database/campaignBud
 import { dailySummaryService } from '../../services/database/dailySummaryService';
 import { useAppContext } from '../../contexts/AppContext';
 import type { Campaign } from '../../types/database';
-import { 
-  CampaignDailyRecord, 
-  CampaignBudgetChange, 
+import {
+  CampaignDailyRecord,
+  CampaignBudgetChange,
   DailySummary,
-  CampaignWithDailyData 
+  CampaignWithDailyData
 } from '../../types/campaign-control';
 
 import DateSelector from '../../components/campaign-control/DateSelector';
@@ -59,7 +59,7 @@ export default function CampaignControl() {
           const campaignsData = await campaignDatabaseService.getCampaigns(authData.company_id);
           const filterCampaigns = campaignsData.filter(campaign => campaign.status === true);
           setCampaigns(filterCampaigns);
-          
+
           const summary = await dailySummaryService.getDailySummary(authData.company_id, selectedDate);
           if (summary) {
             setDailySummary(summary);
@@ -69,7 +69,7 @@ export default function CampaignControl() {
                 authData.company_id,
                 selectedDate
               );
-              
+
               if (generatedSummary) {
                 setDailySummary(generatedSummary);
               }
@@ -77,13 +77,13 @@ export default function CampaignControl() {
               console.error('Error al generar resumen diario automáticamente:', summaryError);
             }
           }
-          
+
           const recentChangesData = await campaignBudgetChangeService.getRecentChanges(authData.company_id, 20);
 
           if (recentChangesData.length > 0) {
             setRecentChanges(recentChangesData);
           }
-          
+
         } catch (error) {
           console.error('Error al cargar datos del dashboard:', error);
         } finally {
@@ -91,7 +91,7 @@ export default function CampaignControl() {
         }
       }
     };
-    
+
     loadDashboardData();
   }, [authData, selectedDate]);
 
@@ -108,7 +108,7 @@ export default function CampaignControl() {
         }
       }
     };
-    
+
     loadDailyRecords();
   }, [authData, selectedDate]);
 
@@ -118,25 +118,25 @@ export default function CampaignControl() {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayString = yesterday.toISOString().split('T')[0];
-      
+
       console.log('campaignDailyRecords', campaignDailyRecords);
       console.log('campaigns', campaigns);
       const combinedData: CampaignWithDailyData[] = campaigns.map(campaign => {
         const dailyRecord = campaignDailyRecords.find(
           record => record.campaign_id === campaign.id && record.date === selectedDate
         );
-        
+
         const lastChange = recentChanges.find(change => change.campaign_id === campaign.id);
-        
-        const campaignStatus = typeof campaign.status === 'boolean' ? 
-          (campaign.status ? 'active' : 'paused') : 
+
+        const campaignStatus = typeof campaign.status === 'boolean' ?
+          (campaign.status ? 'active' : 'paused') :
           campaign.status;
-          
-        const needsUpdate = 
-          campaignStatus === 'active' && 
+
+        const needsUpdate =
+          campaignStatus === 'active' &&
           selectedDate <= new Date().toISOString().split('T')[0] &&
           !dailyRecord;
-        
+
         const campaignDailyData: CampaignDailyRecord = dailyRecord || {
           id: '',
           campaign_id: campaign.id || '',
@@ -147,11 +147,11 @@ export default function CampaignControl() {
           units_sold: 0,
           revenue: 0,
           sales: 0,
-          status: typeof campaign.status === 'boolean' ? 
-            (campaign.status ? 'active' : 'paused') : 
+          status: typeof campaign.status === 'boolean' ?
+            (campaign.status ? 'active' : 'paused') :
             (campaign.status === 'active' ? 'active' : 'paused')
         };
-        
+
         return {
           ...campaign,
           dailyData: campaignDailyData,
@@ -159,7 +159,7 @@ export default function CampaignControl() {
           needsUpdate
         };
       });
-      
+
       setCampaignsWithData(combinedData);
     }
   }, [campaigns, recentChanges, campaignDailyRecords, selectedDate]);
@@ -176,7 +176,7 @@ export default function CampaignControl() {
           authData.company_id,
           selectedDate
         );
-        
+
         if (summary) {
           setDailySummary(summary);
         }
@@ -197,7 +197,7 @@ export default function CampaignControl() {
           dailySummary.id,
           adjustments
         );
-        
+
         if (updatedSummary) {
           setDailySummary(updatedSummary);
         }
@@ -210,43 +210,43 @@ export default function CampaignControl() {
   return (
     <ProtectedRoute moduleKey={'campaign-control'}>
       <DashboardLayout>
-      <PageHeader 
-        title="Control de Campañas"
-        description="Monitorea el rendimiento diario y administra tus campañas publicitarias"
-      />
-      
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="text-2xl text-gray-500">Cargando datos...</div>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {/* Selector de fecha */}
-          <DateSelector 
-            selectedDate={selectedDate} 
-            onDateChange={handleDateChange} 
-          />
-          
-          {/* Contenedor de tres columnas para Resumen Diario, Últimos Cambios y Pendientes de Registrar */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Resumen del día */}
-            <DailySummaryComponent 
-              summary={dailySummary} 
-              onGenerateSummary={handleGenerateSummary} 
-              onSaveAdjustments={handleSaveAdjustments}
-            />
-            
-            {/* Últimos cambios importantes */}
-            <RecentChanges changes={recentChanges} />
-            
-            {/* Campañas que necesitan actualización */}
-            <PendingCampaigns campaigns={campaignsWithData} />
+        <PageHeader
+          title="Control de Campañas"
+          description="Monitorea el rendimiento diario y administra tus campañas publicitarias"
+        />
+
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="w-12 h-12 border-4 border-primary-color border-t-transparent animate-spin rounded-full shadow-[0_0_20px_rgba(18,216,250,0.2)]"></div>
           </div>
-          
-          {/* Todas las campañas */}
-          <CampaignsList campaigns={campaignsWithData} />
-        </div>
-      )}
+        ) : (
+          <div className="space-y-6">
+            {/* Selector de fecha */}
+            <DateSelector
+              selectedDate={selectedDate}
+              onDateChange={handleDateChange}
+            />
+
+            {/* Contenedor de tres columnas para Resumen Diario, Últimos Cambios y Pendientes de Registrar */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Resumen del día */}
+              <DailySummaryComponent
+                summary={dailySummary}
+                onGenerateSummary={handleGenerateSummary}
+                onSaveAdjustments={handleSaveAdjustments}
+              />
+
+              {/* Últimos cambios importantes */}
+              <RecentChanges changes={recentChanges} />
+
+              {/* Campañas que necesitan actualización */}
+              <PendingCampaigns campaigns={campaignsWithData} />
+            </div>
+
+            {/* Todas las campañas */}
+            <CampaignsList campaigns={campaignsWithData} />
+          </div>
+        )}
       </DashboardLayout>
     </ProtectedRoute>
   );

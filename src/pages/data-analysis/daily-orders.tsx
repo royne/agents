@@ -25,7 +25,7 @@ const DailyOrdersAnalysis = () => {
       <DashboardLayout>
         <FeatureGate feature={'data-analysis.daily-orders'}>
           <div className="mx-auto w-full">
-            <PageHeader 
+            <PageHeader
               title={<><FaChartBar className="inline-block mr-2" /> Análisis Diario de Órdenes por UTM</>}
               description="Sube el Excel del POS y analiza el rendimiento por campaña (UTM term) y anuncio (UTM content)."
               backLink="/data-analysis"
@@ -39,12 +39,14 @@ const DailyOrdersAnalysis = () => {
 
             {excelData && (
               <div className="space-y-8">
-                <div className="bg-theme-component p-6 rounded-lg shadow-md">
-                  <h2 className="text-xl font-semibold mb-4 flex items-center">
-                    <FaChartBar className="mr-2 text-primary-color" /> 
+                <div className="soft-card p-8">
+                  <h2 className="text-xl font-bold mb-6 flex items-center">
+                    <div className="p-2 bg-primary-color/10 rounded-lg mr-3">
+                      <FaChartBar className="text-primary-color" />
+                    </div>
                     Resultados del análisis UTM
                   </h2>
-                  
+
                   <DailyOrdersUTMViewer data={excelData} />
                 </div>
               </div>

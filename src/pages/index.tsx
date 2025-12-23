@@ -107,13 +107,13 @@ export default function Dashboard() {
       <div>
         <WelcomeBanner />
 
-        <div className="bg-theme-component p-6 rounded-lg shadow-md mb-10">
+        <div className="soft-card p-6 mb-10 overflow-visible">
           <div className="flex flex-col">
             <MentorQuote />
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold mb-6 border-l-4 border-primary-color pl-3">Módulos Disponibles</h2>
+        <h2 className="text-2xl font-bold mb-8 border-l-4 border-primary-color pl-4 tracking-tight">Módulos Disponibles</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {modules
@@ -127,23 +127,27 @@ export default function Dashboard() {
               const isDisabled = isRagModule && !isAdmin();
 
               const card = (
-                <div className={`bg-theme-component p-6 rounded-lg shadow-md ${!isDisabled ? 'cursor-pointer hover:bg-theme-component-hover transform hover:-translate-y-0.5' : 'opacity-70'} transition-all duration-200 relative card`}>
+                <div className={`soft-card p-8 ${!isDisabled ? 'cursor-pointer' : 'opacity-60 grayscale'} group card`}>
                   {isDisabled && (
-                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center z-10">
-                      <div className="bg-theme-component p-3 rounded-lg shadow-lg flex items-center space-x-2">
-                        <FaLock className="text-yellow-500" />
-                        <span className="text-white text-sm">Solo administradores</span>
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
+                      <div className="bg-theme-component/90 p-4 rounded-xl shadow-2xl flex items-center space-x-3 border border-white/10">
+                        <FaLock className="text-yellow-500 text-lg" />
+                        <span className="text-white font-medium">Solo administradores</span>
                       </div>
                     </div>
                   )}
-                  <div className="flex flex-col gap-4 items-center">
-                    <module.icon className={`w-8 h-8 ${isDisabled ? 'text-theme-tertiary' : 'text-primary-color card-icon'}`} />
-                    <h2 className="text-xl font-bold text-theme-primary">
-                      {module.name}
-                    </h2>
-                    <p className="text-theme-secondary text-center">
-                      {module.description}
-                    </p>
+                  <div className="flex flex-col gap-5 items-center">
+                    <div className={`p-4 rounded-2xl bg-gradient-to-br from-primary-color/10 to-transparent group-hover:from-primary-color/20 transition-all duration-300 ${isDisabled ? '' : 'shadow-inner'}`}>
+                      <module.icon className={`w-10 h-10 ${isDisabled ? 'text-theme-tertiary' : 'text-primary-color card-icon group-hover:scale-110 transition-transform duration-300'}`} />
+                    </div>
+                    <div className="text-center">
+                      <h2 className="text-xl font-bold text-theme-primary mb-2 group-hover:text-primary-color transition-colors">
+                        {module.name}
+                      </h2>
+                      <p className="text-theme-secondary text-sm leading-relaxed max-w-[200px]">
+                        {module.description}
+                      </p>
+                    </div>
                   </div>
                 </div>
               );

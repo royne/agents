@@ -15,17 +15,17 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   actions
 }) => {
   return (
-    <div className="flex justify-between items-center mb-6">
-      <div>
-        <h1 className="text-2xl mb-2 border-l-4 border-primary-color pl-3">{title}</h1>
-        <p className="text-theme-secondary">
+    <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-10 gap-4">
+      <div className="relative">
+        <h1 className="text-3xl font-bold mb-2 border-l-4 border-primary-color pl-4 tracking-tight text-theme-primary">{title}</h1>
+        <p className="text-theme-secondary text-sm md:text-base opacity-80">
           {description}
         </p>
       </div>
-      <div className="flex space-x-2">
+      <div className="flex gap-3">
         {backLink && (
           <Link href={backLink}>
-            <button className="px-4 py-2 bg-theme-component rounded-lg shadow-sm text-theme-primary hover:bg-theme-component-hover hover:shadow-md transition-all flex items-center">
+            <button className="px-5 py-2.5 bg-theme-component border border-white/10 rounded-xl text-theme-primary hover:border-primary-color/50 transition-all flex items-center btn-modern text-sm font-medium">
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>

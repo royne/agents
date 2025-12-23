@@ -43,22 +43,22 @@ const mentorQuotes = [
 
 const MentorQuote: React.FC = () => {
   const [quote, setQuote] = useState<{ quote: string; author: string }>(mentorQuotes[0]);
-  
+
   // Seleccionar una frase aleatoria al montar el componente
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * mentorQuotes.length);
     setQuote(mentorQuotes[randomIndex]);
   }, []);
-  
+
   return (
-    <blockquote className="relative mx-auto max-w-2xl text-center">
-      <FaQuoteLeft className="text-3xl text-primary-color opacity-30 absolute top-0 left-0 transform -translate-x-2" />
-      <p className="font-serif italic text-xl text-theme-primary px-10 py-4 relative z-10 leading-relaxed">
+    <blockquote className="relative mx-auto max-w-2xl text-center py-6">
+      <FaQuoteLeft className="text-4xl text-primary-color/20 absolute top-0 left-0" />
+      <p className="text-xl text-theme-primary px-12 relative z-10 leading-relaxed font-light tracking-wide">
         {quote.quote}
       </p>
-      <FaQuoteRight className="text-3xl text-primary-color opacity-30 absolute bottom-0 right-0 transform translate-x-2" />
-      <footer className="mt-3">
-        <cite className="text-primary-color font-medium not-italic text-lg">— {quote.author}</cite>
+      <FaQuoteRight className="text-4xl text-primary-color/20 absolute bottom-0 right-0" />
+      <footer className="mt-6">
+        <cite className="text-primary-color font-semibold not-italic text-lg tracking-wider uppercase">— {quote.author}</cite>
       </footer>
     </blockquote>
   );
