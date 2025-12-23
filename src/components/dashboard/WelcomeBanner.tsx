@@ -23,7 +23,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ userName }) => {
   const displayName = userName || authData?.name || (authData?.role === 'admin' ? 'Admin' : 'Usuario');
 
   return (
-    <div className="soft-card p-10 md:p-14 mb-10 overflow-hidden relative border-none group">
+    <div className="soft-card p-8 md:p-8 mb-10 overflow-hidden relative border-none group">
       {/* Mesh Gradient Background */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary-color/10 rounded-full blur-[120px] -mr-64 -mt-64 animate-pulse duration-[10s]"></div>
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px] -ml-48 -mb-48"></div>
@@ -33,7 +33,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ userName }) => {
         <div className="flex-1 text-center md:text-left">
           <h1 className="text-4xl md:text-6xl font-black !text-white mb-6 tracking-tight leading-[1.1]">
             {getCurrentGreeting()}, <br />
-            <span className="bg-gradient-to-r from-primary-color via-blue-400 to-white bg-clip-text text-transparent animate-gradient-x">{displayName}</span> 👋
+            <span className="bg-gradient-to-r from-primary-color via-blue-400 to-white bg-clip-text animate-gradient-x">{displayName}</span> 👋
           </h1>
           <p className="text-gray-400 text-lg md:text-xl font-medium max-w-xl mx-auto md:mx-0">
             Bienvenido a <span className="text-white font-bold tracking-widest uppercase text-base">DROPLAB</span>. <br className="hidden md:block" />
