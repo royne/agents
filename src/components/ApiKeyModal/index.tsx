@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 interface ApiKeyModalProps {
   isOpen: boolean;
-  provider: 'groq' | 'openai';
+  provider: 'groq' | 'openai' | 'google';
   onSave: (apiKey: string) => void;
   onClose?: () => void;
 }
@@ -20,10 +20,14 @@ export const ApiKeyModal = ({ isOpen, provider, onSave, onClose }: ApiKeyModalPr
     }
   };
 
-  const title = provider === 'groq' ? 'Ingresa tu API Key de Groq' : 'Ingresa tu API Key de OpenAI';
-  const description = provider === 'groq'
-    ? 'Para usar el chat, necesitas tu API Key de Groq. La clave se guardará asociada a tu perfil (tabla profiles) y se usará solo para tus solicitudes.'
-    : 'Para usar RAG, necesitas tu API Key de OpenAI (embeddings). La clave se guardará asociada a tu perfil (tabla profiles) y se usará solo para tus solicitudes.';
+  const title =
+    provider === 'groq' ? 'Ingresa tu API Key de Groq' :
+      provider === 'openai' ? 'Ingresa tu API Key de OpenAI' : 'Ingresa tu API Key de Google (Gemini)';
+
+  const description =
+    provider === 'groq' ? 'Para usar el chat, necesitas tu API Key de Groq. La clave se guardará asociada a tu perfil y se usará solo para tus solicitudes.' :
+      provider === 'openai' ? 'Para usar RAG, necesitas tu API Key de OpenAI (embeddings). La clave se guardará asociada a tu perfil y se usará solo para tus solicitudes.' :
+        'Para usar el Agente de Imágenes, necesitas tu API Key de Google de la consola de AI Studio. La clave se guardará asociada a tu perfil y se usará solo para tus solicitudes.';
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

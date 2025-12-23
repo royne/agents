@@ -3,22 +3,24 @@ import { useAppContext } from '../contexts/AppContext';
 import { supabase } from '../lib/supabase';
 
 export const useApiKey = () => {
-  const { apiKey: ctxGroqKey, openaiApiKey: ctxOpenaiKey, setApiKey: setContextApiKey, setOpenaiApiKey: setContextOpenaiApiKey, authData } = useAppContext();
+  const { apiKey: ctxGroqKey, openaiApiKey: ctxOpenaiKey, googleAiKey: ctxGoogleKey, setApiKey: setContextApiKey, setOpenaiApiKey: setContextOpenaiApiKey, setGoogleAiKey: setContextGoogleKey, authData } = useAppContext();
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [openaiApiKey, setOpenaiApiKey] = useState<string | null>(null);
+  const [googleAiKey, setGoogleAiKey] = useState<string | null>(null);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [modalProvider, setModalProvider] = useState<'groq' | 'openai' | null>(null);
+  const [modalProvider, setModalProvider] = useState<'groq' | 'openai' | 'google' | null>(null);
 
   useEffect(() => {
     if (!authData?.isAuthenticated) return;
     setApiKey(ctxGroqKey || null);
     setOpenaiApiKey(ctxOpenaiKey || null);
+    setGoogleAiKey(ctxGoogleKey || null);
     // Importante: NO abrir modal automáticamente; se abrirá bajo demanda al usar Chat/RAG
-  }, [authData?.isAuthenticated, ctxGroqKey, ctxOpenaiKey]);
+  }, [authData?.isAuthenticated, ctxGroqKey, ctxOpenaiKey, ctxGoogleKey]);
 
-  const openApiKeyModal = (provider: 'groq' | 'openai') => {
+  const openApiKeyModal = (provider: 'groq' | 'openai' | 'google') => {
     setModalProvider(provider);
     setIsApiKeyModalOpen(true);
     setError(null);
@@ -104,6 +106,43 @@ export const useApiKey = () => {
     }
   };
 
+  const saveGoogleAiKey = async (key: string) => {
+    setLoading(true);
+    try {
+      setError(null);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No session');
+      const { error } = await supabase
+        .from('profiles')
+        .update({ google_ai_key: key })
+        .eq('user_id', session.user.id);
+      if (error) throw error;
+      setGoogleAiKey(key);
+      if (setContextGoogleKey) setContextGoogleKey(key);
+      closeApiKeyModal();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearGoogleAiKey = async () => {
+    setLoading(true);
+    try {
+      setError(null);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No session');
+      const { error } = await supabase
+        .from('profiles')
+        .update({ google_ai_key: null })
+        .eq('user_id', session.user.id);
+      if (error) throw error;
+      setGoogleAiKey(null);
+      if (setContextGoogleKey) setContextGoogleKey('');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     apiKey,
     openaiApiKey,
@@ -115,6 +154,9 @@ export const useApiKey = () => {
     clearApiKey,
     saveOpenaiApiKey,
     clearOpenaiApiKey,
+    googleAiKey,
+    saveGoogleAiKey,
+    clearGoogleAiKey,
     loading,
     error,
   };

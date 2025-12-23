@@ -1,6 +1,6 @@
 import React from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { FaUsers, FaDatabase, FaTruck, FaShieldAlt } from 'react-icons/fa';
+import { FaUsers, FaDatabase, FaTruck, FaShieldAlt, FaMagic } from 'react-icons/fa';
 import Link from 'next/link';
 import Head from 'next/head';
 import ProtectedRoute from '../../components/auth/ProtectedRoute';
@@ -34,6 +34,13 @@ const adminModules = [
     icon: FaShieldAlt,
     description: 'Configuración de seguridad',
     path: '/admin/security',
+    superAdminOnly: true
+  },
+  {
+    name: 'Configuración Agente Pro',
+    icon: FaMagic,
+    description: 'Gestionar plantillas y modelos de imágenes',
+    path: '/admin/image-config',
     superAdminOnly: true
   }
 ];

@@ -1,6 +1,6 @@
 import React from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase, FaLock, FaDollarSign, FaBrain, FaCalendarAlt, FaAd } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase, FaLock, FaDollarSign, FaBrain, FaCalendarAlt, FaAd, FaMagic } from 'react-icons/fa';
 import Link from 'next/link';
 import { useAppContext } from '../contexts/AppContext';
 import type { ModuleKey } from '../constants/plans';
@@ -79,6 +79,13 @@ const modules: HomeModule[] = [
     description: 'Configuración del sistema',
     path: '/settings',
     moduleKey: 'settings'
+  },
+  {
+    name: 'Agente Pro',
+    icon: FaMagic,
+    description: 'Generación de imágenes con Imagen 3 Pro',
+    path: '/image-pro',
+    moduleKey: 'image-pro'
   },
   {
     name: 'Master Chat',

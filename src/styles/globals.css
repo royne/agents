@@ -3,17 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --primary-color: #3B82F6;
+  --primary-color: #12D8FA;
 }
 
 /* Tema oscuro (predeterminado) */
 .dark-theme {
-  --bg-primary: #0B0E14;
-  --bg-secondary: #1a1a1a;
-  --bg-tertiary: #2d2d2d;
-  --bg-component: #1f2937;
-  --bg-component-hover: #374151;
-  --bg-component-active: #4b5563;
+  --bg-primary: #0B0F19;
+  --bg-secondary: #0F172A;
+  --bg-tertiary: #1E293B;
+  --bg-component: #111827;
+  --bg-component-hover: #1F2937;
+  --bg-component-active: #374151;
   --text-primary: #ffffff;
   --text-secondary: #d1d5db;
   --text-tertiary: #9ca3af;

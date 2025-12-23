@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain, FaUsersCog, FaAd, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain, FaUsersCog, FaAd, FaChevronLeft, FaChevronRight, FaMagic } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
 import type { ModuleKey } from '../../constants/plans';
@@ -16,6 +16,7 @@ const menuItems: MenuItem[] = [
   { name: 'Logística', icon: FaTruck, path: '/logistic', moduleKey: 'logistic' },
   { name: 'Análisis de Datos', icon: FaBrain, path: '/data-analysis', moduleKey: 'data-analysis' },
   { name: 'Manager DB', icon: FaDatabase, path: '/dbmanager', moduleKey: 'dbmanager' },
+  { name: 'Agente Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
   { name: 'Master Chat', icon: FaRobot, path: '/chat', moduleKey: 'chat' },
   { name: 'Administración', icon: FaUsersCog, path: '/admin', adminOnly: true, showForAllAdmins: true, moduleKey: 'admin' },
   { name: 'Configuración', icon: FaCog, path: '/settings', moduleKey: 'settings' },
@@ -34,6 +35,7 @@ const mobileMenuItems: MobileMenuItem[] = [
   { name: 'Agentes', icon: FaComments, path: '/agents', moduleKey: 'agents' },
   { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability', moduleKey: 'profitability' },
   { name: 'Campañas', icon: FaAd, path: '/campaign-control', moduleKey: 'campaign-control' },
+  { name: 'Agente Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
 ];
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {

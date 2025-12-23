@@ -12,7 +12,8 @@ type ThemeConfig = {
 type AppContextType = {
   apiKey: string | null;
   openaiApiKey: string | null;
-  authData: { 
+  googleAiKey: string | null;
+  authData: {
     isAuthenticated: boolean;
     company_id?: string;
     role?: string;
@@ -23,6 +24,7 @@ type AppContextType = {
   themeConfig: ThemeConfig;
   setApiKey: (key: string | null) => void;
   setOpenaiApiKey: (key: string | null) => void;
+  setGoogleAiKey: (key: string | null) => void;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAdmin: () => boolean;
@@ -38,7 +40,8 @@ const AppContext = createContext<AppContextType>({} as AppContextType);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [openaiApiKey, setOpenaiApiKey] = useState<string | null>(null);
-  const [authData, setAuthData] = useState<{ 
+  const [googleAiKey, setGoogleAiKey] = useState<string | null>(null);
+  const [authData, setAuthData] = useState<{
     isAuthenticated: boolean;
     company_id?: string;
     role?: string;
@@ -55,11 +58,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (session) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('company_id, role, name, plan, modules_override, groq_api_key, openai_api_key')
+          .select('company_id, role, name, plan, modules_override, groq_api_key, openai_api_key, google_ai_key')
           .eq('user_id', session.user.id)
           .single();
 
@@ -71,15 +74,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
           plan: (profile as any)?.plan as Plan | undefined,
           modulesOverride: (profile as any)?.modules_override || undefined,
         };
-        
+
         localStorage.setItem('auth_data', JSON.stringify(authData));
         setAuthData(authData);
         // Cargar API keys del perfil en el contexto
         setApiKey((profile as any)?.groq_api_key || null);
         setOpenaiApiKey((profile as any)?.openai_api_key || null);
+        setGoogleAiKey((profile as any)?.google_ai_key || null);
       }
     };
-    
+
     checkSession();
   }, []);
 
@@ -90,12 +94,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const parsedTheme = JSON.parse(storedTheme);
         setThemeConfig(parsedTheme);
-        
+
         // Aplicar el tema inmediatamente
         document.documentElement.style.setProperty('--primary-color', parsedTheme.primaryColor);
         document.documentElement.classList.toggle('dark-theme', parsedTheme.useDarkMode);
         document.documentElement.classList.toggle('custom-theme', !parsedTheme.useDarkMode);
-        
+
         // Aplicar clases adicionales si está en modo claro
         if (!parsedTheme.useDarkMode) {
           setTimeout(() => {
@@ -134,7 +138,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (data?.user) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('company_id, role, name, plan, modules_override, groq_api_key, openai_api_key')
+        .select('company_id, role, name, plan, modules_override, groq_api_key, openai_api_key, google_ai_key')
         .eq('user_id', data.user.id)
         .single();
 
@@ -146,12 +150,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         plan: (profile as any)?.plan as Plan | undefined,
         modulesOverride: (profile as any)?.modules_override || undefined,
       };
-      
+
       localStorage.setItem('auth_data', JSON.stringify(authData));
       setAuthData(authData);
       // Cargar API keys del perfil en el contexto
       setApiKey((profile as any)?.groq_api_key || null);
       setOpenaiApiKey((profile as any)?.openai_api_key || null);
+      setGoogleAiKey((profile as any)?.google_ai_key || null);
       return true;
     }
     return false;
@@ -164,6 +169,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // Limpiar API keys en memoria al cerrar sesión
     setApiKey(null);
     setOpenaiApiKey(null);
+    setGoogleAiKey(null);
     router.push('/auth/login');
   };
 
@@ -171,17 +177,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const isAdmin = (): boolean => {
     return authData?.role === 'admin' || authData?.role === 'superadmin';
   };
-  
+
   // Función para verificar si el usuario es superadministrador
   const isSuperAdmin = (): boolean => {
     return authData?.role === 'superadmin';
   };
-  
+
   // Plan helpers
   const hasPlan = (required: Plan): boolean => {
     return isPlanAtLeast((authData?.plan as Plan) || 'basic', required);
   };
-  
+
   const canAccessModule = (module: ModuleKey): boolean => {
     // Módulo de administración sigue regido por rol
     if (module === 'admin') return isAdmin();
@@ -196,22 +202,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // Por ahora no tenemos overrides de features en DB; solo por plan
     return hasFeatureForPlan(plan, feature);
   };
-  
+
   // Función para actualizar la configuración del tema
   const updateTheme = (config: Partial<ThemeConfig>) => {
     const newConfig = { ...themeConfig, ...config };
     setThemeConfig(newConfig);
     localStorage.setItem('theme_config', JSON.stringify(newConfig));
-    
+
     // Aplicar los cambios de tema al documento
     document.documentElement.style.setProperty('--primary-color', newConfig.primaryColor);
-    
+
     // Aplicar clases de tema
     if (newConfig.useDarkMode !== themeConfig.useDarkMode) {
       // Cambio de modo oscuro/claro
       document.documentElement.classList.toggle('dark-theme', newConfig.useDarkMode);
       document.documentElement.classList.toggle('custom-theme', !newConfig.useDarkMode);
-      
+
       // Forzar actualización de componentes
       setTimeout(() => {
         const elements = document.querySelectorAll('.bg-gray-800, .bg-gray-700, .bg-gray-900, .text-white, .text-gray-300, .text-gray-400');
@@ -235,12 +241,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
             }
           }
         });
-        
+
         // Actualizar iconos activos
         document.querySelectorAll('.active-item').forEach(el => {
           (el as HTMLElement).style.color = newConfig.primaryColor;
         });
-        
+
         // Actualizar botones primarios
         document.querySelectorAll('.btn-primary').forEach(el => {
           (el as HTMLElement).style.backgroundColor = newConfig.primaryColor;
@@ -250,12 +256,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Solo cambio de color primario
       document.documentElement.classList.toggle('dark-theme', newConfig.useDarkMode);
       document.documentElement.classList.toggle('custom-theme', !newConfig.useDarkMode);
-      
+
       // Actualizar iconos activos
       document.querySelectorAll('.active-item').forEach(el => {
         (el as HTMLElement).style.color = newConfig.primaryColor;
       });
-      
+
       // Actualizar botones primarios
       document.querySelectorAll('.btn-primary').forEach(el => {
         (el as HTMLElement).style.backgroundColor = newConfig.primaryColor;
@@ -264,15 +270,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AppContext.Provider value={{ 
-      apiKey, 
+    <AppContext.Provider value={{
+      apiKey,
       openaiApiKey,
-      authData, 
+      googleAiKey,
+      authData,
       themeConfig,
-      setApiKey, 
+      setApiKey,
       setOpenaiApiKey,
-      login, 
-      logout, 
+      setGoogleAiKey,
+      login,
+      logout,
       isAdmin,
       isSuperAdmin,
       hasPlan,

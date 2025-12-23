@@ -7,6 +7,7 @@ export type FeatureKey =
   | 'data-analysis.daily-orders'
   | 'orders.management'
   | 'calculator.use'
+  | 'image-pro.full-access'
   ;
 
 // Habilitación de features por plan (por defecto)
@@ -26,6 +27,7 @@ export const DEFAULT_PLAN_FEATURES: Record<Plan, Partial<Record<FeatureKey, bool
     'data-analysis.daily-orders': true,
     'orders.management': true,
     'calculator.use': true,
+    'image-pro.full-access': true,
   },
   tester: {
     'agents.create': false,
