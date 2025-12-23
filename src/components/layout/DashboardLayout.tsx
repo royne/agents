@@ -17,6 +17,7 @@ const menuItems: MenuItem[] = [
   { name: 'Análisis de Datos', icon: FaBrain, path: '/data-analysis', moduleKey: 'data-analysis' },
   { name: 'Manager DB', icon: FaDatabase, path: '/dbmanager', moduleKey: 'dbmanager' },
   { name: 'Agente Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
+  { name: 'Landing PRO', icon: FaAd, path: '/landing-pro', moduleKey: 'landing-pro' },
   { name: 'Master Chat', icon: FaRobot, path: '/chat', moduleKey: 'chat' },
   { name: 'Administración', icon: FaUsersCog, path: '/admin', adminOnly: true, showForAllAdmins: true, moduleKey: 'admin' },
   { name: 'Configuración', icon: FaCog, path: '/settings', moduleKey: 'settings' },

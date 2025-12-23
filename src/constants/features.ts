@@ -8,6 +8,7 @@ export type FeatureKey =
   | 'orders.management'
   | 'calculator.use'
   | 'image-pro.full-access'
+  | 'landing-pro.full-access'
   ;
 
 // Habilitación de features por plan (por defecto)
@@ -28,6 +29,7 @@ export const DEFAULT_PLAN_FEATURES: Record<Plan, Partial<Record<FeatureKey, bool
     'orders.management': true,
     'calculator.use': true,
     'image-pro.full-access': true,
+    'landing-pro.full-access': true,
   },
   tester: {
     'agents.create': false,

@@ -12,6 +12,7 @@ export type ModuleKey =
   | 'chat'
   | 'settings'
   | 'image-pro'
+  | 'landing-pro'
   | 'admin';
 
 // Mapeo de módulos por plan (por defecto)
@@ -33,6 +34,7 @@ export const DEFAULT_PLAN_MODULES: Record<Plan, ModuleKey[]> = {
     'dbmanager',
     'chat',
     'image-pro',
+    'landing-pro',
     'settings',
     'admin',
   ],
