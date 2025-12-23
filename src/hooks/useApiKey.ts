@@ -114,7 +114,7 @@ export const useApiKey = () => {
       if (!session) throw new Error('No session');
       const { error } = await supabase
         .from('profiles')
-        .update({ google_ai_key: key })
+        .update({ google_api_key: key })
         .eq('user_id', session.user.id);
       if (error) throw error;
       setGoogleAiKey(key);
@@ -133,7 +133,7 @@ export const useApiKey = () => {
       if (!session) throw new Error('No session');
       const { error } = await supabase
         .from('profiles')
-        .update({ google_ai_key: null })
+        .update({ google_api_key: null })
         .eq('user_id', session.user.id);
       if (error) throw error;
       setGoogleAiKey(null);
