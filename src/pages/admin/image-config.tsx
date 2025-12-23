@@ -3,15 +3,65 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import { FaImage, FaPlus, FaTrash, FaSave, FaShieldAlt, FaCog, FaMagic } from 'react-icons/fa';
 import { useAppContext } from '../../contexts/AppContext';
 import { useApiKey } from '../../hooks/useApiKey';
+import { supabase } from '../../lib/supabase';
 import Head from 'next/head';
+import { useEffect } from 'react';
 
 export default function ImageConfigPage() {
-  const { isSuperAdmin } = useAppContext();
+  const { isSuperAdmin, authData } = useAppContext();
   const { googleAiKey, saveGoogleAiKey, clearGoogleAiKey } = useApiKey();
-  const [templates, setTemplates] = useState([
-    { id: '1', name: 'Minimalista Blanco', url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8' },
-    { id: '2', name: 'Dark Tech', url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f' }
-  ]);
+  const [templates, setTemplates] = useState<{ id: string, name: string, url: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [newTemplate, setNewTemplate] = useState({ name: '', url: '' });
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  const fetchTemplates = async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('image_pro_templates')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setTemplates(data);
+    }
+    setIsLoading(false);
+  };
+
+  const handleAddTemplate = async () => {
+    if (!newTemplate.name || !newTemplate.url) return;
+
+    const { error } = await supabase
+      .from('image_pro_templates')
+      .insert({
+        name: newTemplate.name,
+        url: newTemplate.url,
+        created_by: authData?.isAuthenticated ? (await supabase.auth.getUser()).data.user?.id : null
+      });
+
+    if (!error) {
+      fetchTemplates();
+      setNewTemplate({ name: '', url: '' });
+      setShowAddModal(false);
+    }
+  };
+
+  const handleDeleteTemplate = async (id: string) => {
+    if (!confirm('¿Estás seguro de eliminar esta plantilla?')) return;
+
+    const { error } = await supabase
+      .from('image_pro_templates')
+      .delete()
+      .eq('id', id);
+
+    if (!error) {
+      fetchTemplates();
+    }
+  };
 
   if (!isSuperAdmin()) {
     return (
@@ -43,7 +93,10 @@ export default function ImageConfigPage() {
                 <h2 className="text-xl font-bold text-theme-primary flex items-center gap-2">
                   <FaImage className="text-primary-color" /> Plantillas de Entrenamiento
                 </h2>
-                <button className="flex items-center gap-2 bg-primary-color text-black px-4 py-2 rounded-lg font-bold text-sm">
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="flex items-center gap-2 bg-primary-color text-black px-4 py-2 rounded-lg font-bold text-sm"
+                >
                   <FaPlus /> Nueva Plantilla
                 </button>
               </div>
@@ -54,7 +107,10 @@ export default function ImageConfigPage() {
                     <img src={tpl.url} alt={tpl.name} className="w-full h-40 object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                     <div className="p-3 flex justify-between items-center">
                       <span className="text-sm font-medium text-theme-primary">{tpl.name}</span>
-                      <button className="text-red-400 hover:text-red-300">
+                      <button
+                        onClick={() => handleDeleteTemplate(tpl.id)}
+                        className="text-red-400 hover:text-red-300"
+                      >
                         <FaTrash />
                       </button>
                     </div>
@@ -98,6 +154,44 @@ export default function ImageConfigPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal Nueva Plantilla */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowAddModal(false)}></div>
+          <div className="relative w-full max-w-md bg-theme-component border border-gray-800 rounded-2xl shadow-2xl p-6">
+            <h3 className="text-xl font-bold text-theme-primary mb-4">Añadir Plantilla Global</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-theme-tertiary uppercase mb-1 block">Nombre</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Estilo Clean Ecom"
+                  className="w-full bg-theme-primary p-3 rounded-xl border border-gray-700 text-theme-primary"
+                  value={newTemplate.name}
+                  onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-theme-tertiary uppercase mb-1 block">URL de Imagen (Base)</label>
+                <input
+                  type="text"
+                  placeholder="https://..."
+                  className="w-full bg-theme-primary p-3 rounded-xl border border-gray-700 text-theme-primary"
+                  value={newTemplate.url}
+                  onChange={(e) => setNewTemplate({ ...newTemplate, url: e.target.value })}
+                />
+              </div>
+              <button
+                onClick={handleAddTemplate}
+                className="w-full bg-primary-color text-black font-bold py-3 rounded-xl mt-2"
+              >
+                Crear Plantilla
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
