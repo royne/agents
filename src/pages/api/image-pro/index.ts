@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Obtener perfil para verificar plan y obtener API Key
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('role, plan, google_ai_key, image_gen_count')
+    .select('role, plan, google_api_key, image_gen_count')
     .eq('user_id', user.id)
     .single();
 
@@ -67,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Limpiar el token del body si existe
   if (req.body._authToken) delete req.body._authToken;
 
-  const apiKey = profile.google_ai_key;
+  const apiKey = profile.google_api_key;
   if (!apiKey) {
     return res.status(400).json({ error: 'Falta la Google AI Key en tu perfil.' });
   }
