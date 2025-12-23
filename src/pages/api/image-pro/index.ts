@@ -62,46 +62,54 @@ export default async function handler(req: NextRequest) {
     return NextResponse.json({ error: 'Falta la Google AI Key en tu perfil.' }, { status: 400 });
   }
 
-  // Parsear el body (en Edge se usa asincrónicamente)
+  // Parsear el body
   const body = await req.json();
-  const { prompt, referenceImage, productData, aspectRatio, isCorrection, previousImageUrl } = body;
+  const { 
+    prompt, 
+    referenceImage, // Puede ser el estilo anterior o el template
+    productData, 
+    aspectRatio, 
+    isCorrection, 
+    previousImageUrl // Usado como imagen de producto base o para edición
+  } = body;
 
   try {
-    // 1. Obtener plantillas globales para inspiración
-    const { data: globalTemplates } = await supabaseAdmin
-      .from('image_pro_templates')
-      .select('name, url')
-      .limit(3);
-
-    const inspirationNames = globalTemplates?.map((t: any) => t.name).join(', ') || 'profesional';
-
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-image-preview' });
 
     // Consolidar el prompt estratégico
-    let strategicPrompt = `Genera una imagen publicitaria de alta resolución para el producto: ${productData.name}. 
-    Contexto: ${productData.angle}. 
-    Público objetivo: ${productData.buyer}.
-    Instrucciones de diseño base: ${productData.details || 'Estilo profesional y limpio'}.
-    Inspiración global: Basado en estilos tipo ${inspirationNames}.
-    Relación de aspecto: ${aspectRatio}.`;
+    let strategicPrompt = `HIGH-END ADVERTISEMENT GENERATION
+    PRODUCT: ${productData.name}
+    CORE ANGLE: ${productData.angle}
+    TARGET AUDIENCE: ${productData.buyer}
+    DESIGN GUIDES: ${productData.details || 'Professional studio lighting'}
+    ASPECT RATIO: ${aspectRatio}
+    
+    CRITICAL INSTRUCTION: You MUST keep the EXACT IDENTITY of the product shown in the images. 
+    However, the ENVIRONMENT, BACKGROUND and COMPOSITION must follow the directive: ${prompt}`;
 
     if (isCorrection) {
-      strategicPrompt += `\nESTA ES UNA CORRECCIÓN. Mantén la consistencia con la imagen anterior pero aplica estos cambios: ${prompt}`;
-    } else {
-      strategicPrompt += `\nRequisito visual específico: ${prompt}`;
+      strategicPrompt = `IMAGE REFINEMENT: Keep the current image but apply these specific modifications: ${prompt}. Do not change the product identity.`;
     }
 
     const parts: any[] = [{ text: strategicPrompt }];
 
-    if (isCorrection && previousImageUrl) {
-       const base64Data = previousImageUrl.split(',')[1] || previousImageUrl;
-       const mimeType = previousImageUrl.match(/data:(.*?);/)?.[1] || 'image/png';
-       parts.push({ inlineData: { data: base64Data, mimeType } });
-    } else if (referenceImage) {
-      const base64Data = referenceImage.split(',')[1] || referenceImage;
-      const mimeType = referenceImage.match(/data:(.*?);/)?.[1] || 'image/png';
-      parts.push({ inlineData: { data: base64Data, mimeType } });
+    // Añadir imágenes de referencia (Imagen 3 soporta hasta algunas imágenes como contexto)
+    
+    // 1. Añadir el PRODUCTO BASE como referencia principal de objeto si existe
+    if (previousImageUrl) {
+       const base64 = previousImageUrl.split(',')[1] || previousImageUrl;
+       const mime = previousImageUrl.match(/data:(.*?);/)?.[1] || 'image/png';
+       parts.push({ text: "REFERENCE PRODUCT IDENTITY (Keep this object exactly):" });
+       parts.push({ inlineData: { data: base64, mimeType: mime } });
+    }
+
+    // 2. Añadir la REFERENCIA DE ESTILO (Paso anterior o Template) si existe
+    if (referenceImage && referenceImage !== previousImageUrl) {
+      const base64 = referenceImage.split(',')[1] || referenceImage;
+      const mime = referenceImage.match(/data:(.*?);/)?.[1] || 'image/png';
+      parts.push({ text: "VISUAL STYLE REFERENCE (Follow this lighting/mood):" });
+      parts.push({ inlineData: { data: base64, mimeType: mime } });
     }
 
     const result = await model.generateContent({
