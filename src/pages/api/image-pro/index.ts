@@ -77,7 +77,7 @@ export default async function handler(req: NextRequest) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-image-preview' });
 
-    // Consolidar el prompt estratégico
+    // Consolidar el prompt estratégico - REFORZADO PARA LAYOUT/COMPOSICIÓN
     let strategicPrompt = `HIGH-END ADVERTISEMENT GENERATION
     PRODUCT: ${productData.name}
     CORE ANGLE: ${productData.angle}
@@ -85,11 +85,16 @@ export default async function handler(req: NextRequest) {
     DESIGN GUIDES: ${productData.details || 'Professional studio lighting'}
     ASPECT RATIO: ${aspectRatio}
     
-    CRITICAL INSTRUCTION: You MUST keep the EXACT IDENTITY of the product shown in the images. 
-    However, the ENVIRONMENT, BACKGROUND and COMPOSITION must follow the directive: ${prompt}`;
+    CRITICAL INSTRUCTION 2 (COMPOSITION & LAYOUT): 
+    - If a 'VISUAL STYLE & COMPOSITIONAL REFERENCE' is provided, you MUST analyze if it is a WIREFRAME, SKETCH, or LAYOUT MOCKUP.
+    - If it IS a wireframe (black/white, simple lines, placeholders): DO NOT follow its visual style. Instead, use it ONLY as a structural guide. Place the product where the placeholder is, and arrange background elements according to the sketch.
+    - If it IS a professional photography: Mimic its lighting, color palette, and mood.
+    - Always maintain a "High-End Advertising" aesthetic regardless of the reference quality.
+    
+    CONTENT DIRECTIVE: ${prompt}`;
 
     if (isCorrection) {
-      strategicPrompt = `IMAGE REFINEMENT: Keep the current image but apply these specific modifications: ${prompt}. Do not change the product identity.`;
+      strategicPrompt = `IMAGE REFINEMENT: Keep the current image but apply these specific modifications: ${prompt}. Do not change the product identity or basic layout unless requested.`;
     }
 
     const parts: any[] = [{ text: strategicPrompt }];
@@ -100,16 +105,34 @@ export default async function handler(req: NextRequest) {
     if (previousImageUrl) {
        const base64 = previousImageUrl.split(',')[1] || previousImageUrl;
        const mime = previousImageUrl.match(/data:(.*?);/)?.[1] || 'image/png';
-       parts.push({ text: "REFERENCE PRODUCT IDENTITY (Keep this object exactly):" });
+       parts.push({ text: "ITEM 1: REFERENCE PRODUCT IDENTITY (Keep this object exactly as it is):" });
        parts.push({ inlineData: { data: base64, mimeType: mime } });
     }
 
     // 2. Añadir la REFERENCIA DE ESTILO (Paso anterior o Template) si existe
     if (referenceImage && referenceImage !== previousImageUrl) {
-      const base64 = referenceImage.split(',')[1] || referenceImage;
-      const mime = referenceImage.match(/data:(.*?);/)?.[1] || 'image/png';
-      parts.push({ text: "VISUAL STYLE REFERENCE (Follow this lighting/mood):" });
-      parts.push({ inlineData: { data: base64, mimeType: mime } });
+      let base64Data = referenceImage;
+      let mimeType = 'image/png';
+
+      if (referenceImage.startsWith('http')) {
+        try {
+          const imgRes = await fetch(referenceImage);
+          const arrayBuffer = await imgRes.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          base64Data = buffer.toString('base64');
+          mimeType = imgRes.headers.get('content-type') || 'image/png';
+        } catch (fetchError) {
+          console.error('Error fetching reference image from URL:', fetchError);
+        }
+      } else {
+        base64Data = referenceImage.split(',')[1] || referenceImage;
+        mimeType = referenceImage.match(/data:(.*?);/)?.[1] || 'image/png';
+      }
+
+      if (base64Data) {
+        parts.push({ text: "ITEM 2: VISUAL STYLE & COMPOSITIONAL REFERENCE (Follow this layout and mood):" });
+        parts.push({ inlineData: { data: base64Data, mimeType } });
+      }
     }
 
     const result = await model.generateContent({

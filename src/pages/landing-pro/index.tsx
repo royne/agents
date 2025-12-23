@@ -92,6 +92,7 @@ export default function LandingProPage() {
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [baseImageBase64, setBaseImageBase64] = useState<string | null>(null);
+  const [styleImageBase64, setStyleImageBase64] = useState<string | null>(null);
   const [generations, setGenerations] = useState<Record<number, string>>({});
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -112,6 +113,7 @@ export default function LandingProPage() {
         if (parsed.currentStep !== undefined) setCurrentStep(parsed.currentStep);
         if (parsed.generations) setGenerations(parsed.generations);
         if (parsed.baseImageBase64) setBaseImageBase64(parsed.baseImageBase64);
+        if (parsed.styleImageBase64) setStyleImageBase64(parsed.styleImageBase64);
         if (parsed.selectedTemplate) setSelectedTemplate(parsed.selectedTemplate);
       } catch (e) {
         console.error('Error al cargar datos guardados', e);
@@ -126,17 +128,41 @@ export default function LandingProPage() {
     fetchTemplates();
   }, []);
 
-  // Guardar en LocalStorage cada vez que algo cambie
+  // Guardar en LocalStorage con manejo de Cuota
   useEffect(() => {
-    const dataToSave = {
-      productData,
-      currentStep,
-      generations,
-      baseImageBase64,
-      selectedTemplate
+    const saveToLocalStorage = () => {
+      const dataToSave = {
+        productData,
+        currentStep,
+        generations,
+        baseImageBase64,
+        styleImageBase64,
+        selectedTemplate
+      };
+
+      try {
+        localStorage.setItem('ecomlab_landing_pro', JSON.stringify(dataToSave));
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+          console.warn('LocalStorage lleno. Intentando optimizar espacio...');
+          // Estrategia: Guardar solo la imagen actual y los datos, borrar las anteriores de la persistencia
+          const optimizedGenerations = { [currentStep]: generations[currentStep] };
+          const optimizedData = { ...dataToSave, generations: optimizedGenerations };
+          try {
+            localStorage.setItem('ecomlab_landing_pro', JSON.stringify(optimizedData));
+            console.log('Espacio optimizado: solo se persistió la imagen actual.');
+          } catch (innerError) {
+            console.error('Incluso la optimización falló. Guardando solo datos de texto.');
+            localStorage.setItem('ecomlab_landing_pro', JSON.stringify({
+              productData, currentStep, selectedTemplate
+            }));
+          }
+        }
+      }
     };
-    localStorage.setItem('ecomlab_landing_pro', JSON.stringify(dataToSave));
-  }, [productData, currentStep, generations, baseImageBase64, selectedTemplate]);
+
+    saveToLocalStorage();
+  }, [productData, currentStep, generations, baseImageBase64, styleImageBase64, selectedTemplate]);
 
   const handleImageSelect = async (file: File | null) => {
     setSelectedImage(file);
@@ -149,6 +175,19 @@ export default function LandingProPage() {
       setBaseImageBase64(base64);
     } else {
       setBaseImageBase64(null);
+    }
+  };
+
+  const handleStyleImageSelect = async (file: File | null) => {
+    if (file) {
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+      setStyleImageBase64(base64);
+    } else {
+      setStyleImageBase64(null);
     }
   };
 
@@ -173,16 +212,14 @@ export default function LandingProPage() {
     let productIdRef = baseImageBase64;
 
     // 2. Referencia de Estilo:
-    // Si es corrección -> No hay estilo nuevo, usamos la imagen actual para editarla.
-    // Si es paso 0 (Hero) -> Usamos el template elegido como estilo inicial.
-    // Si es paso > 0 -> Usamos la generación anterior para mantener consistencia de "mood".
-    let styleRef = null;
-    if (!isCorrection) {
-      if (currentStep === 0) {
-        styleRef = selectedTemplate?.url || null;
-      } else {
-        styleRef = generations[currentStep - 1];
-      }
+    // Prioridad: 
+    //   a. Imagen de Estilo personalizada (styleImageBase64)
+    //   b. Plantilla seleccionada (selectedTemplate)
+    //   c. Imagen del paso anterior (si no es el paso 0)
+    let styleRef = styleImageBase64 || selectedTemplate?.url || null;
+
+    if (!isCorrection && currentStep > 0 && !styleImageBase64 && !selectedTemplate) {
+      styleRef = generations[currentStep - 1];
     }
 
     // 3. Caso especial para Corrección
@@ -319,8 +356,30 @@ export default function LandingProPage() {
 
               <div className="space-y-5">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-theme-secondary uppercase tracking-[0.15em]">Foto del Producto Real</label>
+                  <label className="text-[10px] font-black text-theme-secondary uppercase tracking-[0.15em] flex justify-between">
+                    <span>1. Foto Producto Real</span>
+                    <span className="text-primary-color font-bold">Obligatorio</span>
+                  </label>
                   <ImageUploader onImageSelect={handleImageSelect} />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-theme-secondary uppercase tracking-[0.15em] flex justify-between">
+                    <span>2. Referencia de Estilo / Branding</span>
+                    <span className="text-theme-tertiary opacity-40 italic">Opcional</span>
+                  </label>
+                  <div className="relative group">
+                    <ImageUploader onImageSelect={handleStyleImageSelect} />
+                    {styleImageBase64 && (
+                      <button
+                        onClick={() => setStyleImageBase64(null)}
+                        className="absolute top-2 right-2 p-1.5 bg-rose-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-[10px]"
+                      >
+                        <FaTrash />
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[9px] text-theme-tertiary opacity-50 italic">Sube una imagen con el "mood", colores o iluminación que deseas imitar.</p>
                 </div>
 
                 <div className="space-y-2">
@@ -367,22 +426,57 @@ export default function LandingProPage() {
               </p>
             </div>
 
-            {/* Inspiración Global (Opcional) */}
+            {/* Estructuras Sugeridas (Templates de Layout) */}
+            {!generations[currentStep] && (
+              <div className="soft-card p-5 border-blue-500/10">
+                <label className="text-[10px] font-black text-theme-tertiary uppercase tracking-widest mb-4 block">Estructuras de Marketing</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { name: 'Impacto Visual', desc: 'Producto central grande', prompt: 'Centered hero layout, dramatic lighting, clean background.' },
+                    { name: 'Comparativa', desc: 'Lado a lado split', prompt: 'Side-by-side split screen composition, left side problem, right side solution.' },
+                    { name: 'Lifestyle', desc: 'Producto en uso real', prompt: 'In-use lifestyle photography, warm natural lighting, shallow depth of field.' },
+                    { name: 'Grid Beneficios', desc: 'Iconos y detalles', prompt: 'Product shots with icons and text areas arranged in a clean grid.' }
+                  ].map((layout, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setProductData({ ...productData, details: `${productData.details} ${layout.prompt}`.trim() })}
+                      className="p-3 bg-white/5 border border-white/10 rounded-xl hover:border-primary-color transition-all text-left group"
+                    >
+                      <p className="text-[10px] font-bold text-white mb-1 group-hover:text-primary-color">{layout.name}</p>
+                      <p className="text-[8px] text-theme-tertiary opacity-60 leading-tight">{layout.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Inspiración Global (Plantillas) */}
             {globalTemplates.length > 0 && !generations[currentStep] && (
-              <div className="soft-card p-5">
-                <label className="text-[10px] font-black text-theme-tertiary uppercase tracking-widest mb-3 block">Inspiración Sugerida</label>
-                <div className="flex gap-2">
-                  {globalTemplates.slice(0, 4).map((template, i) => (
+              <div className="soft-card p-5 border-primary-color/5">
+                <div className="flex items-center justify-between mb-4">
+                  <label className="text-[10px] font-black text-theme-tertiary uppercase tracking-widest block">Inspiración Sugerida</label>
+                  {selectedTemplate && (
+                    <button
+                      onClick={() => setSelectedTemplate(null)}
+                      className="text-[9px] font-bold text-primary-color uppercase tracking-tighter hover:opacity-70"
+                    >
+                      Limpiar Selección
+                    </button>
+                  )}
+                </div>
+
+                <div className={`grid grid-cols-4 gap-2 transition-all ${styleImageBase64 ? 'opacity-20 pointer-events-none grayscale' : ''}`}>
+                  {globalTemplates.slice(0, 8).map((template, i) => (
                     <div
                       key={i}
-                      onClick={() => setSelectedTemplate(template)}
-                      className={`flex-1 aspect-[3/4] rounded-xl bg-white/5 overflow-hidden border transition-all cursor-pointer relative group ${selectedTemplate?.id === template.id ? 'border-primary-color ring-1 ring-primary-color/50 shadow-[0_0_15px_rgba(18,216,250,0.3)]' : 'border-white/10 hover:border-white/30'
+                      onClick={() => setSelectedTemplate(selectedTemplate?.id === template.id ? null : template)}
+                      className={`aspect-[3/4] rounded-xl bg-white/5 overflow-hidden border transition-all cursor-pointer relative group ${selectedTemplate?.id === template.id ? 'border-primary-color ring-2 ring-primary-color/30' : 'border-white/10 hover:border-white/30'
                         }`}
                     >
                       <img src={template.url} className={`w-full h-full object-cover transition-opacity duration-500 ${selectedTemplate?.id === template.id ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`} />
                       {selectedTemplate?.id === template.id && (
                         <div className="absolute inset-0 bg-primary-color/10 flex items-center justify-center">
-                          <div className="bg-primary-color text-black p-1 rounded-full text-[8px] animate-bounce">
+                          <div className="bg-primary-color text-black p-1.5 rounded-full text-[10px] shadow-lg shadow-primary-color/20">
                             <FaCheckCircle />
                           </div>
                         </div>
@@ -390,7 +484,17 @@ export default function LandingProPage() {
                     </div>
                   ))}
                 </div>
-                <p className="text-[9px] text-theme-tertiary mt-3 italic opacity-60">* Selecciona una plantilla para guiar el estilo de tu Hero.</p>
+
+                {styleImageBase64 ? (
+                  <div className="mt-4 p-3 bg-primary-color/10 border border-primary-color/20 rounded-xl flex items-center gap-3">
+                    <FaMagic className="text-primary-color text-xs animate-pulse" />
+                    <p className="text-[9px] text-theme-secondary font-bold leading-tight">Usando tu <span className="text-primary-color uppercase">Imagen Personalizada</span> como base de estilo visual.</p>
+                  </div>
+                ) : (
+                  <p className="text-[9px] text-theme-tertiary mt-3 italic opacity-60">
+                    {selectedTemplate ? `Estilo "${selectedTemplate.name}" seleccionado.` : "* Selecciona una plantilla para guiar el estilo inicial."}
+                  </p>
+                )}
               </div>
             )}
           </div>
