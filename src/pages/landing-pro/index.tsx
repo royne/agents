@@ -85,6 +85,9 @@ const LANDING_SECTIONS = [
   }
 ];
 
+// IDs de las secciones para el modo Flash (Rápido)
+const FLASH_SECTION_IDS = ['hero', 'oferta', 'beneficios', 'testimonios', 'cierre'];
+
 const MARKETING_LAYOUTS = [
   { id: 'impact', name: 'Impacto Visual', desc: 'Producto central grande y épico', prompt: 'COMPOSITION: Large hero product strictly centered. Cinematic wide shot. Minimalist background to emphasize scale.' },
   { id: 'split', name: 'Comparativa', desc: 'Lado a lado (Antes/Después)', prompt: 'COMPOSITION: Vertical split screen. Product on the right, problem visualization on the left. High contrast.' },
@@ -107,9 +110,10 @@ export default function LandingProPage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [baseImageBase64, setBaseImageBase64] = useState<string | null>(null);
   const [styleImageBase64, setStyleImageBase64] = useState<string | null>(null);
-  const [generations, setGenerations] = useState<Record<number, string>>({});
+  const [generations, setGenerations] = useState<Record<string, string>>({}); // Cambiado a Record<string, string> para usar IDs como llaves
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedLayout, setSelectedLayout] = useState<string | null>(null);
+  const [landingMode, setLandingMode] = useState<'full' | 'flash'>('full');
 
   // Estados de Edición y Plantillas
   const [isCorrectionModalOpen, setIsCorrectionModalOpen] = useState(false);
@@ -131,6 +135,7 @@ export default function LandingProPage() {
         if (parsed.styleImageBase64) setStyleImageBase64(parsed.styleImageBase64);
         if (parsed.selectedTemplate) setSelectedTemplate(parsed.selectedTemplate);
         if (parsed.selectedLayout) setSelectedLayout(parsed.selectedLayout);
+        if (parsed.landingMode) setLandingMode(parsed.landingMode);
       } catch (e) {
         console.error('Error al cargar datos guardados', e);
       }
@@ -154,7 +159,8 @@ export default function LandingProPage() {
         baseImageBase64,
         styleImageBase64,
         selectedTemplate,
-        selectedLayout
+        selectedLayout,
+        landingMode
       };
 
       try {
@@ -162,7 +168,8 @@ export default function LandingProPage() {
       } catch (e) {
         if (e instanceof DOMException && e.name === 'QuotaExceededError') {
           console.warn('LocalStorage lleno. Intentando optimizar espacio...');
-          const optimizedGenerations = { [currentStep]: generations[currentStep] };
+          const currentSectionId = activeSections[currentStep]?.id || 'error';
+          const optimizedGenerations = { [currentSectionId]: generations[currentSectionId] };
           const optimizedData = { ...dataToSave, generations: optimizedGenerations };
           try {
             localStorage.setItem('ecomlab_landing_pro', JSON.stringify(optimizedData));
@@ -177,7 +184,14 @@ export default function LandingProPage() {
     };
 
     saveToLocalStorage();
-  }, [productData, currentStep, generations, baseImageBase64, styleImageBase64, selectedTemplate, selectedLayout]);
+  }, [productData, currentStep, generations, baseImageBase64, styleImageBase64, selectedTemplate, selectedLayout, landingMode]);
+
+  // Secciones activas según el modo
+  const activeSections = landingMode === 'full'
+    ? LANDING_SECTIONS
+    : LANDING_SECTIONS.filter(s => FLASH_SECTION_IDS.includes(s.id));
+
+  const currentSection = activeSections[currentStep];
 
   const handleImageSelect = async (file: File | null) => {
     setSelectedImage(file);
@@ -220,7 +234,7 @@ export default function LandingProPage() {
     setIsGenerating(true);
     if (isCorrection) setIsCorrectionModalOpen(false);
 
-    const section = LANDING_SECTIONS[currentStep];
+    const section = activeSections[currentStep];
     const activeLayout = MARKETING_LAYOUTS.find(l => l.id === selectedLayout);
 
     // LOGICA DE REFERENCIAS AVANZADA (Producto vs Estilo vs Layout):
@@ -243,15 +257,18 @@ export default function LandingProPage() {
       styleRef = selectedTemplate.url;
       referenceType = 'style';
     }
-    // Prioridad 4: Consistencia Visual (Paso Anterior - SOLO ESTILO)
-    else if (!isCorrection && currentStep > 0) {
-      styleRef = generations[currentStep - 1];
-      referenceType = 'style';
-    }
 
     if (isCorrection) {
-      productIdRef = generations[currentStep];
+      productIdRef = generations[section.id];
       styleRef = null;
+    }
+    // Prioridad 4: Consistencia Visual (Paso Anterior - SOLO ESTILO)
+    else if (currentStep > 0) {
+      const prevSection = activeSections[currentStep - 1];
+      if (generations[prevSection.id]) {
+        styleRef = generations[prevSection.id];
+        referenceType = 'style';
+      }
     }
 
     try {
@@ -280,7 +297,7 @@ export default function LandingProPage() {
 
       const data = await response.json();
       if (data.success) {
-        setGenerations(prev => ({ ...prev, [currentStep]: data.imageUrl }));
+        setGenerations(prev => ({ ...prev, [section.id]: data.imageUrl }));
         if (isCorrection) setCorrectionPrompt('');
       } else {
         alert(data.error || 'Error al generar la sección');
@@ -301,12 +318,11 @@ export default function LandingProPage() {
       setBaseImageBase64(null);
       setStyleImageBase64(null);
       setSelectedLayout(null);
+      setLandingMode('full');
       localStorage.removeItem('ecomlab_landing_pro');
       window.location.reload();
     }
   };
-
-  const currentSection = LANDING_SECTIONS[currentStep];
 
   return (
     <DashboardLayout>
@@ -331,6 +347,22 @@ export default function LandingProPage() {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Selector de Modo */}
+            <div className="flex bg-theme-component border border-white/10 rounded-xl p-1 shadow-inner">
+              <button
+                onClick={() => Object.keys(generations).length > 0 ? (confirm('Cambiar de modo podría afectar tu progreso actual. ¿Deseas continuar?') && setLandingMode('full')) : setLandingMode('full')}
+                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${landingMode === 'full' ? 'bg-primary-color text-black shadow-lg shadow-primary-color/20' : 'text-theme-tertiary hover:text-white'}`}
+              >
+                Completo
+              </button>
+              <button
+                onClick={() => Object.keys(generations).length > 0 ? (confirm('Cambiar de modo podría afectar tu progreso actual. ¿Deseas continuar?') && setLandingMode('flash')) : setLandingMode('flash')}
+                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${landingMode === 'flash' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-theme-tertiary hover:text-white'}`}
+              >
+                Flash
+              </button>
+            </div>
+
             <button
               onClick={resetProject}
               className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-rose-500/10 hover:text-rose-400 transition-all text-theme-tertiary text-sm flex items-center gap-2 font-bold"
@@ -338,16 +370,16 @@ export default function LandingProPage() {
               <FaTrash /> Reiniciar Proyecto
             </button>
             <div className="px-5 py-2.5 rounded-xl bg-theme-component border border-white/10 text-theme-secondary font-black flex items-center gap-2 shadow-inner">
-              <span className="text-primary-color text-lg">{currentStep + 1}</span> / {LANDING_SECTIONS.length} <span className="text-[10px] opacity-40">PASOS</span>
+              <span className="text-primary-color text-lg">{currentStep + 1}</span> / {activeSections.length} <span className="text-[10px] opacity-40">PASOS</span>
             </div>
           </div>
         </div>
 
         {/* Stepper Visual con Estética Premium */}
         <div className="flex items-center gap-2 mb-10 overflow-x-auto pb-4 no-scrollbar">
-          {LANDING_SECTIONS.map((section, idx) => {
+          {activeSections.map((section, idx) => {
             const Icon = section.icon;
-            const isCompleted = generations[idx] !== undefined;
+            const isCompleted = generations[section.id] !== undefined;
             const isActive = idx === currentStep;
 
             return (
@@ -459,11 +491,11 @@ export default function LandingProPage() {
 
               <div className="p-5 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-2.5 h-2.5 rounded-full ${generations[currentStep] ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-yellow-500 animate-pulse'}`}></div>
+                  <div className={`w-2.5 h-2.5 rounded-full ${generations[currentSection.id] ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-yellow-500 animate-pulse'}`}></div>
                   <span className="text-[10px] font-black text-theme-primary uppercase tracking-[0.2em]">{currentSection.title}</span>
                 </div>
 
-                {generations[currentStep] && (
+                {generations[currentSection.id] && (
                   <div className="flex gap-4">
                     <button
                       onClick={() => setIsCorrectionModalOpen(true)}
@@ -474,7 +506,7 @@ export default function LandingProPage() {
                     <button
                       onClick={() => {
                         const link = document.createElement('a');
-                        link.href = generations[currentStep];
+                        link.href = generations[currentSection.id];
                         link.download = `landing-${currentSection.id}.png`;
                         link.click();
                       }}
@@ -487,10 +519,10 @@ export default function LandingProPage() {
               </div>
 
               <div className="flex-1 flex items-center justify-center p-10 relative bg-[#07090E]">
-                {generations[currentStep] ? (
+                {generations[currentSection.id] ? (
                   <div className="relative group max-w-full">
                     <img
-                      src={generations[currentStep]}
+                      src={generations[currentSection.id]}
                       alt={currentSection.title}
                       className="rounded-3xl shadow-[0_40px_100px_rgba(0,0,0,0.8)] border border-white/10 max-h-[580px] object-contain"
                     />
@@ -528,16 +560,16 @@ export default function LandingProPage() {
                 </button>
 
                 <div className="flex gap-2">
-                  {LANDING_SECTIONS.map((_, i) => (
+                  {activeSections.map((section, i) => (
                     <div
-                      key={i}
-                      className={`h-1.5 transition-all duration-500 rounded-full ${i === currentStep ? 'w-8 bg-primary-color' : generations[i] ? 'w-4 bg-green-500/50' : 'w-2 bg-white/10'}`}
+                      key={section.id}
+                      className={`h-1.5 transition-all duration-500 rounded-full ${i === currentStep ? 'w-8 bg-primary-color' : generations[section.id] ? 'w-4 bg-green-500/50' : 'w-2 bg-white/10'}`}
                     ></div>
                   ))}
                 </div>
 
                 <div className="flex gap-4">
-                  {generations[currentStep] && (
+                  {generations[currentSection.id] && (
                     <button
                       onClick={() => handleGenerateStep(false)}
                       disabled={isGenerating}
@@ -547,9 +579,9 @@ export default function LandingProPage() {
                     </button>
                   )}
                   <button
-                    onClick={() => setCurrentStep(prev => Math.min(LANDING_SECTIONS.length - 1, prev + 1))}
-                    disabled={currentStep === LANDING_SECTIONS.length - 1 || !generations[currentStep] || isGenerating}
-                    className={`px-8 py-3 rounded-2xl transition-all flex items-center gap-3 font-black text-xs uppercase tracking-widest ${!generations[currentStep] ? 'bg-white/5 text-white/20' : 'bg-white text-black hover:scale-105'}`}
+                    onClick={() => setCurrentStep(prev => Math.min(activeSections.length - 1, prev + 1))}
+                    disabled={currentStep === activeSections.length - 1 || !generations[currentSection.id] || isGenerating}
+                    className={`px-8 py-3 rounded-2xl transition-all flex items-center gap-3 font-black text-xs uppercase tracking-widest ${!generations[currentSection.id] ? 'bg-white/5 text-white/20' : 'bg-white text-black hover:scale-105'}`}
                   >
                     Próximo Paso <FaChevronRight />
                   </button>
@@ -580,7 +612,7 @@ export default function LandingProPage() {
               </div>
 
               {/* Estructuras Sugeridas (Templates de Layout) */}
-              {!generations[currentStep] && (
+              {!generations[currentSection.id] && (
                 <div className="soft-card p-5 border-blue-500/10">
                   <div className="flex items-center justify-between mb-4">
                     <label className="text-[10px] font-black text-theme-tertiary uppercase tracking-widest block">Estructuras de Marketing</label>
