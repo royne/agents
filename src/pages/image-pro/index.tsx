@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { FaMagic, FaRocket, FaEdit, FaHistory, FaCog, FaImage } from 'react-icons/fa';
 import ImageUploader from '../../components/ImageGen/ImageUploader';
@@ -9,8 +10,9 @@ import { ApiKeyModal } from '../../components/ApiKeyModal';
 import Head from 'next/head';
 
 export default function ImageProPage() {
-  const { googleAiKey } = useAppContext();
+  const { googleAiKey, canAccessModule } = useAppContext();
   const { isApiKeyModalOpen, openApiKeyModal, closeApiKeyModal, saveGoogleAiKey } = useApiKey();
+  const router = useRouter();
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [productData, setProductData] = useState({
     name: '',
@@ -24,6 +26,11 @@ export default function ImageProPage() {
   const [isCorrectionModalOpen, setIsCorrectionModalOpen] = useState(false);
   const [correctionPrompt, setCorrectionPrompt] = useState('');
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+
+  if (!canAccessModule('image-pro')) {
+    if (typeof window !== 'undefined') router.push('/');
+    return null;
+  }
 
   const handleGenerate = async (isCorrection: boolean = false) => {
     if (!googleAiKey) {

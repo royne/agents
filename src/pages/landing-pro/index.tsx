@@ -10,6 +10,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { useApiKey } from '../../hooks/useApiKey';
 import { supabase } from '../../lib/supabase';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 
 // Definición de las secciones de la Landing con PROMPTS OPTIMIZADOS Y AISLADOS
 const LANDING_SECTIONS = [
@@ -96,8 +97,14 @@ const MARKETING_LAYOUTS = [
 ];
 
 export default function LandingProPage() {
-  const { googleAiKey } = useAppContext();
+  const { googleAiKey, canAccessModule } = useAppContext();
   const { openApiKeyModal } = useApiKey();
+  const router = useRouter();
+
+  if (!canAccessModule('landing-pro')) {
+    if (typeof window !== 'undefined') router.push('/');
+    return null;
+  }
 
   // Estados principales
   const [currentStep, setCurrentStep] = useState(0);

@@ -32,6 +32,8 @@ export default function UsersManagement() {
     { key: 'dbmanager', label: 'DB Manager' },
     { key: 'chat', label: 'Master Chat (requiere admin)' },
     { key: 'settings', label: 'Configuración' },
+    { key: 'image-pro', label: 'Agente Pro' },
+    { key: 'landing-pro', label: 'Landing Pro' },
     // 'admin' no es configurable por módulos (solo por rol)
   ];
 
