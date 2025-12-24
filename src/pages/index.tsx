@@ -1,6 +1,6 @@
 import React from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase, FaLock, FaDollarSign, FaBrain, FaCalendarAlt, FaAd, FaMagic } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaDatabase, FaLock, FaDollarSign, FaBrain, FaCalendarAlt, FaAd, FaMagic, FaRocket } from 'react-icons/fa';
 import Link from 'next/link';
 import { useAppContext } from '../contexts/AppContext';
 import type { ModuleKey } from '../constants/plans';
@@ -93,6 +93,13 @@ const modules: HomeModule[] = [
     description: 'Chat con RAG',
     path: '/chat',
     moduleKey: 'chat'
+  },
+  {
+    name: 'Landing Pro',
+    icon: FaRocket,
+    description: 'Generador de Landing Pages de alta conversión',
+    path: '/landing-pro',
+    moduleKey: 'landing-pro'
   }
 ];
 
@@ -126,7 +133,25 @@ export default function Dashboard() {
               </Link>
             ))}
 
-          {/* Bento Item 2: Rentabilidad (Row 1 Col 3) */}
+          {/* Bento Item 2: Landing Pro (Prominent next to Image Pro) */}
+          {modules
+            .filter(m => m.moduleKey === 'landing-pro' && canAccessModule('landing-pro'))
+            .map(module => (
+              <Link key={module.path} href={module.path} className="md:col-span-2 md:row-span-1">
+                <div className="soft-card h-full p-6 cursor-pointer group bg-gradient-to-br from-blue-600/10 via-transparent to-transparent border-blue-500/20 hover:border-blue-500/40 transition-all duration-500 flex items-center justify-between gap-4 overflow-hidden">
+                  <div className="relative z-10 flex-1">
+                    <div className="inline-flex px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-[8px] font-black uppercase tracking-widest text-blue-400 mb-2">Estrategia</div>
+                    <h2 className="text-xl font-black text-white mb-1 group-hover:text-blue-400 transition-colors tracking-tight">{module.name}</h2>
+                    <p className="text-gray-400 text-[11px] font-medium leading-tight max-w-[180px]">{module.description}</p>
+                  </div>
+                  <div className="relative z-10 p-3 rounded-xl bg-white/5 border border-white/10 group-hover:scale-110 group-hover:bg-blue-500/10 transition-all duration-500 shadow-xl shadow-blue-500/5">
+                    <module.icon className="w-7 h-7 text-blue-400" />
+                  </div>
+                </div>
+              </Link>
+            ))}
+
+          {/* Bento Item 3: Rentabilidad (Row 2 Col 1) */}
           {modules
             .filter(m => m.moduleKey === 'profitability' && canAccessModule('profitability'))
             .map(module => (
@@ -219,7 +244,7 @@ export default function Dashboard() {
 
           {/* Rest of the modules */}
           {modules
-            .filter(m => !['agents', 'profitability', 'campaign-control', 'calculator', 'chat', 'image-pro'].includes(m.moduleKey) && canAccessModule(m.moduleKey))
+            .filter(m => !['agents', 'profitability', 'campaign-control', 'calculator', 'chat', 'image-pro', 'landing-pro'].includes(m.moduleKey) && canAccessModule(m.moduleKey))
             .map((module) => (
               <Link key={module.path} href={module.path}>
                 <div className="soft-card h-full p-5 cursor-pointer group hover:bg-white/5 transition-all border-white/5 hover:border-white/10">
