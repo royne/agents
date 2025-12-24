@@ -67,6 +67,7 @@ export default async function handler(req: NextRequest) {
   const { 
     prompt, 
     referenceImage, // Puede ser el estilo anterior o el template
+    referenceType,  // 'style' o 'layout'
     productData, 
     aspectRatio, 
     isCorrection, 
@@ -77,19 +78,22 @@ export default async function handler(req: NextRequest) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-image-preview' });
 
-    // Consolidar el prompt estratégico - REFORZADO PARA LAYOUT/COMPOSICIÓN
+    // Consolidar el prompt estratégico - REFORZADO PARA AISLAMIENTO
     let strategicPrompt = `HIGH-END ADVERTISEMENT GENERATION
     PRODUCT: ${productData.name}
     CORE ANGLE: ${productData.angle}
-    TARGET AUDIENCE: ${productData.buyer}
+    TARGET AUDIENCE: ${productData.buyer || 'General Premium'}
     DESIGN GUIDES: ${productData.details || 'Professional studio lighting'}
     ASPECT RATIO: ${aspectRatio}
     
-    CRITICAL INSTRUCTION 2 (COMPOSITION & LAYOUT): 
-    - If a 'VISUAL STYLE & COMPOSITIONAL REFERENCE' is provided, you MUST analyze if it is a WIREFRAME, SKETCH, or LAYOUT MOCKUP.
-    - If it IS a wireframe (black/white, simple lines, placeholders): DO NOT follow its visual style. Instead, use it ONLY as a structural guide. Place the product where the placeholder is, and arrange background elements according to the sketch.
-    - If it IS a professional photography: Mimic its lighting, color palette, and mood.
-    - Always maintain a "High-End Advertising" aesthetic regardless of the reference quality.
+    CRITICAL INSTRUCTION (SECTION ISOLATION): 
+    - You are generating a SPECIFIC section of a landing page.
+    - DO NOT include pricing tables, feature lists, or text blocks from previous sections unless explicitly stated in the CURRENT prompt.
+    - If you see prices or specific offer details in a reference image, IGNORE THEM. This is a NEW section with NEW content.
+    
+    REFERENCE HANDLING: 
+    - If REFERENCE TYPE is 'layout': This is a wireframe/template. Follow the skeleton and placements strictly, but use professional materials and lighting.
+    - If REFERENCE TYPE is 'style': This is a visual/mood reference. Follow ONLY the colors, lighting, materials, and "feel". IGNORE the placement of objects, texts, and UI elements.
     
     CONTENT DIRECTIVE: ${prompt}`;
 
@@ -99,17 +103,17 @@ export default async function handler(req: NextRequest) {
 
     const parts: any[] = [{ text: strategicPrompt }];
 
-    // Añadir imágenes de referencia (Imagen 3 soporta hasta algunas imágenes como contexto)
+    // Añadir imágenes de referencia
     
-    // 1. Añadir el PRODUCTO BASE como referencia principal de objeto si existe
+    // 1. Añadir el PRODUCTO BASE como referencia principal de objeto
     if (previousImageUrl) {
        const base64 = previousImageUrl.split(',')[1] || previousImageUrl;
        const mime = previousImageUrl.match(/data:(.*?);/)?.[1] || 'image/png';
-       parts.push({ text: "ITEM 1: REFERENCE PRODUCT IDENTITY (Keep this object exactly as it is):" });
+       parts.push({ text: "ITEM 1: REFERENCE PRODUCT IDENTITY (Strictly keep this object/character):" });
        parts.push({ inlineData: { data: base64, mimeType: mime } });
     }
 
-    // 2. Añadir la REFERENCIA DE ESTILO (Paso anterior o Template) si existe
+    // 2. Añadir la REFERENCIA DE ESTILO/LAYOUT
     if (referenceImage && referenceImage !== previousImageUrl) {
       let base64Data = referenceImage;
       let mimeType = 'image/png';
@@ -130,7 +134,8 @@ export default async function handler(req: NextRequest) {
       }
 
       if (base64Data) {
-        parts.push({ text: "ITEM 2: VISUAL STYLE & COMPOSITIONAL REFERENCE (Follow this layout and mood):" });
+        const refLabel = referenceType === 'layout' ? 'LAYOUT & COMPOSITION GUIDE' : 'VISUAL STYLE & MOOD GUIDE';
+        parts.push({ text: `ITEM 2: ${refLabel} (Follow instructions for '${referenceType}' type):` });
         parts.push({ inlineData: { data: base64Data, mimeType } });
       }
     }

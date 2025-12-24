@@ -11,71 +11,78 @@ import { useApiKey } from '../../hooks/useApiKey';
 import { supabase } from '../../lib/supabase';
 import Head from 'next/head';
 
-// Definición de las secciones de la Landing con PROMPTS OPTIMIZADOS
+// Definición de las secciones de la Landing con PROMPTS OPTIMIZADOS Y AISLADOS
 const LANDING_SECTIONS = [
   {
     id: 'hero',
     title: 'Hero / Gancho',
     description: 'Captura la atención con un mensaje poderoso que conecta con el dolor del cliente.',
     icon: FaMagic,
-    prompt: 'IMPACTFUL HERO SECTION: Create a cinematic advertisement for the product. The product must be the STARRING HERO of the scene. Atmospheric lighting, epic composition, ultra-realistic 8k. Background should represent the solution or the relief the product provides. Focus on EMOTIONAL CONNECTION and premium feel.'
+    prompt: 'IMPACTFUL HERO SECTION: Create a cinematic advertisement. Focus ONLY on the emotional hook. DO NOT include pricing or detailed features. The product is the STARRING HERO.'
   },
   {
     id: 'oferta',
     title: 'Oferta Irresistible',
     description: 'Presenta tu producto con un precio y valor que el cliente no puede rechazar.',
     icon: FaDollarSign,
-    prompt: 'IRRESISTIBLE OFFER: Professional studio commercial shot. The product is presented with a sense of "VALUE" and "EXCLUSIVITY". Bright, commercial lighting, clean aesthetic. The composition should scream "BUY NOW", with colors that inspire action and trust. Maintain stylistic consistency with the brand.'
+    prompt: 'IRRESISTIBLE OFFER: Studio shot focus on the deal. This is the ONLY section that should clearly show pricing and bundles. Bold, commercial aesthetic.'
   },
   {
     id: 'transformacion',
     title: 'Antes y Después',
     description: 'Muestra la transformación que tu producto genera en la vida del cliente.',
     icon: FaExchangeAlt,
-    prompt: 'TRANSFORMATION (Before & After): A dramatic visual comparison. Show the problem on one side (darker, messy) and the product solving it on the other (bright, perfect, clean). The product is the bridge to the transformation. Clear visual storytelling of improvement.'
+    prompt: 'TRANSFORMATION (Before & After): ISOLATED SECTION. DO NOT include pricing tables or offer details from previous steps. Focus strictly on the "Problem vs Solution" visual comparison.'
   },
   {
     id: 'beneficios',
     title: 'Beneficios',
     description: 'Lista los beneficios clave que resuelven los problemas de tu audiencia.',
     icon: FaStar,
-    prompt: 'DYNAMIC BENEFITS: High-end lifestyle photography. Show the product in an environment that represents its 3 biggest advantages. Clean, modern, professional magazine style. Focus on the FEELING of using the product successfully.'
+    prompt: 'DYNAMIC BENEFITS: High-end lifestyle. DO NOT replicate the Hero or Offer layout. Focus on 3 key benefits in action. No prices.'
   },
   {
     id: 'comparativa',
     title: 'Tabla Comparativa',
     description: 'Compara tu producto vs alternativas para mostrar superioridad.',
     icon: FaListUl,
-    prompt: 'SUPERIORITY COMPARISON: A sleek visual showing the product standing out against poor quality alternatives. Focus on material quality, technology, and premium details. The lighting should highlight our product while leaving the background/competitors in the shadow.'
+    prompt: 'COMPETITIVE ADVANTAGE: Visual comparison of quality. Clean, professional. Do not bring content from the Benefits or Offer section.'
   },
   {
     id: 'autoridad',
     title: 'Prueba de Autoridad',
     description: 'Certificaciones, estudios y credenciales que validan tu producto.',
     icon: FaCertificate,
-    prompt: 'AUTHORITY & TRUST: Set the product in a professional, scientific or specialized environment (lab, workshop, expert desk). Clean, sterile, or expert lighting. Visual cues of certification, testing, and absolute quality validation.'
+    prompt: 'AUTHORITY & TRUST: Professional environment. Lab or expert setting. Focus on validation. No marketing hooks or prices.'
   },
   {
     id: 'testimonios',
     title: 'Testimonios',
     description: 'Historias reales de clientes satisfechos que generan confianza.',
     icon: FaUsers,
-    prompt: 'GENUINE SOCIAL PROOF: A candid, warm, lifestyle shot of a happy person interacting with the product. High-end natural lighting. The emotion must be authentic joy or satisfaction. The product is naturally integrated into a beautiful real-life moment.'
+    prompt: 'SOCIAL PROOF: Authentic human emotion. The product integrated into real life. Do not include authority seals or pricing here.'
   },
   {
     id: 'instrucciones',
     title: 'Cómo Usar',
     description: 'Instrucciones claras que eliminan objeciones sobre complejidad.',
     icon: FaBook,
-    prompt: 'STEP-BY-STEP USE: A detailed macro photography shot of hands using the product correctly. Instructional but elegant aesthetic. Focus on ease of use and the high-quality materials/texture of the product during action.'
+    prompt: 'HOW IT WORKS: Macro details of use. Educational feel. strictly functional visual. No testimonials or offers.'
   },
   {
     id: 'logistica',
     title: 'Logística',
     description: 'Envío, garantía y proceso de compra sin fricciones.',
     icon: FaTruck,
-    prompt: 'TRUSTED LOGISTICS: A premium unboxing or delivery visual. Focus on the fast shipping, secure packaging, and the "gift" experience of receiving the product. Clean, professional, reassuring atmospheric lighting.'
+    prompt: 'SAFE DELIVERY: Premium unboxing view. Focus on shipping and trust. Final touch. No content from previous transformation or use steps.'
   }
+];
+
+const MARKETING_LAYOUTS = [
+  { id: 'impact', name: 'Impacto Visual', desc: 'Producto central grande y épico', prompt: 'COMPOSITION: Large hero product strictly centered. Cinematic wide shot. Minimalist background to emphasize scale.' },
+  { id: 'split', name: 'Comparativa', desc: 'Lado a lado (Antes/Después)', prompt: 'COMPOSITION: Vertical split screen. Product on the right, problem visualization on the left. High contrast.' },
+  { id: 'details', name: 'Grid Beneficios', desc: 'Enfoque en texturas y detalles', prompt: 'COMPOSITION: Macro focus on product parts with soft bokeh background. Dynamic floating elements around.' },
+  { id: 'trust', name: 'Prueba Social', desc: 'Producto integrado en vida real', prompt: 'COMPOSITION: Lifestyle integration. Human hands interacting with product. Rule of thirds placement.' }
 ];
 
 export default function LandingProPage() {
@@ -95,6 +102,7 @@ export default function LandingProPage() {
   const [styleImageBase64, setStyleImageBase64] = useState<string | null>(null);
   const [generations, setGenerations] = useState<Record<number, string>>({});
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedLayout, setSelectedLayout] = useState<string | null>(null);
 
   // Estados de Edición y Plantillas
   const [isCorrectionModalOpen, setIsCorrectionModalOpen] = useState(false);
@@ -115,6 +123,7 @@ export default function LandingProPage() {
         if (parsed.baseImageBase64) setBaseImageBase64(parsed.baseImageBase64);
         if (parsed.styleImageBase64) setStyleImageBase64(parsed.styleImageBase64);
         if (parsed.selectedTemplate) setSelectedTemplate(parsed.selectedTemplate);
+        if (parsed.selectedLayout) setSelectedLayout(parsed.selectedLayout);
       } catch (e) {
         console.error('Error al cargar datos guardados', e);
       }
@@ -137,7 +146,8 @@ export default function LandingProPage() {
         generations,
         baseImageBase64,
         styleImageBase64,
-        selectedTemplate
+        selectedTemplate,
+        selectedLayout
       };
 
       try {
@@ -145,14 +155,12 @@ export default function LandingProPage() {
       } catch (e) {
         if (e instanceof DOMException && e.name === 'QuotaExceededError') {
           console.warn('LocalStorage lleno. Intentando optimizar espacio...');
-          // Estrategia: Guardar solo la imagen actual y los datos, borrar las anteriores de la persistencia
           const optimizedGenerations = { [currentStep]: generations[currentStep] };
           const optimizedData = { ...dataToSave, generations: optimizedGenerations };
           try {
             localStorage.setItem('ecomlab_landing_pro', JSON.stringify(optimizedData));
-            console.log('Espacio optimizado: solo se persistió la imagen actual.');
           } catch (innerError) {
-            console.error('Incluso la optimización falló. Guardando solo datos de texto.');
+            console.error('Optimización falló.');
             localStorage.setItem('ecomlab_landing_pro', JSON.stringify({
               productData, currentStep, selectedTemplate
             }));
@@ -162,7 +170,7 @@ export default function LandingProPage() {
     };
 
     saveToLocalStorage();
-  }, [productData, currentStep, generations, baseImageBase64, styleImageBase64, selectedTemplate]);
+  }, [productData, currentStep, generations, baseImageBase64, styleImageBase64, selectedTemplate, selectedLayout]);
 
   const handleImageSelect = async (file: File | null) => {
     setSelectedImage(file);
@@ -206,25 +214,36 @@ export default function LandingProPage() {
     if (isCorrection) setIsCorrectionModalOpen(false);
 
     const section = LANDING_SECTIONS[currentStep];
+    const activeLayout = MARKETING_LAYOUTS.find(l => l.id === selectedLayout);
 
-    // LOGICA DE REFERENCIAS AVANZADA (Producto vs Estilo):
-    // 1. Identidad del Producto: Siempre la imagen base original subida por el usuario
+    // LOGICA DE REFERENCIAS AVANZADA (Producto vs Estilo vs Layout):
     let productIdRef = baseImageBase64;
+    let styleRef = null;
+    let referenceType = 'style'; // Por defecto es Estilo
 
-    // 2. Referencia de Estilo:
-    // Prioridad: 
-    //   a. Imagen de Estilo personalizada (styleImageBase64)
-    //   b. Plantilla seleccionada (selectedTemplate)
-    //   c. Imagen del paso anterior (si no es el paso 0)
-    let styleRef = styleImageBase64 || selectedTemplate?.url || null;
-
-    if (!isCorrection && currentStep > 0 && !styleImageBase64 && !selectedTemplate) {
+    // Prioridad 1: Imagen de Estilo Personalizada (Branding)
+    if (styleImageBase64) {
+      styleRef = styleImageBase64;
+      referenceType = 'style';
+    }
+    // Prioridad 2: Estructura de Marketing Directa (Layout)
+    else if (selectedLayout) {
+      referenceType = 'layout';
+      // Nota: Si hay layout, el prompt ya incluye la instrucción de composición
+    }
+    // Prioridad 3: Plantilla de Inspiración Global (Estilo)
+    else if (selectedTemplate) {
+      styleRef = selectedTemplate.url;
+      referenceType = 'style';
+    }
+    // Prioridad 4: Consistencia Visual (Paso Anterior - SOLO ESTILO)
+    else if (!isCorrection && currentStep > 0) {
       styleRef = generations[currentStep - 1];
+      referenceType = 'style';
     }
 
-    // 3. Caso especial para Corrección
     if (isCorrection) {
-      productIdRef = generations[currentStep]; // En corrección, la base es lo que ya hay generado
+      productIdRef = generations[currentStep];
       styleRef = null;
     }
 
@@ -241,13 +260,14 @@ export default function LandingProPage() {
         body: JSON.stringify({
           productData: {
             ...productData,
-            details: `${productData.details} | Section: ${section.title} | Instructions: ${section.description}`
+            details: `${productData.details} | Section: ${section.title} | Instructions: ${section.description} | ${activeLayout ? activeLayout.prompt : ''}`
           },
           aspectRatio: '9:16',
-          referenceImage: styleRef, // Estética
+          referenceImage: styleRef,
+          referenceType,
           prompt: isCorrection ? correctionPrompt : section.prompt,
           isCorrection,
-          previousImageUrl: productIdRef // Identidad del objeto
+          previousImageUrl: productIdRef
         })
       });
 
@@ -267,11 +287,13 @@ export default function LandingProPage() {
   };
 
   const resetProject = () => {
-    if (confirm('¿Estás seguro de que deseas reiniciar todo el proyecto de la landing? Se perderán las imágenes generadas.')) {
+    if (confirm('¿Estás seguro de que deseas reiniciar todo el proyecto?')) {
       setGenerations({});
       setCurrentStep(0);
       setProductData({ name: '', angle: '', buyer: '', details: '' });
       setBaseImageBase64(null);
+      setStyleImageBase64(null);
+      setSelectedLayout(null);
       localStorage.removeItem('ecomlab_landing_pro');
       window.location.reload();
     }
@@ -344,7 +366,7 @@ export default function LandingProPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Lado Izquierdo: Configuración e Inspiración */}
+          {/* Lado Izquierdo: Configuración de Identidad */}
           <div className="lg:col-span-4 space-y-6">
             <div className="soft-card p-6 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-24 h-24 bg-primary-color/5 blur-2xl rounded-full -mr-8 -mt-8"></div>
@@ -405,102 +427,11 @@ export default function LandingProPage() {
                 </div>
               </div>
             </div>
-
-            {/* Panel de Contexto de Sección */}
-            <div className="bg-gradient-to-br from-primary-color/10 via-transparent to-transparent border border-primary-color/20 p-6 rounded-3xl relative overflow-hidden group">
-              <div className="absolute -bottom-4 -right-4 text-7xl opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
-                <currentSection.icon />
-              </div>
-
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2.5 bg-primary-color text-black rounded-xl">
-                  <currentSection.icon className="text-lg" />
-                </div>
-                <div>
-                  <h3 className="text-primary-color font-black text-sm uppercase tracking-widest leading-none">Paso {currentStep + 1}</h3>
-                  <span className="text-white font-bold text-lg">{currentSection.title}</span>
-                </div>
-              </div>
-              <p className="text-theme-secondary text-sm leading-relaxed opacity-80">
-                {currentSection.description}
-              </p>
-            </div>
-
-            {/* Estructuras Sugeridas (Templates de Layout) */}
-            {!generations[currentStep] && (
-              <div className="soft-card p-5 border-blue-500/10">
-                <label className="text-[10px] font-black text-theme-tertiary uppercase tracking-widest mb-4 block">Estructuras de Marketing</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { name: 'Impacto Visual', desc: 'Producto central grande', prompt: 'Centered hero layout, dramatic lighting, clean background.' },
-                    { name: 'Comparativa', desc: 'Lado a lado split', prompt: 'Side-by-side split screen composition, left side problem, right side solution.' },
-                    { name: 'Lifestyle', desc: 'Producto en uso real', prompt: 'In-use lifestyle photography, warm natural lighting, shallow depth of field.' },
-                    { name: 'Grid Beneficios', desc: 'Iconos y detalles', prompt: 'Product shots with icons and text areas arranged in a clean grid.' }
-                  ].map((layout, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setProductData({ ...productData, details: `${productData.details} ${layout.prompt}`.trim() })}
-                      className="p-3 bg-white/5 border border-white/10 rounded-xl hover:border-primary-color transition-all text-left group"
-                    >
-                      <p className="text-[10px] font-bold text-white mb-1 group-hover:text-primary-color">{layout.name}</p>
-                      <p className="text-[8px] text-theme-tertiary opacity-60 leading-tight">{layout.desc}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Inspiración Global (Plantillas) */}
-            {globalTemplates.length > 0 && !generations[currentStep] && (
-              <div className="soft-card p-5 border-primary-color/5">
-                <div className="flex items-center justify-between mb-4">
-                  <label className="text-[10px] font-black text-theme-tertiary uppercase tracking-widest block">Inspiración Sugerida</label>
-                  {selectedTemplate && (
-                    <button
-                      onClick={() => setSelectedTemplate(null)}
-                      className="text-[9px] font-bold text-primary-color uppercase tracking-tighter hover:opacity-70"
-                    >
-                      Limpiar Selección
-                    </button>
-                  )}
-                </div>
-
-                <div className={`grid grid-cols-4 gap-2 transition-all ${styleImageBase64 ? 'opacity-20 pointer-events-none grayscale' : ''}`}>
-                  {globalTemplates.slice(0, 8).map((template, i) => (
-                    <div
-                      key={i}
-                      onClick={() => setSelectedTemplate(selectedTemplate?.id === template.id ? null : template)}
-                      className={`aspect-[3/4] rounded-xl bg-white/5 overflow-hidden border transition-all cursor-pointer relative group ${selectedTemplate?.id === template.id ? 'border-primary-color ring-2 ring-primary-color/30' : 'border-white/10 hover:border-white/30'
-                        }`}
-                    >
-                      <img src={template.url} className={`w-full h-full object-cover transition-opacity duration-500 ${selectedTemplate?.id === template.id ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`} />
-                      {selectedTemplate?.id === template.id && (
-                        <div className="absolute inset-0 bg-primary-color/10 flex items-center justify-center">
-                          <div className="bg-primary-color text-black p-1.5 rounded-full text-[10px] shadow-lg shadow-primary-color/20">
-                            <FaCheckCircle />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {styleImageBase64 ? (
-                  <div className="mt-4 p-3 bg-primary-color/10 border border-primary-color/20 rounded-xl flex items-center gap-3">
-                    <FaMagic className="text-primary-color text-xs animate-pulse" />
-                    <p className="text-[9px] text-theme-secondary font-bold leading-tight">Usando tu <span className="text-primary-color uppercase">Imagen Personalizada</span> como base de estilo visual.</p>
-                  </div>
-                ) : (
-                  <p className="text-[9px] text-theme-tertiary mt-3 italic opacity-60">
-                    {selectedTemplate ? `Estilo "${selectedTemplate.name}" seleccionado.` : "* Selecciona una plantilla para guiar el estilo inicial."}
-                  </p>
-                )}
-              </div>
-            )}
           </div>
 
-          {/* Lado Derecho: Generación y Edición */}
+          {/* Lado Derecho: Generación, Contexto y Selección */}
           <div className="lg:col-span-8 space-y-6">
+            {/* Visualizador de Generación Principal */}
             <div className="soft-card overflow-hidden min-h-[650px] flex flex-col relative group/main">
               {/* Overlay de Carga */}
               {isGenerating && (
@@ -565,7 +496,7 @@ export default function LandingProPage() {
                     </div>
                     <div>
                       <h4 className="text-white font-black text-2xl mb-3 tracking-tight">Crea el {currentSection.title}</h4>
-                      <p className="text-theme-secondary text-sm leading-relaxed opacity-60">Usaremos tu imagen base y aplicaremos una estrategia de **Marketing de Respuesta Directa** para esta sección.</p>
+                      <p className="text-theme-secondary text-sm leading-relaxed opacity-60 font-medium">Usaremos tu imagen base y aplicaremos una estrategia de **Marketing de Respuesta Directa** para esta sección.</p>
                     </div>
                     <button
                       onClick={() => handleGenerateStep(false)}
@@ -617,6 +548,66 @@ export default function LandingProPage() {
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* Grid de Paneles de Apoyo Inferiores */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Panel de Contexto de Sección */}
+              <div className="bg-gradient-to-br from-primary-color/10 via-transparent to-transparent border border-primary-color/20 p-6 rounded-3xl relative overflow-hidden group">
+                <div className="absolute -bottom-4 -right-4 text-7xl opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
+                  <currentSection.icon />
+                </div>
+
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2.5 bg-primary-color text-black rounded-xl">
+                    <currentSection.icon className="text-lg" />
+                  </div>
+                  <div>
+                    <h3 className="text-primary-color font-black text-sm uppercase tracking-widest leading-none">Paso {currentStep + 1}</h3>
+                    <span className="text-white font-bold text-lg">{currentSection.title}</span>
+                  </div>
+                </div>
+                <p className="text-theme-secondary text-sm leading-relaxed opacity-80 font-medium italic">
+                  "{currentSection.description}"
+                </p>
+              </div>
+
+              {/* Estructuras Sugeridas (Templates de Layout) */}
+              {!generations[currentStep] && (
+                <div className="soft-card p-5 border-blue-500/10">
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="text-[10px] font-black text-theme-tertiary uppercase tracking-widest block">Estructuras de Marketing</label>
+                    {selectedLayout && (
+                      <button
+                        onClick={() => setSelectedLayout(null)}
+                        className="text-[9px] font-bold text-primary-color uppercase tracking-tighter hover:opacity-70"
+                      >
+                        Limpiar
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {MARKETING_LAYOUTS.map((layout) => (
+                      <button
+                        key={layout.id}
+                        onClick={() => setSelectedLayout(selectedLayout === layout.id ? null : layout.id)}
+                        className={`p-3 rounded-xl border transition-all text-left group relative overflow-hidden ${selectedLayout === layout.id
+                          ? 'bg-primary-color/10 border-primary-color ring-1 ring-primary-color/30'
+                          : 'bg-white/5 border-white/10 hover:border-white/30'
+                          }`}
+                      >
+                        {selectedLayout === layout.id && (
+                          <div className="absolute top-0 right-0 p-1.5 bg-primary-color text-black rounded-bl-lg">
+                            <FaCheckCircle className="text-[10px]" />
+                          </div>
+                        )}
+                        <p className={`text-[10px] font-bold mb-1 transition-colors ${selectedLayout === layout.id ? 'text-primary-color' : 'text-white group-hover:text-primary-color'}`}>{layout.name}</p>
+                        <p className="text-[8px] text-theme-tertiary opacity-60 leading-tight">{layout.desc}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
