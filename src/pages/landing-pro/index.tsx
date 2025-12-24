@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import {
   FaMagic, FaRocket, FaEdit, FaImage, FaChevronRight, FaChevronLeft,
-  FaCheckCircle, FaDollarSign, FaExchangeAlt, FaStar, FaListUl,
-  FaCertificate, FaUsers, FaBook, FaTruck, FaSave, FaTrash
+  FaCertificate, FaUsers, FaBook, FaTrash, FaCube, FaListUl,
+  FaFlagCheckered, FaDollarSign, FaExchangeAlt, FaStar, FaCheckCircle
 } from 'react-icons/fa';
 import ImageUploader from '../../components/ImageGen/ImageUploader';
 import { useAppContext } from '../../contexts/AppContext';
@@ -70,11 +70,18 @@ const LANDING_SECTIONS = [
     prompt: 'HOW IT WORKS: Macro details of use. Educational feel. strictly functional visual. No testimonials or offers.'
   },
   {
-    id: 'logistica',
-    title: 'Logística',
-    description: 'Envío, garantía y proceso de compra sin fricciones.',
-    icon: FaTruck,
-    prompt: 'SAFE DELIVERY: Premium unboxing view. Focus on shipping and trust. Final touch. No content from previous transformation or use steps.'
+    id: 'componentes',
+    title: 'Componentes / Calidad',
+    description: 'Explosión visual de ingredientes o materiales. Usaremos etiquetas flotantes para resaltar la calidad.',
+    icon: FaCube,
+    prompt: 'PRODUCT ANATOMY: Cinematic exploded view. The product is surrounded by its raw premium ingredients (herbs, oils, or materials) floating in high-definition. ADD ELEGANT GRAPHIC CALLOUTS or floating text labels pointing to each component. Professional studio lighting with sharp focus.'
+  },
+  {
+    id: 'cierre',
+    title: 'Cierre / Acción',
+    description: 'El empujón final. Crea urgencia sutil y resalta el gran beneficio de tomar acción ahora.',
+    icon: FaFlagCheckered,
+    prompt: 'POWERFUL CLOSING CTA: High-end lifestyle shot showing the "Final Transformation". The product is presented as the ultimate solution. Include subtle visual elements of exclusivity or limited time (like a premium "Limited Edition" seal or a focus on the action of clicking). Vibe: Empowerment and immediate positive change.'
   }
 ];
 
