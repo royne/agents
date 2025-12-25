@@ -2,14 +2,24 @@ import React, { useState, useCallback } from 'react';
 import { FaCloudUploadAlt, FaFileImage, FaTrash } from 'react-icons/fa';
 
 interface ImageUploaderProps {
-  onImageSelect: (file: File | null) => void;
+  onImageSelect: (file: File | string | null) => void;
   label?: string;
+  externalPreview?: string | null;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelect, label = 'Imagen de Referencia' }) => {
+const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelect, label = 'Imagen de Referencia', externalPreview }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Sincronizar previsualización externa (desde biblioteca)
+  React.useEffect(() => {
+    if (externalPreview) {
+      setPreview(externalPreview);
+    } else if (!selectedFile) {
+      setPreview(null);
+    }
+  }, [externalPreview, selectedFile]);
 
   const handleFile = (file: File) => {
     if (file.type.startsWith('image/')) {

@@ -6,7 +6,7 @@ import ImageUploader from '../../components/ImageGen/ImageUploader';
 import { useApiKey } from '../../hooks/useApiKey';
 import { useAppContext } from '../../contexts/AppContext';
 import { supabase } from '../../lib/supabase';
-import { ApiKeyModal } from '../../components/ApiKeyModal';
+import { ReferenceLibraryModal } from '../../components/ImageGen/ReferenceLibraryModal';
 import Head from 'next/head';
 
 export default function ImageProPage() {
@@ -23,6 +23,7 @@ export default function ImageProPage() {
   });
   const [aspectRatio, setAspectRatio] = useState<'1:1' | '9:16'>('1:1');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [isCorrectionModalOpen, setIsCorrectionModalOpen] = useState(false);
   const [correctionPrompt, setCorrectionPrompt] = useState('');
@@ -33,27 +34,31 @@ export default function ImageProPage() {
     return null;
   }
 
-  const handleImageSelect = async (file: File | null) => {
-    if (file) {
+  const handleImageSelect = async (file: File | string | null) => {
+    if (file instanceof File) {
       const reader = new FileReader();
       const base64 = await new Promise<string>((resolve) => {
         reader.onload = () => resolve(reader.result as string);
         reader.readAsDataURL(file);
       });
       setBaseImageBase64(base64);
+    } else if (typeof file === 'string') {
+      setBaseImageBase64(file);
     } else {
       setBaseImageBase64(null);
     }
   };
 
-  const handleStyleImageSelect = async (file: File | null) => {
-    if (file) {
+  const handleStyleImageSelect = async (file: File | string | null) => {
+    if (file instanceof File) {
       const reader = new FileReader();
       const base64 = await new Promise<string>((resolve) => {
         reader.onload = () => resolve(reader.result as string);
         reader.readAsDataURL(file);
       });
       setStyleImageBase64(base64);
+    } else if (typeof file === 'string') {
+      setStyleImageBase64(file);
     } else {
       setStyleImageBase64(null);
     }
@@ -175,12 +180,22 @@ export default function ImageProPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-theme-secondary uppercase tracking-widest flex justify-between">
-                    <span>2. Referencia de Estilo</span>
-                    <span className="text-theme-tertiary opacity-40 italic">Opcional</span>
-                  </label>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-black text-theme-secondary uppercase tracking-widest">
+                      2. Referencia de Estilo
+                    </label>
+                    <button
+                      onClick={() => setIsLibraryOpen(true)}
+                      className="text-[10px] bg-primary-color/10 text-primary-color px-2 py-0.5 rounded border border-primary-color/20 hover:bg-primary-color/20 transition-all font-bold"
+                    >
+                      + Usar Biblioteca
+                    </button>
+                  </div>
                   <div className="relative group">
-                    <ImageUploader onImageSelect={handleStyleImageSelect} />
+                    <ImageUploader
+                      onImageSelect={handleStyleImageSelect}
+                      externalPreview={styleImageBase64}
+                    />
                     {styleImageBase64 && (
                       <button
                         onClick={() => setStyleImageBase64(null)}
@@ -413,6 +428,13 @@ export default function ImageProPage() {
           </div>
         </div>
       )}
+      {/* Modal de Biblioteca de Referencias */}
+      <ReferenceLibraryModal
+        isOpen={isLibraryOpen}
+        onClose={() => setIsLibraryOpen(false)}
+        category="ads-mockup"
+        onSelect={(url) => setStyleImageBase64(url)}
+      />
     </DashboardLayout>
   );
 }

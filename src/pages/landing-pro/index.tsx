@@ -9,6 +9,7 @@ import ImageUploader from '../../components/ImageGen/ImageUploader';
 import { useAppContext } from '../../contexts/AppContext';
 import { useApiKey } from '../../hooks/useApiKey';
 import { supabase } from '../../lib/supabase';
+import { ReferenceLibraryModal } from '../../components/ImageGen/ReferenceLibraryModal';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 
@@ -114,12 +115,13 @@ export default function LandingProPage() {
     buyer: '',
     details: ''
   });
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | string | null>(null);
   const [baseImageBase64, setBaseImageBase64] = useState<string | null>(null);
   const [styleImageBase64, setStyleImageBase64] = useState<string | null>(null);
   const [generations, setGenerations] = useState<Record<string, string>>({}); // Cambiado a Record<string, string> para usar IDs como llaves
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedLayout, setSelectedLayout] = useState<string | null>(null);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [landingMode, setLandingMode] = useState<'full' | 'flash'>('full');
 
   // Estados de Edición y Plantillas
@@ -200,28 +202,32 @@ export default function LandingProPage() {
 
   const currentSection = activeSections[currentStep];
 
-  const handleImageSelect = async (file: File | null) => {
+  const handleImageSelect = async (file: File | string | null) => {
     setSelectedImage(file);
-    if (file) {
+    if (file instanceof File) {
       const reader = new FileReader();
       const base64 = await new Promise<string>((resolve) => {
         reader.onload = () => resolve(reader.result as string);
         reader.readAsDataURL(file);
       });
       setBaseImageBase64(base64);
+    } else if (typeof file === 'string') {
+      setBaseImageBase64(file);
     } else {
       setBaseImageBase64(null);
     }
   };
 
-  const handleStyleImageSelect = async (file: File | null) => {
-    if (file) {
+  const handleStyleImageSelect = async (file: File | string | null) => {
+    if (file instanceof File) {
       const reader = new FileReader();
       const base64 = await new Promise<string>((resolve) => {
         reader.onload = () => resolve(reader.result as string);
         reader.readAsDataURL(file);
       });
       setStyleImageBase64(base64);
+    } else if (typeof file === 'string') {
+      setStyleImageBase64(file);
     } else {
       setStyleImageBase64(null);
     }
@@ -437,7 +443,10 @@ export default function LandingProPage() {
                     <span className="text-theme-tertiary opacity-40 italic">Opcional</span>
                   </label>
                   <div className="relative group">
-                    <ImageUploader onImageSelect={handleStyleImageSelect} />
+                    <ImageUploader
+                      onImageSelect={handleStyleImageSelect}
+                      externalPreview={styleImageBase64}
+                    />
                     {styleImageBase64 && (
                       <button
                         onClick={() => setStyleImageBase64(null)}
@@ -448,6 +457,21 @@ export default function LandingProPage() {
                     )}
                   </div>
                   <p className="text-[9px] text-theme-tertiary opacity-50 italic">Sube una imagen con el "mood", colores o iluminación que deseas imitar.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-black text-theme-secondary uppercase tracking-widest">
+                      3. Inspiración Sugerida
+                    </label>
+                    <button
+                      onClick={() => setIsLibraryOpen(true)}
+                      className="text-[10px] bg-primary-color/10 text-primary-color px-2 py-0.5 rounded border border-primary-color/20 hover:bg-primary-color/20 transition-all font-bold"
+                    >
+                      + Usar Biblioteca
+                    </button>
+                  </div>
+                  <p className="text-[9px] text-theme-tertiary opacity-50 italic">Selecciona una imagen de nuestra biblioteca para inspirar el estilo.</p>
                 </div>
 
                 <div className="space-y-2">
@@ -714,6 +738,16 @@ export default function LandingProPage() {
           </div>
         </div>
       )}
+      {/* Modal de Biblioteca de Referencias */}
+      <ReferenceLibraryModal
+        isOpen={isLibraryOpen}
+        onClose={() => setIsLibraryOpen(false)}
+        category={`landing-${activeSections[currentStep].id}`}
+        onSelect={(url) => {
+          setStyleImageBase64(url);
+          setIsLibraryOpen(false);
+        }}
+      />
     </DashboardLayout>
   );
 }
