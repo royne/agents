@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { FaMagic, FaRocket, FaEdit, FaHistory, FaCog, FaImage } from 'react-icons/fa';
+import { FaMagic, FaRocket, FaEdit, FaHistory, FaCog, FaImage, FaTrash } from 'react-icons/fa';
 import ImageUploader from '../../components/ImageGen/ImageUploader';
 import { useApiKey } from '../../hooks/useApiKey';
 import { useAppContext } from '../../contexts/AppContext';
@@ -13,7 +13,8 @@ export default function ImageProPage() {
   const { googleAiKey, canAccessModule } = useAppContext();
   const { isApiKeyModalOpen, openApiKeyModal, closeApiKeyModal, saveGoogleAiKey } = useApiKey();
   const router = useRouter();
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [baseImageBase64, setBaseImageBase64] = useState<string | null>(null);
+  const [styleImageBase64, setStyleImageBase64] = useState<string | null>(null);
   const [productData, setProductData] = useState({
     name: '',
     angle: '',
@@ -32,22 +33,45 @@ export default function ImageProPage() {
     return null;
   }
 
+  const handleImageSelect = async (file: File | null) => {
+    if (file) {
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+      setBaseImageBase64(base64);
+    } else {
+      setBaseImageBase64(null);
+    }
+  };
+
+  const handleStyleImageSelect = async (file: File | null) => {
+    if (file) {
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+      setStyleImageBase64(base64);
+    } else {
+      setStyleImageBase64(null);
+    }
+  };
+
   const handleGenerate = async (isCorrection: boolean = false) => {
     if (!googleAiKey) {
       openApiKeyModal('google');
       return;
     }
 
+    if (!isCorrection && (!productData.name || !baseImageBase64)) {
+      alert('Por favor, completa el nombre del producto y sube una imagen base.');
+      return;
+    }
+
     setIsGenerating(true);
     if (isCorrection) setIsCorrectionModalOpen(false);
-    let referenceImageBase64 = null;
-    if (selectedImage) {
-      const reader = new FileReader();
-      referenceImageBase64 = await new Promise((resolve) => {
-        reader.onload = () => resolve(reader.result);
-        reader.readAsDataURL(selectedImage);
-      });
-    }
 
     try {
       // Obtener sesión actual para enviar el token (por si las cookies fallan)
@@ -63,10 +87,11 @@ export default function ImageProPage() {
         body: JSON.stringify({
           productData,
           aspectRatio,
-          referenceImage: isCorrection ? null : referenceImageBase64,
-          prompt: isCorrection ? correctionPrompt : 'Profesional product photography, 4k, studio lighting',
+          referenceImage: styleImageBase64,
+          referenceType: 'style',
+          prompt: isCorrection ? correctionPrompt : (productData.details || 'Professional product photography, studio lighting'),
           isCorrection,
-          previousImageUrl: isCorrection ? generatedImageUrl : null
+          previousImageUrl: isCorrection ? generatedImageUrl : baseImageBase64
         })
       });
 
@@ -140,8 +165,33 @@ export default function ImageProPage() {
                 Configuración del Prompt
               </h2>
 
-              <div className="space-y-4">
-                <ImageUploader onImageSelect={setSelectedImage} />
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-theme-secondary uppercase tracking-widest flex justify-between">
+                    <span>1. Foto Producto Real</span>
+                    <span className="text-primary-color animate-pulse">Obligatorio</span>
+                  </label>
+                  <ImageUploader onImageSelect={handleImageSelect} />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-theme-secondary uppercase tracking-widest flex justify-between">
+                    <span>2. Referencia de Estilo</span>
+                    <span className="text-theme-tertiary opacity-40 italic">Opcional</span>
+                  </label>
+                  <div className="relative group">
+                    <ImageUploader onImageSelect={handleStyleImageSelect} />
+                    {styleImageBase64 && (
+                      <button
+                        onClick={() => setStyleImageBase64(null)}
+                        className="absolute top-2 right-2 p-1.5 bg-rose-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-[10px]"
+                      >
+                        <FaTrash />
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[9px] text-theme-tertiary opacity-50 italic">Sube el mood, colores o iluminación que deseas imitar.</p>
+                </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-theme-secondary">Nombre del Producto</label>
