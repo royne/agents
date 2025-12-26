@@ -10,6 +10,8 @@ import { useAppContext } from '../../contexts/AppContext';
 import { useApiKey } from '../../hooks/useApiKey';
 import { supabase } from '../../lib/supabase';
 import { ReferenceLibraryModal } from '../../components/ImageGen/ReferenceLibraryModal';
+import UsageCounter from '../../components/ImageGen/UsageCounter';
+import { useImageUsage } from '../../hooks/useImageUsage';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 
@@ -100,6 +102,7 @@ const MARKETING_LAYOUTS = [
 export default function LandingProPage() {
   const { googleAiKey, canAccessModule } = useAppContext();
   const { openApiKeyModal } = useApiKey();
+  const { refreshCount } = useImageUsage();
   const router = useRouter();
 
   if (!canAccessModule('landing-pro')) {
@@ -312,6 +315,8 @@ export default function LandingProPage() {
       if (data.success) {
         setGenerations(prev => ({ ...prev, [section.id]: data.imageUrl }));
         if (isCorrection) setCorrectionPrompt('');
+        // Refrescar contador de uso
+        refreshCount();
       } else {
         alert(data.error || 'Error al generar la sección');
       }
@@ -420,6 +425,8 @@ export default function LandingProPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Lado Izquierdo: Configuración de Identidad */}
           <div className="lg:col-span-4 space-y-6">
+            <UsageCounter />
+
             <div className="soft-card p-6 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-24 h-24 bg-primary-color/5 blur-2xl rounded-full -mr-8 -mt-8"></div>
 

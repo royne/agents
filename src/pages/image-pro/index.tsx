@@ -10,11 +10,14 @@ import { useApiKey } from '../../hooks/useApiKey';
 import { useAppContext } from '../../contexts/AppContext';
 import { supabase } from '../../lib/supabase';
 import { ReferenceLibraryModal } from '../../components/ImageGen/ReferenceLibraryModal';
+import UsageCounter from '../../components/ImageGen/UsageCounter';
+import { useImageUsage } from '../../hooks/useImageUsage';
 import Head from 'next/head';
 
 export default function ImageProPage() {
   const { googleAiKey, canAccessModule } = useAppContext();
   const { openApiKeyModal } = useApiKey();
+  const { refreshCount } = useImageUsage();
   const router = useRouter();
 
   // Estados principales
@@ -166,6 +169,8 @@ export default function ImageProPage() {
         } else {
           setGeneratedImageUrl(data.imageUrl);
         }
+        // Refrescar contador de uso
+        refreshCount();
       } else {
         alert(data.error || 'Error al generar la imagen');
       }
@@ -247,6 +252,8 @@ export default function ImageProPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Lado Izquierdo: Configuración y Carga */}
           <div className="lg:col-span-4 space-y-6">
+            <UsageCounter />
+
             <div className="soft-card p-6 overflow-hidden relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary-color/5 blur-3xl rounded-full -mr-16 -mt-16"></div>
 
