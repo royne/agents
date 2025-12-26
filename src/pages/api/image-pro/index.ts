@@ -79,26 +79,44 @@ export default async function handler(req: NextRequest) {
     const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-image-preview' });
 
     // Consolidar el prompt estratégico - REFORZADO PARA AISLAMIENTO
-    let strategicPrompt = `HIGH-END ADVERTISEMENT GENERATION
-    PRODUCT: ${productData.name}
-    CORE ANGLE: ${productData.angle}
-    TARGET AUDIENCE: ${productData.buyer || 'General Premium'}
-    DESIGN GUIDES: ${productData.details || 'Professional studio lighting'}
-    ASPECT RATIO: ${aspectRatio}
+    // Consolidar el prompt estratégico - MÁXIMO PODER DE MARKETING
+    let strategicPrompt = `PREMIUM COMMERCIAL PHOTOGRAPHY & MARKETING DESIGN
+    PRODUCT IDENTITY: ${productData.name}
+    MARKETING STRATEGY (CRITICAL): 
+    - SELL TO: ${productData.buyer || 'High-end premium customers'}
+    - CORE ANGLE: ${productData.angle || 'Exclusivity and superior quality'}
+    - VISUAL GOAL: ${productData.details || 'Professional studio lighting, sharp focus'}
+    
+    SECTION OBJECTIVE: ${prompt}
     
     CRITICAL INSTRUCTION (SECTION ISOLATION): 
-    - You are generating a SPECIFIC section of a landing page.
-    - DO NOT include pricing tables, feature lists, or text blocks from previous sections unless explicitly stated in the CURRENT prompt.
-    - If you see prices or specific offer details in a reference image, IGNORE THEM. This is a NEW section with NEW content.
+    - You are generating a SPECIFIC section or advertisement.
+    - DO NOT include pricing info, pricing tables, or marketing copy from PREVIOUS sections.
+    - If you see prices or offer details in a reference image, YOU MUST IGNORE THEM. This is a NEW design with its own unique focus.
+    
+    STRICT VISUAL DIRECTIVES:
+    - ASPECT RATIO: ${aspectRatio}
+    - TYPOGRAPHY & TEXT: ${
+      /RENDER|HEADLINE|TEXT|COPY|ACTION|STAMP/i.test(prompt)
+        ? "RENDER professional, clean, and legible typography only for the requested headlines/copy. Integrate it artistically into the design."
+        : "DO NOT add any text, labels, or watermarks to the image. Keep it purely visual."
+    }
+    - Focus on visual storytelling that resonates with the target audience.
     
     REFERENCE HANDLING: 
-    - If REFERENCE TYPE is 'layout': This is a wireframe/template. Follow the skeleton and placements strictly, but use professional materials and lighting.
-    - If REFERENCE TYPE is 'style': This is a visual/mood reference. Follow ONLY the colors, lighting, materials, and "feel". IGNORE the placement of objects, texts, and UI elements.
-    
-    CONTENT DIRECTIVE: ${prompt}`;
+    - If REFERENCE TYPE is 'layout': Follow the composition and skeleton strictly.
+    - If REFERENCE TYPE is 'style': Follow ONLY colors, lighting, and "vibe". IGNORE object placement from the reference.`;
 
     if (isCorrection) {
-      strategicPrompt = `IMAGE REFINEMENT: Keep the current image but apply these specific modifications: ${prompt}. Do not change the product identity or basic layout unless requested.`;
+      strategicPrompt = `IMAGE REFINEMENT & CORE ALIGNMENT:
+      Maintain the current visual identity, product features, and marketing core.
+      CORE STRATEGY (STAY TRUE TO THIS): 
+      - TARGET: ${productData.buyer || 'High-end premium customers'}
+      - ANGLE: ${productData.angle || 'Exclusivity and superior quality'}
+      
+      NEW MODIFICATION REQUEST: ${prompt}
+      
+      INSTRUCTION: Apply the modification while keeping the product and brand consistency. Do not change the layout or background drastically unless the request implies it.`;
     }
 
     const parts: any[] = [{ text: strategicPrompt }];

@@ -48,17 +48,17 @@ export default function ImageProPage() {
     {
       id: 'hook',
       title: 'Hook Visual',
-      prompt: 'Cinematic product shot, high contrast, minimalist background. Focus on visual impact and curiosity.'
+      prompt: 'MAIN HERO AD: Create a high-impact visual hook. Cinematic lighting. RENDER A BOLD MARKETING HEADLINE integrated into the design based on the Angle of Sale. Use professional typography. No placeholder text, use meaningful copy.'
     },
     {
       id: 'proof',
       title: 'Prueba de Valor',
-      prompt: 'Close-up macro of product texture or feature. Technical studio lighting. Highlight quality and reliability.'
+      prompt: 'TECHNICAL PROOF AD: Macro studio shot of product quality. INCLUDE A SUB-HEADLINE OR STAMP that certifies quality or a key benefit. The text should be sharp and legible, reinforcing the buyer persona trust.'
     },
     {
       id: 'cta',
       title: 'Acción / Estilo de Vida',
-      prompt: 'Lifestyle shot with product in a premium setting. Composition leaves space for marketing text on the sides. Professional commercial look.'
+      prompt: 'LIFESTYLE CALL TO ACTION: The product in use. RENDER A CLEAR "CALL TO ACTION" text (e.g. "Shop Now" or a benefit-driven phrase) using modern design aesthetics. The typography must feel part of a premium advertisement.'
     }
   ];
 
@@ -118,26 +118,37 @@ export default function ImageProPage() {
     setIsGenerating(true);
     if (isCorrection) setIsCorrectionModalOpen(false);
 
-    // DETERMINAR PROMPT SEGÚN MODO
+    // DETERMINAR PROMPT Y BASE SEGÚN MODO
     let finalPrompt = '';
-    let previousUrl = isCorrection ? generatedImageUrl : baseImageBase64;
+
+    // Determinar la imagen base real que el usuario está viendo (especialmente en Ads Completo)
+    const currentViewedImage = (generationMode === 'ads' && adsSubMode === 'completo')
+      ? (generations[ADS_STEPS[currentAdStep].id] || baseImageBase64)
+      : generatedImageUrl || baseImageBase64;
+
+    let previousUrl = isCorrection ? currentViewedImage : baseImageBase64;
 
     if (isCorrection) {
       finalPrompt = correctionPrompt;
     } else if (generationMode === 'libre') {
       finalPrompt = productData.details || 'Professional product photography, studio lighting';
     } else if (generationMode === 'ads') {
+      const angleInfo = productData.angle ? `| Angle: ${productData.angle}` : '';
+      const buyerInfo = productData.buyer ? `| Audience: ${productData.buyer}` : '';
+
       if (adsSubMode === 'sencillo') {
-        finalPrompt = `Premium marketing advertisement for ${productData.name}. ${ADS_STEPS[0].prompt}`;
+        finalPrompt = `Premium marketing advertisement for ${productData.name} ${angleInfo} ${buyerInfo}. ${ADS_STEPS[0].prompt}`;
       } else {
         const step = ADS_STEPS[currentAdStep];
-        finalPrompt = `${step.prompt} | Focus on ${productData.name}`;
+        finalPrompt = `${step.prompt} ${angleInfo} ${buyerInfo} | Focus on ${productData.name}`;
         if (currentAdStep > 0 && generations[ADS_STEPS[currentAdStep - 1].id]) {
           previousUrl = generations[ADS_STEPS[currentAdStep - 1].id];
         }
       }
     } else if (generationMode === 'personas') {
-      finalPrompt = `${PERSONA_PROMPTS[personaOption]} | Featuring ${productData.name}`;
+      const angleInfo = productData.angle ? `| Angle: ${productData.angle}` : '';
+      const buyerInfo = productData.buyer ? `| Audience: ${productData.buyer}` : '';
+      finalPrompt = `${PERSONA_PROMPTS[personaOption]} ${angleInfo} ${buyerInfo} | Featuring ${productData.name}`;
     }
 
     try {
@@ -163,7 +174,7 @@ export default function ImageProPage() {
 
       const data = await response.json();
       if (data.success) {
-        if (generationMode === 'ads' && adsSubMode === 'completo' && !isCorrection) {
+        if (generationMode === 'ads' && adsSubMode === 'completo') {
           setGenerations(prev => ({ ...prev, [ADS_STEPS[currentAdStep].id]: data.imageUrl }));
           setGeneratedImageUrl(data.imageUrl);
         } else {
@@ -331,15 +342,50 @@ export default function ImageProPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-theme-secondary">Nombre del Producto</label>
-                  <input
-                    type="text"
-                    placeholder="Ej: Reloj Nebula..."
-                    className="w-full bg-theme-component border border-gray-700 rounded-xl p-3 text-theme-primary focus:border-primary-color outline-none"
-                    value={productData.name}
-                    onChange={(e) => setProductData({ ...productData, name: e.target.value })}
-                  />
+                <div className="space-y-4 pt-4 border-t border-white/5">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-theme-secondary uppercase tracking-widest">Nombre del Producto</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Reloj Nebula..."
+                      className="w-full bg-theme-component border border-gray-700 rounded-xl p-3 text-theme-primary focus:border-primary-color outline-none text-xs"
+                      value={productData.name}
+                      onChange={(e) => setProductData({ ...productData, name: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-theme-secondary uppercase tracking-widest">Ángulo de Venta</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: El regalo perfecto para Navidad..."
+                      className="w-full bg-theme-component border border-gray-700 rounded-xl p-3 text-theme-primary focus:border-primary-color outline-none text-xs"
+                      value={productData.angle}
+                      onChange={(e) => setProductData({ ...productData, angle: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-theme-secondary uppercase tracking-widest">Buyer Persona</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Emprendedores de 25-40 años..."
+                      className="w-full bg-theme-component border border-gray-700 rounded-xl p-3 text-theme-primary focus:border-primary-color outline-none text-xs"
+                      value={productData.buyer}
+                      onChange={(e) => setProductData({ ...productData, buyer: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-theme-secondary uppercase tracking-widest">Instrucciones / Detalles</label>
+                    <textarea
+                      placeholder="Ej: Estilo minimalista, fondo oscuro..."
+                      rows={2}
+                      className="w-full bg-theme-component border border-gray-700 rounded-xl p-3 text-theme-primary focus:border-primary-color outline-none text-xs resize-none"
+                      value={productData.details}
+                      onChange={(e) => setProductData({ ...productData, details: e.target.value })}
+                    />
+                  </div>
                 </div>
 
                 <button
