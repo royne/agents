@@ -20,6 +20,7 @@ type AppContextType = {
     name?: string;
     plan?: Plan;
     modulesOverride?: Partial<Record<ModuleKey, boolean>>;
+    activeModules?: ModuleKey[];
   } | null;
   themeConfig: ThemeConfig;
   setApiKey: (key: string | null) => void;
@@ -48,6 +49,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     name?: string;
     plan?: Plan;
     modulesOverride?: Partial<Record<ModuleKey, boolean>>;
+    activeModules?: ModuleKey[];
   } | null>(null);
   const [themeConfig, setThemeConfig] = useState<ThemeConfig>({
     primaryColor: '#3B82F6', // Color azul predeterminado
@@ -66,6 +68,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
           .eq('user_id', session.user.id)
           .single();
 
+        // Obtener módulos habilitados para el plan desde la tabla de planes
+        let activeModules: ModuleKey[] = [];
+        const planKey = (profile as any)?.plan === 'premium' ? 'pro' : ((profile as any)?.plan || 'free');
+        const { data: planData } = await supabase
+          .from('subscription_plans')
+          .select('features')
+          .eq('key', planKey)
+          .single();
+
+        if (planData?.features?.active_modules) {
+          activeModules = planData.features.active_modules;
+        }
+
         const authData = {
           isAuthenticated: true,
           company_id: profile?.company_id,
@@ -73,6 +88,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           name: profile?.name,
           plan: (profile as any)?.plan as Plan | undefined,
           modulesOverride: (profile as any)?.modules_override || undefined,
+          activeModules: activeModules,
         };
 
         localStorage.setItem('auth_data', JSON.stringify(authData));
@@ -142,6 +158,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .eq('user_id', data.user.id)
         .single();
 
+      // Obtener módulos habilitados para el plan
+      let activeModules: ModuleKey[] = [];
+      const planKey = (profile as any)?.plan === 'premium' ? 'pro' : ((profile as any)?.plan || 'free');
+      const { data: planData } = await supabase
+        .from('subscription_plans')
+        .select('features')
+        .eq('key', planKey)
+        .single();
+
+      if (planData?.features?.active_modules) {
+        activeModules = planData.features.active_modules;
+      }
+
       const authData = {
         isAuthenticated: true,
         company_id: profile?.company_id,
@@ -149,6 +178,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         name: profile?.name,
         plan: (profile as any)?.plan as Plan | undefined,
         modulesOverride: (profile as any)?.modules_override || undefined,
+        activeModules: activeModules,
       };
 
       localStorage.setItem('auth_data', JSON.stringify(authData));
@@ -191,8 +221,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const canAccessModule = (module: ModuleKey): boolean => {
     // Módulo de administración sigue regido por rol
     if (module === 'admin') return isAdmin();
-    const plan = ((authData?.plan as Plan) || 'basic');
+
+    // 1. Verificar overrides del usuario
     const overrides = authData?.modulesOverride;
+    if (overrides && module in overrides) {
+      return !!overrides[module];
+    }
+
+    // 2. Verificar módulos habilitados en el plan (desde DB)
+    if (authData?.activeModules) {
+      return authData.activeModules.includes(module);
+    }
+
+    // 3. Fallback a constantes hardcoded
+    const plan = ((authData?.plan as Plan) || 'basic');
     const enabled = computeModulesForPlan(plan, overrides);
     return enabled.has(module);
   };

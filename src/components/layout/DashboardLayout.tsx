@@ -10,12 +10,9 @@ type MenuItem = { name: string; icon: any; path: string; adminOnly?: boolean; sh
 
 const menuItems: MenuItem[] = [
   { name: 'Agentes', icon: FaComments, path: '/agents', moduleKey: 'agents' },
-  { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability', moduleKey: 'profitability' },
-  { name: 'Control de Campañas', icon: FaAd, path: '/campaign-control', moduleKey: 'campaign-control' },
   { name: 'Calculadora de Precios', icon: FaDollarSign, path: '/calculator', moduleKey: 'calculator' },
   { name: 'Logística', icon: FaTruck, path: '/logistic', moduleKey: 'logistic' },
   { name: 'Análisis de Datos', icon: FaBrain, path: '/data-analysis', moduleKey: 'data-analysis' },
-  { name: 'Manager DB', icon: FaDatabase, path: '/dbmanager', moduleKey: 'dbmanager' },
   { name: 'Agente Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
   { name: 'Landing PRO', icon: FaAd, path: '/landing-pro', moduleKey: 'landing-pro' },
   { name: 'Master Chat', icon: FaRobot, path: '/chat', moduleKey: 'chat' },
@@ -34,8 +31,7 @@ const mobileMenuItems: MobileMenuItem[] = [
     ), path: '/'
   },
   { name: 'Agentes', icon: FaComments, path: '/agents', moduleKey: 'agents' },
-  { name: 'Rentabilidad', icon: FaChartLine, path: '/profitability', moduleKey: 'profitability' },
-  { name: 'Campañas', icon: FaAd, path: '/campaign-control', moduleKey: 'campaign-control' },
+  { name: 'Calculadora', icon: FaDollarSign, path: '/calculator', moduleKey: 'calculator' },
   { name: 'Agente Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
 ];
 

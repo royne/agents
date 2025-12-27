@@ -1,5 +1,5 @@
 import { supabase } from '../../lib/supabase';
-import type { Plan, ModuleKey } from '../../constants/plans';
+import { Plan, ModuleKey } from '../../constants/plans';
 
 export interface Company {
   id?: string;
@@ -123,6 +123,33 @@ export const adminService = {
     return data;
   },
 
+  // --- GESTIÓN DE PLANES ---
+  async getSubscriptionPlans(): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('subscription_plans')
+      .select('*')
+      .order('price_usd', { ascending: true });
+    
+    if (error) {
+      console.error('Error fetching plans:', error);
+      return [];
+    }
+    return data;
+  },
+
+  async updatePlanFeatures(planKey: string, features: any): Promise<boolean> {
+    const { error } = await supabase
+      .from('subscription_plans')
+      .update({ features })
+      .eq('key', planKey);
+    
+    if (error) {
+      console.error('Error updating plan features:', error);
+      return false;
+    }
+    return true;
+  },
+
   async getCompanyById(id: string): Promise<Company | null> {
     const { data, error } = await supabase
       .from('companies')
@@ -177,9 +204,9 @@ export const adminService = {
         .select('*');
 
       // 5. Transformar los datos al formato esperado
-      const combinedUsers = profiles.map(profile => {
-        const company = companies?.find(c => c.id === profile.company_id);
-        const userCredits = creditsData?.find(c => c.user_id === profile.user_id);
+      const combinedUsers = profiles.map((profile: any) => {
+        const company = companies?.find((c: any) => c.id === profile.company_id);
+        const userCredits = creditsData?.find((c: any) => c.user_id === profile.user_id);
         
         return {
           id: profile.user_id,

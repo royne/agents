@@ -37,11 +37,18 @@ const adminModules = [
     superAdminOnly: true
   },
   {
-    name: 'Planes y Créditos',
+    name: 'Módulos por Plan',
     icon: FaShieldAlt,
-    description: 'Gestionar suscripciones y saldos de créditos',
-    path: '/admin/subscriptions',
+    description: 'Activar/Desactivar módulos para cada nivel de suscripción',
+    path: '/admin/plans',
     superAdminOnly: true
+  },
+  {
+    name: 'Créditos y Usuarios',
+    icon: FaUsers,
+    description: 'Gestionar saldos de créditos y planes de usuarios',
+    path: '/admin/subscriptions',
+    superAdminOnly: false
   },
   {
     name: 'Configuración Agente Pro',
