@@ -211,7 +211,7 @@ export const adminService = {
           role: profile.role || 'user',
           company_id: profile.company_id || '',
           company_name: company?.name || 'Sin empresa',
-          plan: (profile as any)?.plan || 'basic',
+          plan: (profile as any)?.plan || 'free',
           modules_override: (profile as any)?.modules_override || undefined,
           created_at: profile.created_at || new Date().toISOString(),
           credits: userCredits ? {

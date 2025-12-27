@@ -185,14 +185,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Forzar el uso de la compañía del administrador
       var companyId = adminCompanyId;
       // Plan: admin no puede asignar premium
-      var userPlan = plan || 'basic';
-      if (userPlan === 'premium') {
-        userPlan = 'basic';
-      }
+      var userPlan = plan || 'free';
     } else {
       // Para superadmins, permitir crear o seleccionar compañía
       var companyId = company_id;
-      var userPlan = plan || 'basic';
+      var userPlan = plan || 'free';
       
       if (!companyId && company_name) {
         const { data: newCompany, error: companyError } = await supabase

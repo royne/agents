@@ -13,9 +13,9 @@ interface UserFormModalProps {
   isSuperAdmin: boolean;
 }
 
-const UserFormModal: React.FC<UserFormModalProps> = ({ 
-  isOpen, 
-  onClose, 
+const UserFormModal: React.FC<UserFormModalProps> = ({
+  isOpen,
+  onClose,
   onSuccess,
   adminCompanyId,
   isSuperAdmin
@@ -25,7 +25,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'admin' | 'user'>('user');
-  const [plan, setPlan] = useState<Plan>('basic');
+  const [plan, setPlan] = useState<Plan>('free');
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const [newCompanyName, setNewCompanyName] = useState('');
   const [createNewCompany, setCreateNewCompany] = useState(false);
@@ -46,7 +46,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
     try {
       const companiesList = await adminService.getCompanies();
       setCompanies(companiesList);
-      
+
       // Si es un admin normal, seleccionar automáticamente su compañía
       if (adminCompanyId) {
         setSelectedCompanyId(adminCompanyId);
@@ -65,12 +65,12 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
     setPassword('');
     setConfirmPassword('');
     setRole('user');
-    setPlan('basic');
+    setPlan('free');
     setNewCompanyName('');
     setCreateNewCompany(false);
     setError(null);
     setSuccess(false);
-    
+
     // Si es admin normal, mantener su compañía seleccionada
     if (!isSuperAdmin && adminCompanyId) {
       setSelectedCompanyId(adminCompanyId);
@@ -81,30 +81,30 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
     e.preventDefault();
     setLoading(true);
     setError(null);
-    
+
     try {
       // Validaciones
       if (!email || !password || !name) {
         throw new Error('El correo, nombre y contraseña son obligatorios');
       }
-      
+
       if (password !== confirmPassword) {
         throw new Error('Las contraseñas no coinciden');
       }
-      
+
       if (password.length < 6) {
         throw new Error('La contraseña debe tener al menos 6 caracteres');
       }
-      
+
       // Preparar datos del usuario
       const userData: UserCreateData = {
         email,
         name,
         password,
         role: isSuperAdmin ? role : 'user', // Los admin normales solo pueden crear usuarios normales
-        plan: isSuperAdmin ? plan : (plan === 'premium' ? 'basic' : plan), // Admin no puede asignar premium
+        plan: plan,
       };
-      
+
       // Para superadmins, manejar la creación o selección de compañía
       if (isSuperAdmin) {
         if (createNewCompany) {
@@ -127,21 +127,21 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
         }
         userData.company_id = adminCompanyId;
       }
-      
+
       // Crear usuario
       const result = await adminService.createUser(userData);
-      
+
       if (!result.success) {
         throw new Error(result.message);
       }
-      
+
       setSuccess(true);
-      
+
       setTimeout(() => {
         onSuccess();
         onClose();
       }, 1500);
-      
+
     } catch (err: any) {
       setError(err.message || 'Error al crear usuario');
     } finally {
@@ -159,7 +159,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
             <FaUser className="mr-2" /> Crear Nuevo Usuario
           </h2>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-6">
           {success ? (
             <div className="bg-green-100 text-green-800 p-4 rounded-lg mb-6">
@@ -172,7 +172,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
                   {error}
                 </div>
               )}
-              
+
               <div className="mb-4">
                 <label className="block text-theme-secondary text-sm font-medium mb-2">
                   <FaUser className="inline mr-2" /> Correo Electrónico
@@ -186,7 +186,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
                   required
                 />
               </div>
-              
+
               <div className="mb-4">
                 <label className="block text-theme-secondary text-sm font-medium mb-2">
                   <FaUser className="inline mr-2" /> Nombre Completo
@@ -200,7 +200,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
                   required
                 />
               </div>
-              
+
               <div className="mb-4">
                 <label className="block text-theme-secondary text-sm font-medium mb-2">
                   <FaLock className="inline mr-2" /> Contraseña
@@ -214,7 +214,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
                   required
                 />
               </div>
-              
+
               <div className="mb-4">
                 <label className="block text-theme-secondary text-sm font-medium mb-2">
                   <FaLock className="inline mr-2" /> Confirmar Contraseña
@@ -228,7 +228,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
                   required
                 />
               </div>
-              
+
               <div className="mb-4">
                 <label className="block text-theme-secondary text-sm font-medium mb-2">
                   <FaUserTag className="inline mr-2" /> Rol
@@ -255,18 +255,20 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
                   onChange={(e) => setPlan(e.target.value as Plan)}
                   className="w-full px-4 py-2 border rounded-lg bg-theme-primary text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary-color"
                 >
-                  <option value="basic">Basic</option>
+                  <option value="free">Free</option>
+                  <option value="starter">Starter</option>
+                  <option value="pro">Pro</option>
+                  <option value="business">Business</option>
                   <option value="tester">Tester</option>
-                  <option value="premium" disabled={!isSuperAdmin}>Premium {(!isSuperAdmin) ? '(Solo Superadmin)' : ''}</option>
                 </select>
               </div>
-              
+
               {/* Sección de Compañía */}
               <div className="mb-4">
                 <label className="block text-theme-secondary text-sm font-medium mb-2">
                   <FaBuilding className="inline mr-2" /> Compañía
                 </label>
-                
+
                 {isSuperAdmin ? (
                   <>
                     {/* Opción para crear nueva compañía o seleccionar existente (solo superadmin) */}
@@ -290,7 +292,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
                         <span className="ml-2 text-theme-secondary">Crear nueva</span>
                       </label>
                     </div>
-                    
+
                     {/* Selector de compañía existente o campo para nueva (solo superadmin) */}
                     {createNewCompany ? (
                       <div className="flex">
@@ -327,7 +329,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
               </div>
             </>
           )}
-          
+
           <div className="flex justify-end mt-6 space-x-3">
             <button
               type="button"
@@ -337,7 +339,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
             >
               Cancelar
             </button>
-            
+
             {!success && (
               <button
                 type="submit"
