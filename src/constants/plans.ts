@@ -1,4 +1,4 @@
-export type Plan = 'basic' | 'premium' | 'tester';
+export type Plan = 'free' | 'starter' | 'pro' | 'business' | 'tester';
 
 export type ModuleKey =
   | 'agents'
@@ -39,49 +39,9 @@ export const MODULE_METADATA: Record<ModuleKey, ModuleMetadata> = {
   admin: { key: 'admin', label: 'Panel Admin', description: 'Gestión global de la plataforma.', icon: 'FaUserShield' },
 };
 
-// Mapeo de módulos por plan (por defecto)
-export const DEFAULT_PLAN_MODULES: Record<Plan, ModuleKey[]> = {
-  basic: [
-    'agents',
-    'calculator',
-    'data-analysis',
-    'settings',
-  ],
-  premium: [
-    'agents',
-    'calculator',
-    'logistic',
-    'planning',
-    'data-analysis',
-    'chat',
-    'image-pro',
-    'landing-pro',
-    'settings',
-    'admin',
-  ],
-  tester: [
-    'agents',
-    'calculator',
-    'data-analysis',
-    'settings',
-  ],
-};
-
-export const PLAN_ORDER: Plan[] = ['basic', 'tester', 'premium'];
+export const PLAN_ORDER: Plan[] = ['free', 'starter', 'pro', 'business', 'tester'];
 
 export function isPlanAtLeast(userPlan: Plan | undefined, required: Plan) {
-  const up = userPlan || 'basic';
+  const up = userPlan || 'free';
   return PLAN_ORDER.indexOf(up) >= PLAN_ORDER.indexOf(required);
-}
-
-export function computeModulesForPlan(plan: Plan, overrides?: Partial<Record<ModuleKey, boolean>>): Set<ModuleKey> {
-  const base = new Set(DEFAULT_PLAN_MODULES[plan]);
-  if (overrides) {
-    for (const [key, enabled] of Object.entries(overrides)) {
-      const k = key as ModuleKey;
-      if (enabled === true) base.add(k);
-      if (enabled === false) base.delete(k);
-    }
-  }
-  return base;
 }

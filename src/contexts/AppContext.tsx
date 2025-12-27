@@ -1,7 +1,7 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
-import { Plan, ModuleKey, isPlanAtLeast, computeModulesForPlan } from '../constants/plans';
+import { Plan, ModuleKey, isPlanAtLeast } from '../constants/plans';
 import { FeatureKey, hasFeatureForPlan } from '../constants/features';
 
 type ThemeConfig = {
@@ -15,6 +15,7 @@ type AppContextType = {
   googleAiKey: string | null;
   authData: {
     isAuthenticated: boolean;
+    userId?: string;
     company_id?: string;
     role?: string;
     name?: string;
@@ -44,6 +45,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [googleAiKey, setGoogleAiKey] = useState<string | null>(null);
   const [authData, setAuthData] = useState<{
     isAuthenticated: boolean;
+    userId?: string;
     company_id?: string;
     role?: string;
     name?: string;
@@ -70,7 +72,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         // Obtener módulos habilitados para el plan desde la tabla de planes
         let activeModules: ModuleKey[] = [];
-        const planKey = (profile as any)?.plan === 'premium' ? 'pro' : ((profile as any)?.plan || 'free');
+
+        // 1. Obtener el plan_key desde user_credits (ÚNICA fuente de verdad)
+        const { data: creditsData } = await supabase
+          .from('user_credits')
+          .select('plan_key')
+          .eq('user_id', session.user.id)
+          .single();
+
+        const planKey = (creditsData?.plan_key || 'free') as Plan;
+
+        // 2. Obtener configuración dinámica del plan
         const { data: planData } = await supabase
           .from('subscription_plans')
           .select('features')
@@ -83,10 +95,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         const authData = {
           isAuthenticated: true,
+          userId: session.user.id,
           company_id: profile?.company_id,
           role: profile?.role,
           name: profile?.name,
-          plan: (profile as any)?.plan as Plan | undefined,
+          plan: planKey,
           modulesOverride: (profile as any)?.modules_override || undefined,
           activeModules: activeModules,
         };
@@ -160,7 +173,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       // Obtener módulos habilitados para el plan
       let activeModules: ModuleKey[] = [];
-      const planKey = (profile as any)?.plan === 'premium' ? 'pro' : ((profile as any)?.plan || 'free');
+
+      const { data: creditsData } = await supabase
+        .from('user_credits')
+        .select('plan_key')
+        .eq('user_id', data.user.id)
+        .single();
+
+      const planKey = (creditsData?.plan_key || 'free') as Plan;
+
       const { data: planData } = await supabase
         .from('subscription_plans')
         .select('features')
@@ -173,10 +194,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const authData = {
         isAuthenticated: true,
+        userId: data.user.id,
         company_id: profile?.company_id,
         role: profile?.role,
         name: profile?.name,
-        plan: (profile as any)?.plan as Plan | undefined,
+        plan: planKey,
         modulesOverride: (profile as any)?.modules_override || undefined,
         activeModules: activeModules,
       };
@@ -215,7 +237,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Plan helpers
   const hasPlan = (required: Plan): boolean => {
-    return isPlanAtLeast((authData?.plan as Plan) || 'basic', required);
+    return isPlanAtLeast((authData?.plan as Plan) || 'free', required);
   };
 
   const canAccessModule = (module: ModuleKey): boolean => {
@@ -233,15 +255,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return authData.activeModules.includes(module);
     }
 
-    // 3. Fallback a constantes hardcoded
-    const plan = ((authData?.plan as Plan) || 'basic');
-    const enabled = computeModulesForPlan(plan, overrides);
-    return enabled.has(module);
+    return false;
   };
 
   const hasFeature = (feature: FeatureKey): boolean => {
-    const plan = ((authData?.plan as Plan) || 'basic');
-    // Por ahora no tenemos overrides de features en DB; solo por plan
+    const plan = ((authData?.plan as Plan) || 'free');
     return hasFeatureForPlan(plan, feature);
   };
 

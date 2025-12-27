@@ -79,7 +79,7 @@ export const adminService = {
   },
 
   async updateUserPlan(userId: string, plan: Plan): Promise<boolean> {
-    // 1. Actualizar tabla profiles (compatibilidad legado)
+    // 1. Actualizar tabla profiles (compatibilidad legado si aún se usa el campo, pero con el nuevo valor)
     const { error: profileError } = await supabase
       .from('profiles')
       .update({ plan })
@@ -89,15 +89,10 @@ export const adminService = {
       console.error('Error al actualizar plan en perfil:', profileError);
     }
 
-    // 2. Actualizar tabla user_credits (nuevo sistema)
-    // Mapeamos el Plan (basic/premium/tester) al Plan Key (free/pro/tester)
-    let planKey = 'free';
-    if (plan === 'premium') planKey = 'pro';
-    if (plan === 'tester') planKey = 'tester';
-
+    // 2. Actualizar tabla user_credits (fuente de verdad)
     const { error: creditError } = await supabase
       .from('user_credits')
-      .update({ plan_key: planKey })
+      .update({ plan_key: plan })
       .eq('user_id', userId);
 
     if (creditError) {

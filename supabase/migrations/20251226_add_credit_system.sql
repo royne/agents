@@ -21,17 +21,18 @@ CREATE TABLE IF NOT EXISTS subscription_plans (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Insertar planes iniciales
-INSERT INTO subscription_plans (key, name, price_usd, monthly_credits)
+-- Insertar planes iniciales con sus módulos habilitados por defecto
+INSERT INTO subscription_plans (key, name, price_usd, monthly_credits, features)
 VALUES 
-    ('free', 'Plan Gratuito', 0, 20),
-    ('starter', 'Plan Starter', 19, 500),
-    ('pro', 'Plan Pro', 39, 1200),
-    ('business', 'Plan Business', 79, 3000),
-    ('tester', 'Plan Tester', 0, 999999)
+    ('free', 'Plan Gratuito', 0, 20, '{"active_modules": ["agents", "calculator", "settings"]}'),
+    ('starter', 'Plan Starter', 19, 500, '{"active_modules": ["agents", "calculator", "logistic", "data-analysis", "settings"]}'),
+    ('pro', 'Plan Pro', 39, 1200, '{"active_modules": ["agents", "calculator", "logistic", "data-analysis", "planning", "chat", "image-pro", "landing-pro", "settings"]}'),
+    ('business', 'Plan Business', 79, 3000, '{"active_modules": ["agents", "calculator", "logistic", "data-analysis", "planning", "chat", "image-pro", "landing-pro", "settings"]}'),
+    ('tester', 'Plan Tester', 0, 999999, '{"active_modules": ["agents", "calculator", "logistic", "data-analysis", "planning", "chat", "image-pro", "landing-pro", "settings"]}')
 ON CONFLICT (key) DO UPDATE SET 
     monthly_credits = EXCLUDED.monthly_credits,
-    price_usd = EXCLUDED.price_usd;
+    price_usd = EXCLUDED.price_usd,
+    features = EXCLUDED.features;
 
 -- 2. Tabla de Créditos por Usuario
 CREATE TABLE IF NOT EXISTS user_credits (

@@ -12,8 +12,9 @@ export type FeatureKey =
   ;
 
 // Habilitación de features por plan (por defecto)
+// Nota: En el futuro esto podría leerse también de subscription_plans.features
 export const DEFAULT_PLAN_FEATURES: Record<Plan, Partial<Record<FeatureKey, boolean>>> = {
-  basic: {
+  free: {
     'agents.create': false,
     'data-analysis.orders-movement': true,
     'data-analysis.excel-analysis': true,
@@ -21,7 +22,27 @@ export const DEFAULT_PLAN_FEATURES: Record<Plan, Partial<Record<FeatureKey, bool
     'orders.management': false,
     'calculator.use': true,
   },
-  premium: {
+  starter: {
+    'agents.create': true,
+    'data-analysis.orders-movement': true,
+    'data-analysis.excel-analysis': true,
+    'data-analysis.daily-orders': true,
+    'orders.management': true,
+    'calculator.use': true,
+    'image-pro.full-access': true,
+    'landing-pro.full-access': true,
+  },
+  pro: {
+    'agents.create': true,
+    'data-analysis.orders-movement': true,
+    'data-analysis.excel-analysis': true,
+    'data-analysis.daily-orders': true,
+    'orders.management': true,
+    'calculator.use': true,
+    'image-pro.full-access': true,
+    'landing-pro.full-access': true,
+  },
+  business: {
     'agents.create': true,
     'data-analysis.orders-movement': true,
     'data-analysis.excel-analysis': true,
@@ -32,12 +53,14 @@ export const DEFAULT_PLAN_FEATURES: Record<Plan, Partial<Record<FeatureKey, bool
     'landing-pro.full-access': true,
   },
   tester: {
-    'agents.create': false,
+    'agents.create': true,
     'data-analysis.orders-movement': true,
     'data-analysis.excel-analysis': true,
-    'data-analysis.daily-orders': false,
-    'orders.management': false,
+    'data-analysis.daily-orders': true,
+    'orders.management': true,
     'calculator.use': true,
+    'image-pro.full-access': true,
+    'landing-pro.full-access': true,
   },
 };
 

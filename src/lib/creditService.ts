@@ -86,6 +86,25 @@ export class CreditService {
       details
     });
   }
+
+  /**
+   * Obtiene el historial de consumo de un usuario.
+   */
+  static async getUserUsageHistory(userId: string, limit: number = 20, supabaseClient: any = supabase) {
+    const { data, error } = await supabaseClient
+      .from('usage_log')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching usage history:', error);
+      return [];
+    }
+
+    return data;
+  }
 }
 
 // Clase auxiliar para fechas (si no existe)
