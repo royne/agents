@@ -102,7 +102,7 @@ const MARKETING_LAYOUTS = [
 export default function LandingProPage() {
   const { googleAiKey, canAccessModule } = useAppContext();
   const { openApiKeyModal } = useApiKey();
-  const { refreshCount } = useImageUsage();
+  const { credits, loading, refreshCredits } = useImageUsage();
   const router = useRouter();
 
   if (!canAccessModule('landing-pro')) {
@@ -236,7 +236,14 @@ export default function LandingProPage() {
     }
   };
 
-  const handleGenerateStep = async (isCorrection: boolean = false) => {
+  const handleGenerateStep = async (isCorrection = false) => {
+    // 1. Validar Créditos (10 por etapa/sección)
+    const { isSuperAdmin } = useAppContext();
+    if (credits < 10 && !isSuperAdmin()) {
+      alert(`Necesitas al menos 10 créditos para generar una sección. Tu saldo actual es de ${credits}.`);
+      return;
+    }
+
     if (!googleAiKey) {
       openApiKeyModal('google');
       return;
@@ -316,7 +323,7 @@ export default function LandingProPage() {
         setGenerations(prev => ({ ...prev, [section.id]: data.imageUrl }));
         if (isCorrection) setCorrectionPrompt('');
         // Refrescar contador de uso
-        refreshCount();
+        refreshCredits();
       } else {
         alert(data.error || 'Error al generar la sección');
       }

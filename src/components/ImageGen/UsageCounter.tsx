@@ -7,14 +7,14 @@ interface UsageCounterProps {
   showText?: boolean;
 }
 
-const UsageCounter: React.FC<UsageCounterProps> = ({ limit = 50, showText = true }) => {
-  const { count, loading } = useImageUsage();
+const UsageCounter: React.FC<UsageCounterProps> = ({ showText = true }) => {
+  const { credits, limit, loading } = useImageUsage();
 
-  // Calcular el progreso para el círculo
+  // Calcular el progreso para el círculo (basado en lo que queda)
   const radius = 20;
   const circumference = 2 * Math.PI * radius;
-  const progress = Math.min((count / limit) * 100, 100);
-  const offset = circumference - (progress / 100) * circumference;
+  const progressPercent = Math.min((credits / limit) * 100, 100);
+  const offset = circumference - (progressPercent / 100) * circumference;
 
   return (
     <div className="bg-gradient-to-br from-theme-component/80 to-theme-component border border-white/5 p-4 rounded-2xl flex items-center justify-between shadow-xl backdrop-blur-sm group hover:border-primary-color/30 transition-all duration-500">
@@ -24,13 +24,15 @@ const UsageCounter: React.FC<UsageCounterProps> = ({ limit = 50, showText = true
         </div>
         <div>
           {showText && (
-            <p className="text-[10px] text-theme-tertiary uppercase font-black tracking-[0.15em] opacity-60">Imágenes Generadas</p>
+            <p className="text-[10px] text-theme-tertiary uppercase font-black tracking-[0.15em] opacity-60">
+              Saldo de Créditos
+            </p>
           )}
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-black text-theme-primary tracking-tighter">
-              {loading ? '...' : count}
+              {loading ? '...' : credits.toLocaleString()}
             </span>
-            <span className="text-xs text-theme-tertiary font-bold opacity-40">/ {limit}</span>
+            <span className="text-xs text-theme-tertiary font-bold opacity-40">/ {limit.toLocaleString()}</span>
           </div>
         </div>
       </div>
@@ -46,7 +48,7 @@ const UsageCounter: React.FC<UsageCounterProps> = ({ limit = 50, showText = true
             stroke="rgba(255,255,255,0.05)"
             strokeWidth="4"
           />
-          {/* Círculo de progreso con gradiente visual (simulado por stroke) */}
+          {/* Círculo de progreso */}
           <circle
             cx="28"
             cy="28"
@@ -67,7 +69,7 @@ const UsageCounter: React.FC<UsageCounterProps> = ({ limit = 50, showText = true
           </defs>
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[8px] font-black text-primary-color/50">{Math.round(progress)}%</span>
+          <span className="text-[8px] font-black text-primary-color/50">{Math.round(progressPercent)}%</span>
         </div>
       </div>
     </div>

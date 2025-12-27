@@ -37,6 +37,13 @@ const adminModules = [
     superAdminOnly: true
   },
   {
+    name: 'Planes y Créditos',
+    icon: FaShieldAlt,
+    description: 'Gestionar suscripciones y saldos de créditos',
+    path: '/admin/subscriptions',
+    superAdminOnly: true
+  },
+  {
     name: 'Configuración Agente Pro',
     icon: FaMagic,
     description: 'Gestionar plantillas y modelos de imágenes',

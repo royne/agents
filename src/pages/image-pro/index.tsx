@@ -15,9 +15,9 @@ import { useImageUsage } from '../../hooks/useImageUsage';
 import Head from 'next/head';
 
 export default function ImageProPage() {
-  const { googleAiKey, canAccessModule } = useAppContext();
+  const { googleAiKey, canAccessModule, isSuperAdmin } = useAppContext();
   const { openApiKeyModal } = useApiKey();
-  const { refreshCount } = useImageUsage();
+  const { credits, loading: usageLoading, refreshCredits } = useImageUsage();
   const router = useRouter();
 
   // Estados principales
@@ -105,6 +105,13 @@ export default function ImageProPage() {
   };
 
   const handleGenerate = async (isCorrection: boolean = false) => {
+    // 1. Validar Créditos (10 por imagen)
+    // El bypass de admin se maneja en el backend, aquí solo prevenimos accidentes
+    if (credits < 10 && !isSuperAdmin()) {
+      alert(`Necesitas al menos 10 créditos para generar una imagen. Tu saldo actual es de ${credits}.`);
+      return;
+    }
+
     if (!googleAiKey) {
       openApiKeyModal('google');
       return;
@@ -181,7 +188,7 @@ export default function ImageProPage() {
           setGeneratedImageUrl(data.imageUrl);
         }
         // Refrescar contador de uso
-        refreshCount();
+        refreshCredits();
       } else {
         alert(data.error || 'Error al generar la imagen');
       }

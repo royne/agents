@@ -8,6 +8,8 @@ import type { Message } from '../../../types/groq';
 import { enrichWithRAG } from '../../../entities/agents/script_agent';
 import { agentDatabaseService } from '../../../services/database/agentService';
 import { basePayload } from '../../../entities/agents/agent';
+import { CreditService } from '../../../lib/creditService';
+import { supabase } from '../../../lib/supabase';
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
@@ -24,7 +26,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     try {
       const { data: profile } = await supabaseServer
         .from('profiles')
-        .select('groq_api_key, openai_api_key, company_id')
+        .select('role, groq_api_key, openai_api_key, company_id')
         .eq('user_id', session.user.id)
         .single();
         
@@ -33,6 +35,20 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         if (profile.openai_api_key) openAIApiKey = profile.openai_api_key;
         // Si no viene company_id en el body, usar el del perfil
         if (!req.body.company_id) req.body.company_id = profile.company_id;
+
+        const role = profile.role?.toLowerCase();
+        const isSuperAdmin = role === 'owner' || role === 'superadmin' || role === 'super_admin';
+
+        // Validar créditos ANTES de la consulta
+        const { can, balance } = await CreditService.canPerformAction(session.user.id, 'CHAT_RAG', supabase);
+        
+        if (!can && !isSuperAdmin) {
+          return res.status(402).json({ 
+            error: 'Créditos insuficientes.', 
+            balance,
+            required: 1
+          });
+        }
       }
     } catch (profileErr) {
       console.error('[api/agents] Error recuperando perfil:', profileErr);
@@ -132,6 +148,11 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     res.status(200).json({ response: content });
+    
+    // Consumir créditos después del éxito (en segundo plano para no demorar la respuesta)
+    if (session) {
+      CreditService.consumeCredits(session.user.id, 'CHAT_RAG', { agentId: id }, supabase).catch(console.error);
+    }
   } catch (error: any) {
     const errMsg = (error?.message || 'Unknown error').toString();
     console.error(`[api/agents/${id}] Groq API Error:`, errMsg);

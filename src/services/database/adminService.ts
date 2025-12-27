@@ -40,6 +40,11 @@ export interface UserWithProfile {
   plan?: Plan;
   modules_override?: Partial<Record<ModuleKey, boolean>>;
   created_at: string;
+  credits?: {
+    balance: number;
+    plan_key: string;
+    unlimited_credits: boolean;
+  };
 }
 
 export const adminService = {
@@ -74,13 +79,29 @@ export const adminService = {
   },
 
   async updateUserPlan(userId: string, plan: Plan): Promise<boolean> {
-    const { error } = await supabase
+    // 1. Actualizar tabla profiles (compatibilidad legado)
+    const { error: profileError } = await supabase
       .from('profiles')
       .update({ plan })
       .eq('user_id', userId);
 
-    if (error) {
-      console.error('Error al actualizar plan de usuario:', error);
+    if (profileError) {
+      console.error('Error al actualizar plan en perfil:', profileError);
+    }
+
+    // 2. Actualizar tabla user_credits (nuevo sistema)
+    // Mapeamos el Plan (basic/premium/tester) al Plan Key (free/pro/tester)
+    let planKey = 'free';
+    if (plan === 'premium') planKey = 'pro';
+    if (plan === 'tester') planKey = 'tester';
+
+    const { error: creditError } = await supabase
+      .from('user_credits')
+      .update({ plan_key: planKey })
+      .eq('user_id', userId);
+
+    if (creditError) {
+      console.error('Error al actualizar plan en créditos:', creditError);
       return false;
     }
 
@@ -150,9 +171,15 @@ export const adminService = {
       // 3. Obtener la sesión actual para obtener información del usuario
       const { data: { session } } = await supabase.auth.getSession();
       
-      // 4. Transformar los datos al formato esperado
+      // 4. Obtener créditos de todos los usuarios
+      const { data: creditsData } = await supabase
+        .from('user_credits')
+        .select('*');
+
+      // 5. Transformar los datos al formato esperado
       const combinedUsers = profiles.map(profile => {
         const company = companies?.find(c => c.id === profile.company_id);
+        const userCredits = creditsData?.find(c => c.user_id === profile.user_id);
         
         return {
           id: profile.user_id,
@@ -163,7 +190,12 @@ export const adminService = {
           company_name: company?.name || 'Sin empresa',
           plan: (profile as any)?.plan || 'basic',
           modules_override: (profile as any)?.modules_override || undefined,
-          created_at: profile.created_at || new Date().toISOString()
+          created_at: profile.created_at || new Date().toISOString(),
+          credits: userCredits ? {
+            balance: userCredits.balance,
+            plan_key: userCredits.plan_key,
+            unlimited_credits: userCredits.unlimited_credits
+          } : undefined
         };
       });
 
@@ -259,13 +291,47 @@ export const adminService = {
         throw new Error(`Error al eliminar perfil: ${profileError.message}`);
       }
       
-      // Nota: En un entorno real, necesitarías una función serverless o un endpoint
-      // de API para eliminar completamente el usuario de Auth
-      
       return true;
     } catch (err: any) {
       console.error('Error al eliminar usuario:', err);
       return false;
     }
+  },
+
+  // Gestión de Créditos y Suscripciones
+  async getAllUserCredits(): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('user_credits')
+      .select(`
+        *,
+        profiles (
+          email,
+          name
+        )
+      `)
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.error('Error al obtener créditos:', error);
+      return [];
+    }
+
+    return data || [];
+  },
+
+  async updateUserCredits(userId: string, updates: { balance?: number, plan_key?: string, unlimited_credits?: boolean }): Promise<boolean> {
+    const { error } = await supabase
+      .from('user_credits')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error al actualizar créditos:', error);
+      return false;
+    }
+    return true;
   }
 };

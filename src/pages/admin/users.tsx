@@ -176,7 +176,7 @@ export default function UsersManagement() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">Nombre</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">Rol</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">Empresa</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">Plan</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">Plan / Créditos</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-theme-secondary uppercase tracking-wider">Fecha de Creación</th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-theme-secondary uppercase tracking-wider">Acciones</th>
                     </tr>
@@ -196,28 +196,27 @@ export default function UsersManagement() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-theme-secondary">{user.company_name}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <select
-                            className="px-2 py-1 border rounded bg-theme-component text-theme-primary"
-                            value={user.plan || 'basic'}
-                            onChange={async (e) => {
-                              const newPlan = e.target.value as 'basic' | 'tester' | 'premium';
-                              // Si no es superadmin, evitar premium
-                              if (!isSuperAdmin() && newPlan === 'premium') {
-                                alert('Solo el Superadmin puede asignar Premium');
-                                return;
-                              }
-                              const ok = await adminService.updateUserPlan(user.id, newPlan);
-                              if (!ok) {
-                                alert('No se pudo actualizar el plan');
-                              } else {
-                                fetchUsers();
-                              }
-                            }}
-                          >
-                            <option value="basic">Basic</option>
-                            <option value="tester">Tester</option>
-                            <option value="premium" disabled={!isSuperAdmin()}>Premium {(!isSuperAdmin()) ? '(Solo Superadmin)' : ''}</option>
-                          </select>
+                          <div className="flex flex-col gap-1">
+                            <select
+                              className="px-2 py-1 border rounded bg-theme-component text-theme-primary text-xs"
+                              value={user.plan || 'basic'}
+                              onChange={async (e) => {
+                                const newPlan = e.target.value as any;
+                                const ok = await adminService.updateUserPlan(user.id, newPlan);
+                                if (ok) fetchUsers();
+                              }}
+                            >
+                              <option value="basic">Basic (Legacy)</option>
+                              <option value="premium">Premium (Legacy)</option>
+                              <option value="tester">Tester</option>
+                            </select>
+                            <div className="text-[10px] text-theme-tertiary flex items-center gap-1">
+                              <span className={`px-1 rounded ${user.credits?.unlimited_credits ? 'bg-purple-500/20 text-purple-400' : 'bg-primary-color/20 text-primary-color'}`}>
+                                {user.credits?.plan_key || 'free'}
+                              </span>
+                              <span className="font-bold">{user.credits?.balance ?? 0} 🪙</span>
+                            </div>
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           {/* Botón de edición, disponible para todos */}

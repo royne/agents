@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { CreditService } from '../../../lib/creditService';
 
 export const config = {
   runtime: 'edge',
@@ -46,15 +47,20 @@ export default async function handler(req: NextRequest) {
     return NextResponse.json({ error: 'Perfil no encontrado.' }, { status: 403 });
   }
 
-  const role = profile.role?.toLowerCase();
-  const plan = profile.plan?.toLowerCase();
+  const role = profile?.role?.toLowerCase();
+  
+  // BYPASS: Super Admin y Owner no necesitan validación de créditos (unlimited_credits se maneja en el service)
+  const isSuperAdmin = role === 'owner' || role === 'superadmin' || role === 'super_admin';
 
-  if (role !== 'superadmin' && role !== 'admin') {
-    return NextResponse.json({ error: 'Acceso denegado. Se requiere ser Administrador.' }, { status: 403 });
-  }
-
-  if (plan !== 'premium') {
-    return NextResponse.json({ error: 'Acceso denegado. Se requiere un Plan Premium.' }, { status: 403 });
+  // Validar créditos ANTES de la generación
+  const { can, balance } = await CreditService.canPerformAction(user.id, 'IMAGE_GEN', supabaseAdmin);
+  
+  if (!can && !isSuperAdmin) {
+    return NextResponse.json({ 
+      error: 'Créditos insuficientes.', 
+      balance,
+      required: 10
+    }, { status: 402 });
   }
 
   const apiKey = profile.google_api_key;
@@ -173,11 +179,8 @@ export default async function handler(req: NextRequest) {
       throw new Error('No se recibió una imagen válida del modelo Imagen 3.');
     }
     
-    // Actualizar contador
-    await supabaseAdmin
-      .from('profiles')
-      .update({ image_gen_count: (profile.image_gen_count || 0) + 1 })
-      .eq('user_id', user.id);
+    // Actualizar contador y CONSUMIR CRÉDITOS
+    await CreditService.consumeCredits(user.id, 'IMAGE_GEN', { prompt: prompt.substring(0, 100) }, supabaseAdmin);
 
     return NextResponse.json({ 
       success: true, 

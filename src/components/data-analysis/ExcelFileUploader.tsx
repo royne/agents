@@ -1,6 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { FaFileExcel, FaUpload, FaBoxOpen, FaShoppingCart } from 'react-icons/fa';
 import ExcelAnalysisService from '../../services/data-analysis/ExcelAnalysisService';
+import { CreditService } from '../../lib/creditService';
+import { supabase } from '../../lib/supabase';
+import { useImageUsage } from '../../hooks/useImageUsage';
 
 interface ExcelFileUploaderProps {
   onDataLoaded: (data: any[]) => void;
@@ -19,6 +22,7 @@ const ExcelFileUploader: React.FC<ExcelFileUploaderProps> = ({
 }) => {
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { refreshCredits } = useImageUsage();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,6 +55,15 @@ const ExcelFileUploader: React.FC<ExcelFileUploaderProps> = ({
     setIsLoading(true);
 
     try {
+      // 1. Validar y consumir créditos (2 para Excel)
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No hay sesión activa');
+
+      const { can, balance } = await CreditService.canPerformAction(session.user.id, 'EXCEL_ANALYSIS', supabase);
+      if (!can) {
+        throw new Error(`Créditos insuficientes. Tienes ${balance} y necesitas 2.`);
+      }
+
       // Utilizar el servicio para leer y procesar el archivo Excel
       let jsonData = await ExcelAnalysisService.readExcelFile(file);
 
@@ -58,6 +71,13 @@ const ExcelFileUploader: React.FC<ExcelFileUploaderProps> = ({
       if (!Array.isArray(jsonData) || jsonData.length === 0) {
         throw new Error('El archivo no contiene datos válidos');
       }
+
+      // Consumir créditos
+      const consumeResult = await CreditService.consumeCredits(session.user.id, 'EXCEL_ANALYSIS', { fileName: file.name }, supabase);
+      if (!consumeResult.success) throw new Error(consumeResult.error);
+
+      // Refrescar créditos en el UI
+      refreshCredits();
 
       // Pasar los datos al componente padre
       onDataLoaded(jsonData);
