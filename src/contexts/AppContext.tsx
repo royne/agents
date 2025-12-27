@@ -40,9 +40,6 @@ type AppContextType = {
 const AppContext = createContext<AppContextType>({} as AppContextType);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [apiKey, setApiKey] = useState<string | null>(null);
-  const [openaiApiKey, setOpenaiApiKey] = useState<string | null>(null);
-  const [googleAiKey, setGoogleAiKey] = useState<string | null>(null);
   const [authData, setAuthData] = useState<{
     isAuthenticated: boolean;
     userId?: string;
@@ -66,14 +63,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (session) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('company_id, role, name, plan, modules_override, groq_api_key, openai_api_key, google_api_key')
+          .select('company_id, role, name, plan, modules_override')
           .eq('user_id', session.user.id)
           .single();
 
-        // Obtener módulos habilitados para el plan desde la tabla de planes
         let activeModules: ModuleKey[] = [];
 
-        // 1. Obtener el plan_key desde user_credits (ÚNICA fuente de verdad)
         const { data: creditsData } = await supabase
           .from('user_credits')
           .select('plan_key')
@@ -82,7 +77,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         const planKey = (creditsData?.plan_key || 'free') as Plan;
 
-        // 2. Obtener configuración dinámica del plan
         const { data: planData } = await supabase
           .from('subscription_plans')
           .select('features')
@@ -106,10 +100,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         localStorage.setItem('auth_data', JSON.stringify(authData));
         setAuthData(authData);
-        // Cargar API keys del perfil en el contexto
-        setApiKey((profile as any)?.groq_api_key || null);
-        setOpenaiApiKey((profile as any)?.openai_api_key || null);
-        setGoogleAiKey((profile as any)?.google_api_key || null);
       }
     };
 
@@ -117,24 +107,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Cargar la configuración del tema desde localStorage (NO cargar API keys desde localStorage)
     const storedTheme = localStorage.getItem('theme_config');
     if (storedTheme) {
       try {
         const parsedTheme = JSON.parse(storedTheme);
         setThemeConfig(parsedTheme);
 
-        // Aplicar el tema inmediatamente
         document.documentElement.style.setProperty('--primary-color', parsedTheme.primaryColor);
         document.documentElement.classList.toggle('dark-theme', parsedTheme.useDarkMode);
         document.documentElement.classList.toggle('custom-theme', !parsedTheme.useDarkMode);
 
-        // Aplicar clases adicionales si está en modo claro
         if (!parsedTheme.useDarkMode) {
           setTimeout(() => {
             const elements = document.querySelectorAll('.bg-gray-800, .bg-gray-700, .bg-gray-900, .text-white, .text-gray-300, .text-gray-400');
             elements.forEach(el => {
-              // Cambiar a tema claro
               if (el.classList.contains('bg-gray-800') || el.classList.contains('bg-gray-900')) {
                 el.classList.add('bg-theme-component');
               }
@@ -154,7 +140,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         console.error('Error al cargar la configuración del tema:', e);
       }
     } else {
-      // Si no hay tema guardado, aplicar el tema predeterminado
       document.documentElement.style.setProperty('--primary-color', themeConfig.primaryColor);
       document.documentElement.classList.toggle('dark-theme', themeConfig.useDarkMode);
       document.documentElement.classList.toggle('custom-theme', !themeConfig.useDarkMode);
@@ -167,11 +152,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (data?.user) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('company_id, role, name, plan, modules_override, groq_api_key, openai_api_key, google_api_key')
+        .select('company_id, role, name, plan, modules_override')
         .eq('user_id', data.user.id)
         .single();
 
-      // Obtener módulos habilitados para el plan
       let activeModules: ModuleKey[] = [];
 
       const { data: creditsData } = await supabase
@@ -205,10 +189,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       localStorage.setItem('auth_data', JSON.stringify(authData));
       setAuthData(authData);
-      // Cargar API keys del perfil en el contexto
-      setApiKey((profile as any)?.groq_api_key || null);
-      setOpenaiApiKey((profile as any)?.openai_api_key || null);
-      setGoogleAiKey((profile as any)?.google_api_key || null);
       return true;
     }
     return false;
@@ -218,43 +198,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     localStorage.removeItem('auth_data');
     setAuthData(null);
-    // Limpiar API keys en memoria al cerrar sesión
-    setApiKey(null);
-    setOpenaiApiKey(null);
-    setGoogleAiKey(null);
     router.push('/auth/login');
   };
 
-  // Función para verificar si el usuario es administrador
   const isAdmin = (): boolean => {
     return authData?.role === 'admin' || authData?.role === 'superadmin';
   };
 
-  // Función para verificar si el usuario es superadministrador
   const isSuperAdmin = (): boolean => {
     return authData?.role === 'superadmin';
   };
 
-  // Plan helpers
   const hasPlan = (required: Plan): boolean => {
     return isPlanAtLeast((authData?.plan as Plan) || 'free', required);
   };
 
   const canAccessModule = (module: ModuleKey): boolean => {
-    // Módulo de administración sigue regido por rol
     if (module === 'admin') return isAdmin();
-
-    // 1. Verificar overrides del usuario
     const overrides = authData?.modulesOverride;
     if (overrides && module in overrides) {
       return !!overrides[module];
     }
-
-    // 2. Verificar módulos habilitados en el plan (desde DB)
     if (authData?.activeModules) {
       return authData.activeModules.includes(module);
     }
-
     return false;
   };
 
@@ -263,30 +230,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return hasFeatureForPlan(plan, feature);
   };
 
-  // Función para actualizar la configuración del tema
   const updateTheme = (config: Partial<ThemeConfig>) => {
     const newConfig = { ...themeConfig, ...config };
     setThemeConfig(newConfig);
     localStorage.setItem('theme_config', JSON.stringify(newConfig));
 
-    // Aplicar los cambios de tema al documento
     document.documentElement.style.setProperty('--primary-color', newConfig.primaryColor);
 
-    // Aplicar clases de tema
     if (newConfig.useDarkMode !== themeConfig.useDarkMode) {
-      // Cambio de modo oscuro/claro
       document.documentElement.classList.toggle('dark-theme', newConfig.useDarkMode);
       document.documentElement.classList.toggle('custom-theme', !newConfig.useDarkMode);
 
-      // Forzar actualización de componentes
       setTimeout(() => {
         const elements = document.querySelectorAll('.bg-gray-800, .bg-gray-700, .bg-gray-900, .text-white, .text-gray-300, .text-gray-400');
         elements.forEach(el => {
           if (newConfig.useDarkMode) {
-            // Volver al tema oscuro
             el.classList.remove('bg-theme-component', 'bg-theme-component-hover', 'text-theme-primary', 'text-theme-secondary', 'text-theme-tertiary');
           } else {
-            // Cambiar a tema claro
             if (el.classList.contains('bg-gray-800') || el.classList.contains('bg-gray-900')) {
               el.classList.add('bg-theme-component');
             }
@@ -302,27 +262,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
           }
         });
 
-        // Actualizar iconos activos
         document.querySelectorAll('.active-item').forEach(el => {
           (el as HTMLElement).style.color = newConfig.primaryColor;
         });
 
-        // Actualizar botones primarios
         document.querySelectorAll('.btn-primary').forEach(el => {
           (el as HTMLElement).style.backgroundColor = newConfig.primaryColor;
         });
       }, 100);
     } else {
-      // Solo cambio de color primario
       document.documentElement.classList.toggle('dark-theme', newConfig.useDarkMode);
       document.documentElement.classList.toggle('custom-theme', !newConfig.useDarkMode);
 
-      // Actualizar iconos activos
       document.querySelectorAll('.active-item').forEach(el => {
         (el as HTMLElement).style.color = newConfig.primaryColor;
       });
 
-      // Actualizar botones primarios
       document.querySelectorAll('.btn-primary').forEach(el => {
         (el as HTMLElement).style.backgroundColor = newConfig.primaryColor;
       });
@@ -331,14 +286,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      apiKey,
-      openaiApiKey,
-      googleAiKey,
+      apiKey: 'CONFIGURED',
+      openaiApiKey: 'CONFIGURED',
+      googleAiKey: 'CONFIGURED',
       authData,
       themeConfig,
-      setApiKey,
-      setOpenaiApiKey,
-      setGoogleAiKey,
+      setApiKey: () => { },
+      setOpenaiApiKey: () => { },
+      setGoogleAiKey: () => { },
       login,
       logout,
       isAdmin,

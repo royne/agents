@@ -6,10 +6,13 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(405).json({ error: 'Método no permitido' });
   }
 
+  // Ya no requerimos API Key desde el cliente; se usa la del servidor
+  /*
   const apiKey = req.headers['x-api-key'];
   if (!apiKey || typeof apiKey !== 'string') {
     return res.status(401).json({ error: 'API Key es requerida' });
   }
+  */
 
   const { scripts } = req.body;
   

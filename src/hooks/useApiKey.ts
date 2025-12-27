@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAppContext } from '../contexts/AppContext';
-import { supabase } from '../lib/supabase';
 
 export const useApiKey = () => {
-  const { apiKey: ctxGroqKey, openaiApiKey: ctxOpenaiKey, googleAiKey: ctxGoogleKey, setApiKey: setContextApiKey, setOpenaiApiKey: setContextOpenaiApiKey, setGoogleAiKey: setContextGoogleKey, authData } = useAppContext();
-  const [apiKey, setApiKey] = useState<string | null>(null);
-  const [openaiApiKey, setOpenaiApiKey] = useState<string | null>(null);
-  const [googleAiKey, setGoogleAiKey] = useState<string | null>(null);
+  const { authData } = useAppContext();
+  const [apiKey, setApiKey] = useState<string | null>('CONFIGURED');
+  const [openaiApiKey, setOpenaiApiKey] = useState<string | null>('CONFIGURED');
+  const [googleAiKey, setGoogleAiKey] = useState<string | null>('CONFIGURED');
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -14,16 +13,17 @@ export const useApiKey = () => {
 
   useEffect(() => {
     if (!authData?.isAuthenticated) return;
-    setApiKey(ctxGroqKey || null);
-    setOpenaiApiKey(ctxOpenaiKey || null);
-    setGoogleAiKey(ctxGoogleKey || null);
-    // Importante: NO abrir modal automáticamente; se abrirá bajo demanda al usar Chat/RAG
-  }, [authData?.isAuthenticated, ctxGroqKey, ctxOpenaiKey, ctxGoogleKey]);
+    setApiKey('CONFIGURED');
+    setOpenaiApiKey('CONFIGURED');
+    setGoogleAiKey('CONFIGURED');
+  }, [authData?.isAuthenticated]);
 
   const openApiKeyModal = (provider: 'groq' | 'openai' | 'google') => {
-    setModalProvider(provider);
-    setIsApiKeyModalOpen(true);
-    setError(null);
+    // Ya no permitimos abrir el modal para editar llaves si están centralizadas
+    console.log(`Las llaves de ${provider} están configuradas globalmente en el servidor.`);
+    // setIsApiKeyModalOpen(true);
+    // setModalProvider(provider);
+    // setError(null);
   };
 
   const closeApiKeyModal = () => {
@@ -33,114 +33,38 @@ export const useApiKey = () => {
 
   const saveApiKey = async (key: string) => {
     setLoading(true);
-    try {
-      setError(null);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No session');
-      const { error } = await supabase
-        .from('profiles')
-        .update({ groq_api_key: key })
-        .eq('user_id', session.user.id);
-      if (error) throw error;
-      setApiKey(key);
-      setContextApiKey(key);
-      closeApiKeyModal();
-    } finally {
-      setLoading(false);
-    }
+    // Operación desactivada
+    setLoading(false);
   };
 
   const clearApiKey = async () => {
     setLoading(true);
-    try {
-      setError(null);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No session');
-      const { error } = await supabase
-        .from('profiles')
-        .update({ groq_api_key: null })
-        .eq('user_id', session.user.id);
-      if (error) throw error;
-      setApiKey(null);
-      setContextApiKey('');
-      // No abrir modal automáticamente
-    } finally {
-      setLoading(false);
-    }
+    // Operación desactivada
+    setLoading(false);
   };
 
   const saveOpenaiApiKey = async (key: string) => {
     setLoading(true);
-    try {
-      setError(null);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No session');
-      const { error } = await supabase
-        .from('profiles')
-        .update({ openai_api_key: key })
-        .eq('user_id', session.user.id);
-      if (error) throw error;
-      setOpenaiApiKey(key);
-      if (setContextOpenaiApiKey) setContextOpenaiApiKey(key);
-      closeApiKeyModal();
-    } finally {
-      setLoading(false);
-    }
+    // Operación desactivada
+    setLoading(false);
   };
 
   const clearOpenaiApiKey = async () => {
     setLoading(true);
-    try {
-      setError(null);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No session');
-      const { error } = await supabase
-        .from('profiles')
-        .update({ openai_api_key: null })
-        .eq('user_id', session.user.id);
-      if (error) throw error;
-      setOpenaiApiKey(null);
-      if (setContextOpenaiApiKey) setContextOpenaiApiKey('');
-    } finally {
-      setLoading(false);
-    }
+    // Operación desactivada
+    setLoading(false);
   };
 
   const saveGoogleAiKey = async (key: string) => {
     setLoading(true);
-    try {
-      setError(null);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No session');
-      const { error } = await supabase
-        .from('profiles')
-        .update({ google_api_key: key })
-        .eq('user_id', session.user.id);
-      if (error) throw error;
-      setGoogleAiKey(key);
-      if (setContextGoogleKey) setContextGoogleKey(key);
-      closeApiKeyModal();
-    } finally {
-      setLoading(false);
-    }
+    // Operación desactivada
+    setLoading(false);
   };
 
   const clearGoogleAiKey = async () => {
     setLoading(true);
-    try {
-      setError(null);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No session');
-      const { error } = await supabase
-        .from('profiles')
-        .update({ google_api_key: null })
-        .eq('user_id', session.user.id);
-      if (error) throw error;
-      setGoogleAiKey(null);
-      if (setContextGoogleKey) setContextGoogleKey('');
-    } finally {
-      setLoading(false);
-    }
+    // Operación desactivada
+    setLoading(false);
   };
 
   return {

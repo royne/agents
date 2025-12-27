@@ -5,9 +5,13 @@ import { hybridChunkText } from './hibridChunker';
 
 // Devuelve una instancia de embeddings por petición usando la API key proporcionada o la del entorno
 function getEmbeddings(openAIApiKey?: string) {
-  const key = openAIApiKey;
+  const key = openAIApiKey || (typeof process !== 'undefined' ? process.env.OPENAI_API_KEY : undefined);
   if (!key) {
-    throw new Error('CONFIGURACIÓN REQUERIDA: Falta la OpenAI API Key en tu perfil para usar esta función.');
+    if (typeof window === 'undefined') {
+      throw new Error('CONFIGURACIÓN REQUERIDA: Falta la OPENAI_API_KEY en las variables de entorno del servidor.');
+    }
+    // En el cliente, no deberíamos llegar aquí si usamos el proxy
+    throw new Error('CONFIGURACIÓN REQUERIDA: Cliente intenando inicializar embeddings sin llave. Use el proxy /api/embeddings.');
   }
   return new OpenAIEmbeddings({
     openAIApiKey: key,
@@ -55,7 +59,6 @@ export const embeddingService = {
       };
       
       // Procesar cada fragmento
-      const client = getEmbeddings(openAIApiKey);
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
         const chunkMetadata = {
@@ -65,7 +68,23 @@ export const embeddingService = {
         };
         
         // Generar embedding para el fragmento
-        const embeddingVector = await client.embedQuery(chunk);
+        let embeddingVector: number[];
+        
+        if (typeof window !== 'undefined') {
+          // Si estamos en el cliente, usar el proxy
+          const response = await fetch('/api/embeddings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'embed', text: chunk })
+          });
+          if (!response.ok) throw new Error('Error al generar embedding mediante proxy');
+          const data = await response.json();
+          embeddingVector = data.vector;
+        } else {
+          // Si estamos en el servidor, usar LangChain directamente
+          const client = getEmbeddings(openAIApiKey);
+          embeddingVector = await client.embedQuery(chunk);
+        }
         
         // Guardar en Supabase
         const { data, error } = await supabase
@@ -114,8 +133,23 @@ export const embeddingService = {
       }
       
       // Generar embedding para la consulta
-      const client = getEmbeddings(openAIApiKey);
-      const queryEmbedding = await client.embedQuery(query);
+      let queryEmbedding: number[];
+      
+      if (typeof window !== 'undefined') {
+        // Usar proxy en el cliente
+        const response = await fetch('/api/embeddings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'embed', text: query })
+        });
+        if (!response.ok) throw new Error('Error al generar embedding de consulta mediante proxy');
+        const data = await response.json();
+        queryEmbedding = data.vector;
+      } else {
+        // LangChain en el servidor
+        const client = getEmbeddings(openAIApiKey);
+        queryEmbedding = await client.embedQuery(query);
+      }
       
       // Buscar scripts similares usando la función RPC de Supabase
       const { data, error } = await supabase

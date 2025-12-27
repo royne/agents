@@ -48,9 +48,7 @@ export const useChatLogic = (apiKey: string, openaiApiKey?: string) => {
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'X-Api-Key': apiKey,
-          'X-OpenAI-Key': openaiApiKey || ''
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           messages: apiMessages,

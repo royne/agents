@@ -38,7 +38,7 @@ export default async function handler(req: NextRequest) {
   // Obtener perfil usando el cliente admin para asegurar que RLS no bloquee la lectura administrativa
   const { data: profile, error: profileError } = await supabaseAdmin
     .from('profiles')
-    .select('role, plan, google_api_key, image_gen_count')
+    .select('role, plan, image_gen_count') // Ya no seleccionamos google_api_key
     .eq('user_id', user.id)
     .single();
 
@@ -63,9 +63,9 @@ export default async function handler(req: NextRequest) {
     }, { status: 402 });
   }
 
-  const apiKey = profile.google_api_key;
+  const apiKey = process.env.GOOGLE_AI_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: 'Falta la Google AI Key en tu perfil.' }, { status: 400 });
+    return NextResponse.json({ error: 'Configuración de servidor incompleta: Falta Google AI Key.' }, { status: 500 });
   }
 
   // Parsear el body

@@ -18,21 +18,20 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   const supabaseServer = createPagesServerClient({ req, res });
   const { data: { session } } = await supabaseServer.auth.getSession();
   
-  let apiKey = req.headers['x-api-key'] as string | undefined;
-  let openAIApiKey = req.headers['x-openai-key'] as string | undefined;
+  // Usar llaves desde variables de entorno
+  let apiKey = process.env.GROQ_API_KEY;
+  let openAIApiKey = process.env.OPENAI_API_KEY;
   
-  // Si hay sesión, intentar recuperar las llaves desde el perfil (Prioridad sobre headers para mayor seguridad)
+  // Si hay sesión, intentar recuperar la configuración del perfil, pero NO las llaves (ahora usamos .env)
   if (session) {
     try {
       const { data: profile } = await supabaseServer
         .from('profiles')
-        .select('role, groq_api_key, openai_api_key, company_id')
+        .select('role, company_id') // Ya no seleccionamos groq_api_key ni openai_api_key
         .eq('user_id', session.user.id)
         .single();
         
       if (profile) {
-        if (profile.groq_api_key) apiKey = profile.groq_api_key;
-        if (profile.openai_api_key) openAIApiKey = profile.openai_api_key;
         // Si no viene company_id en el body, usar el del perfil
         if (!req.body.company_id) req.body.company_id = profile.company_id;
 
@@ -55,8 +54,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     }
   }
 
-  if (!apiKey || typeof apiKey !== 'string') {
-    return res.status(401).json({ error: 'API Key is required (Groq)' });
+  if (!apiKey) {
+    return res.status(500).json({ error: 'Configuración de servidor incompleta: Falta Groq API Key' });
   }
 
   const { company_id } = req.body;
