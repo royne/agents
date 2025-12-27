@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Esto es necesario porque el cliente normal no tiene acceso a las funciones de administración
   const adminSupabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || ''
+    process.env.SUPABASE_SERVICE_ROLE_KEY || ''
   );
 
   // Verificar si estamos en modo desarrollo o producción

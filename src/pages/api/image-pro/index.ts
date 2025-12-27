@@ -16,7 +16,7 @@ export default async function handler(req: NextRequest) {
   // Necesitamos el service role porque en Edge Runtime el cliente anon no hereda la sesión automáticamente para RLS
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || ''
+    process.env.SUPABASE_SERVICE_ROLE_KEY || ''
   );
 
   // Obtener usuario mediante el token Bearer (el frontend ya lo envía)
