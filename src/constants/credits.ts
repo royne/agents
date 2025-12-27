@@ -1,7 +1,7 @@
 export const CREDIT_COSTS = {
   IMAGE_GEN: 10,
   CHAT_RAG: 1,
-  EXCEL_ANALYSIS: 2,
+  EXCEL_ANALYSIS: 0,
   CALCULATOR: 0,
 };
 

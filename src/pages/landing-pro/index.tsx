@@ -305,6 +305,7 @@ export default function LandingProPage() {
           ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
         },
         body: JSON.stringify({
+          mode: 'landing',
           productData: {
             ...productData,
             details: `${productData.details} | Section: ${section.title} | Instructions: ${section.description} | ${activeLayout ? activeLayout.prompt : ''}`

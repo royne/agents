@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { CreditService } from '../../../lib/creditService';
+import { ImageProRequest } from '../../../services/image-pro/types';
+import { AdsService } from '../../../services/image-pro/adsService';
+import { PersonaService } from '../../../services/image-pro/personaService';
+import { LandingService } from '../../../services/image-pro/landingService';
 
 export const config = {
   runtime: 'edge',
@@ -69,103 +73,66 @@ export default async function handler(req: NextRequest) {
   }
 
   // Parsear el body
-  const body = await req.json();
+  const body = await req.json() as ImageProRequest;
   const { 
+    mode,
+    subMode,
     prompt, 
-    referenceImage, // Puede ser el estilo anterior o el template
-    referenceType,  // 'style' o 'layout'
+    referenceImage, 
+    referenceType,  
     productData, 
     aspectRatio, 
     isCorrection, 
-    previousImageUrl // Usado como imagen de producto base o para edición
+    previousImageUrl 
   } = body;
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-image-preview' });
 
-    // Consolidar el prompt estratégico - REFORZADO PARA AISLAMIENTO
-    // Consolidar el prompt estratégico - MÁXIMO PODER DE MARKETING
-    let strategicPrompt = `PREMIUM COMMERCIAL PHOTOGRAPHY & MARKETING DESIGN
-    PRODUCT IDENTITY: ${productData.name}
-    MARKETING STRATEGY (CRITICAL): 
-    - SELL TO: ${productData.buyer || 'High-end premium customers'}
-    - CORE ANGLE: ${productData.angle || 'Exclusivity and superior quality'}
-    - VISUAL GOAL: ${productData.details || 'Professional studio lighting, sharp focus'}
+    // DISPATCHER DE SERVICIOS
+    let promptConfig;
     
-    SECTION OBJECTIVE: ${prompt}
-    
-    CRITICAL INSTRUCTION (SECTION ISOLATION): 
-    - You are generating a SPECIFIC section or advertisement.
-    - DO NOT include pricing info, pricing tables, or marketing copy from PREVIOUS sections.
-    - If you see prices or offer details in a reference image, YOU MUST IGNORE THEM. This is a NEW design with its own unique focus.
-    
-    STRICT VISUAL DIRECTIVES:
-    - ASPECT RATIO: ${aspectRatio}
-    - TYPOGRAPHY & TEXT: ${
-      /RENDER|HEADLINE|TEXT|COPY|ACTION|STAMP/i.test(prompt)
-        ? "RENDER professional, clean, and legible typography only for the requested headlines/copy. Integrate it artistically into the design."
-        : "DO NOT add any text, labels, or watermarks to the image. Keep it purely visual."
-    }
-    - Focus on visual storytelling that resonates with the target audience.
-    
-    REFERENCE HANDLING: 
-    - If REFERENCE TYPE is 'layout': Follow the composition and skeleton strictly.
-    - If REFERENCE TYPE is 'style': Follow ONLY colors, lighting, and "vibe". IGNORE object placement from the reference.`;
-
-    if (isCorrection) {
-      strategicPrompt = `IMAGE REFINEMENT & CORE ALIGNMENT:
-      Maintain the current visual identity, product features, and marketing core.
-      CORE STRATEGY (STAY TRUE TO THIS): 
-      - TARGET: ${productData.buyer || 'High-end premium customers'}
-      - ANGLE: ${productData.angle || 'Exclusivity and superior quality'}
-      
-      NEW MODIFICATION REQUEST: ${prompt}
-      
-      INSTRUCTION: Apply the modification while keeping the product and brand consistency. Do not change the layout or background drastically unless the request implies it.`;
-    }
-
-    const parts: any[] = [{ text: strategicPrompt }];
-
-    // Añadir imágenes de referencia
-    
-    // 1. Añadir el PRODUCTO BASE como referencia principal de objeto
-    if (previousImageUrl) {
-       const base64 = previousImageUrl.split(',')[1] || previousImageUrl;
-       const mime = previousImageUrl.match(/data:(.*?);/)?.[1] || 'image/png';
-       parts.push({ text: "ITEM 1: REFERENCE PRODUCT IDENTITY (Strictly keep this object/character):" });
-       parts.push({ inlineData: { data: base64, mimeType: mime } });
-    }
-
-    // 2. Añadir la REFERENCIA DE ESTILO/LAYOUT
-    if (referenceImage && referenceImage !== previousImageUrl) {
-      let base64Data = referenceImage;
-      let mimeType = 'image/png';
-
-      if (referenceImage.startsWith('http')) {
-        try {
-          const imgRes = await fetch(referenceImage);
-          const arrayBuffer = await imgRes.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          base64Data = buffer.toString('base64');
-          mimeType = imgRes.headers.get('content-type') || 'image/png';
-        } catch (fetchError) {
-          console.error('Error fetching reference image from URL:', fetchError);
+    switch (mode) {
+      case 'ads':
+        promptConfig = await AdsService.buildPrompt(body);
+        break;
+      case 'personas':
+        promptConfig = await PersonaService.buildPrompt(body);
+        break;
+      case 'landing':
+        promptConfig = await LandingService.buildPrompt(body);
+        break;
+      default:
+        // Lógica "Libre" o default
+        const strategicPrompt = `PROFESSIONAL PHOTOGRAPHY: ${prompt} | Aspect Ratio: ${aspectRatio}`;
+        const parts: any[] = [{ text: strategicPrompt }];
+        // Usar lógica base para imágenes
+        if (previousImageUrl) {
+           const base64 = previousImageUrl.split(',')[1] || previousImageUrl;
+           const mime = previousImageUrl.match(/data:(.*?);/)?.[1] || 'image/png';
+           parts.push({ text: "REFERENCE IMAGE:" });
+           parts.push({ inlineData: { data: base64, mimeType: mime } });
         }
-      } else {
-        base64Data = referenceImage.split(',')[1] || referenceImage;
-        mimeType = referenceImage.match(/data:(.*?);/)?.[1] || 'image/png';
-      }
+        promptConfig = { strategicPrompt, parts };
+    }
 
-      if (base64Data) {
-        const refLabel = referenceType === 'layout' ? 'LAYOUT & COMPOSITION GUIDE' : 'VISUAL STYLE & MOOD GUIDE';
-        parts.push({ text: `ITEM 2: ${refLabel} (Follow instructions for '${referenceType}' type):` });
-        parts.push({ inlineData: { data: base64Data, mimeType } });
-      }
+    // MODO DEBUG: Retornar configuración sin generar imagen
+    if (body.debug) {
+      return NextResponse.json({
+        success: true,
+        debug: true,
+        strategicPrompt: promptConfig.strategicPrompt,
+        partsCount: promptConfig.parts.length,
+        partsPreview: promptConfig.parts.map((p: any) => ({ 
+          type: p.inlineData ? 'image' : 'text', 
+          content: p.text || `Reference Image (${p.inlineData?.mimeType})` 
+        }))
+      });
     }
 
     const result = await model.generateContent({
-      contents: [{ role: 'user', parts }]
+      contents: [{ role: 'user', parts: promptConfig.parts }]
     });
 
     const response = await result.response;
