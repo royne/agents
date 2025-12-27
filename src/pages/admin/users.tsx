@@ -7,7 +7,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import UserFormModal from '../../components/admin/UserFormModal';
 import { adminService, UserWithProfile } from '../../services/database/adminService';
 import PageHeader from '../../components/common/PageHeader';
-import { DEFAULT_PLAN_MODULES, ModuleKey } from '../../constants/plans';
+import { ModuleKey } from '../../constants/plans';
 
 
 
@@ -19,6 +19,7 @@ export default function UsersManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModulesModalOpen, setIsModulesModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithProfile | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [moduleSelections, setModuleSelections] = useState<Record<ModuleKey, 'default' | 'on' | 'off'>>({} as any);
 
   const ALL_MODULES: { key: ModuleKey; label: string }[] = [
@@ -39,8 +40,6 @@ export default function UsersManagement() {
 
   const openModulesModal = (user: UserWithProfile) => {
     setSelectedUser(user);
-    const plan = user.plan || 'basic';
-    const baseModules = new Set(DEFAULT_PLAN_MODULES[plan]);
     const selections: Record<ModuleKey, 'default' | 'on' | 'off'> = {} as any;
     ALL_MODULES.forEach(({ key }) => {
       selections[key] = 'default';
@@ -57,8 +56,6 @@ export default function UsersManagement() {
 
   const handleSaveOverrides = async () => {
     if (!selectedUser) return;
-    const plan = selectedUser.plan || 'basic';
-    const baseModules = new Set(DEFAULT_PLAN_MODULES[plan]);
 
     // Construir overrides: solo incluir claves donde selection !== 'default'
     const overrides: Partial<Record<ModuleKey, boolean>> = {};
@@ -147,11 +144,21 @@ export default function UsersManagement() {
           />
 
           <div className="bg-theme-component p-6 rounded-lg shadow-md mb-6">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
               <h2 className="text-xl font-bold text-theme-primary">Usuarios Registrados</h2>
+              <div className="flex-1 w-full md:max-w-md relative">
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre o email..."
+                  className="w-full bg-theme-component-hover border border-theme-border rounded-lg px-4 py-2 text-theme-primary focus:ring-1 focus:ring-primary-color outline-none pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <FaSync className="absolute left-3 top-3 text-theme-tertiary opacity-40" />
+              </div>
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="px-4 py-2 bg-primary-color text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                className="px-4 py-2 bg-primary-color text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center shrink-0"
               >
                 <FaUserPlus className="mr-2" />
                 Nuevo Usuario
@@ -182,7 +189,10 @@ export default function UsersManagement() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-theme-border">
-                    {users.map((user) => (
+                    {users.filter(u =>
+                      u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      (u.name || '').toLowerCase().includes(searchTerm.toLowerCase())
+                    ).map((user) => (
                       <tr key={user.id} className="hover:bg-theme-component-hover transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap text-theme-primary">{user.email}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-theme-primary">{user.name || '-'}</td>
@@ -199,24 +209,36 @@ export default function UsersManagement() {
                           <div className="flex flex-col gap-1">
                             <select
                               className="px-2 py-1 border rounded bg-theme-component text-theme-primary text-xs"
-                              value={user.plan || 'basic'}
+                              value={user.plan || 'free'}
                               onChange={async (e) => {
                                 const newPlan = e.target.value as any;
                                 const ok = await adminService.updateUserPlan(user.id, newPlan);
                                 if (ok) fetchUsers();
                               }}
                             >
-                              <option value="basic">Basic (Legacy)</option>
-                              <option value="premium">Premium (Legacy)</option>
+                              <option value="free">Free</option>
+                              <option value="starter">Starter</option>
+                              <option value="pro">Pro</option>
+                              <option value="business">Business</option>
                               <option value="tester">Tester</option>
                             </select>
-                            <div className="text-[10px] text-theme-tertiary flex items-center gap-1">
-                              <span className={`px-1 rounded ${user.credits?.unlimited_credits ? 'bg-purple-500/20 text-purple-400' : 'bg-primary-color/20 text-primary-color'}`}>
-                                {user.credits?.plan_key || 'free'}
-                              </span>
-                              <span className="font-bold">{user.credits?.balance ?? 0} 🪙</span>
+                            <div className="text-[10px] text-theme-tertiary flex flex-col gap-1">
+                              <div className="flex items-center gap-1">
+                                <span className={`px-1 rounded ${user.credits?.unlimited_credits ? 'bg-purple-500/20 text-purple-400' : 'bg-primary-color/20 text-primary-color'}`}>
+                                  {user.credits?.plan_key || 'free'}
+                                </span>
+                                <span className="font-bold">{user.credits?.balance ?? 0} 🪙</span>
+                              </div>
+                              {user.credits?.expires_at && (
+                                <span className="opacity-70">
+                                  {Math.ceil((new Date(user.credits.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} días restantes
+                                </span>
+                              )}
                             </div>
                           </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-theme-secondary text-xs">
+                          {new Date(user.created_at).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           {/* Botón de edición, disponible para todos */}

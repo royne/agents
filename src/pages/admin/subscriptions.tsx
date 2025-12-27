@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { FaWallet, FaCoins, FaSync, FaUserShield, FaCrown, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaWallet, FaCoins, FaSync, FaUserShield, FaCrown, FaCheck, FaTimes, FaChevronRight } from 'react-icons/fa';
+import UserUsageModal from '../../components/admin/UserUsageModal';
 import Head from 'next/head';
 import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import { useAppContext } from '../../contexts/AppContext';
@@ -12,6 +13,8 @@ export default function SubscriptionsManagement() {
   const [userCredits, setUserCredits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const fetchCredits = async () => {
     try {
@@ -80,27 +83,46 @@ export default function SubscriptionsManagement() {
               </button>
             </div>
 
+            <div className="mb-6 relative">
+              <input
+                type="text"
+                placeholder="Buscar por nombre o email..."
+                className="w-full bg-theme-component-hover border border-theme-border rounded-lg px-4 py-2 text-theme-primary focus:ring-1 focus:ring-primary-color outline-none pl-10 transition-all hover:border-primary-color/50"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <FaWallet className="absolute left-3 top-3 text-theme-tertiary opacity-40" />
+            </div>
+
             <div className="overflow-x-auto">
               <table className="min-w-full">
                 <thead>
                   <tr className="border-b border-white/5">
                     <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Usuario</th>
                     <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Plan Actual</th>
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Saldo</th>
+                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Créditos Disponibles</th>
+                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Expiración</th>
                     <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Ilimitado</th>
                     <th className="px-6 py-4 text-right text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {userCredits.map((item) => (
-                    <tr key={item.user_id} className="hover:bg-white/[0.02] transition-colors group">
+                  {userCredits.filter(item =>
+                    (item.profiles?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (item.profiles?.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+                  ).map((item) => (
+                    <tr
+                      key={item.user_id}
+                      className="hover:bg-primary-color/[0.03] transition-colors group cursor-pointer"
+                      onClick={() => setSelectedUserId(item.user_id)}
+                    >
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <span className="font-bold text-theme-primary">{item.profiles?.name || 'Usuario'}</span>
+                          <span className="font-bold text-theme-primary group-hover:text-primary-color transition-colors">{item.profiles?.name || 'Usuario'}</span>
                           <span className="text-xs text-theme-tertiary opacity-60">{item.profiles?.email}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                         <select
                           className="bg-theme-component border border-white/10 rounded-lg px-2 py-1 text-sm focus:ring-1 focus:ring-primary-color outline-none"
                           value={item.plan_key}
@@ -112,7 +134,7 @@ export default function SubscriptionsManagement() {
                           ))}
                         </select>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-2">
                           <input
                             type="number"
@@ -128,6 +150,18 @@ export default function SubscriptionsManagement() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-theme-secondary">
+                            {item.expires_at ? new Date(item.expires_at).toLocaleDateString() : 'N/A'}
+                          </span>
+                          {item.expires_at && (
+                            <span className="text-[10px] opacity-60">
+                              {Math.ceil((new Date(item.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} días
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => handleUpdate(item.user_id, { unlimited_credits: !item.unlimited_credits })}
                           className={`p-2 rounded-lg transition-all ${item.unlimited_credits ? 'bg-primary-color/20 text-primary-color' : 'bg-white/5 text-theme-tertiary opacity-40 hover:opacity-100'}`}
@@ -140,9 +174,10 @@ export default function SubscriptionsManagement() {
                         {updatingId === item.user_id ? (
                           <div className="animate-spin h-4 w-4 border-2 border-primary-color border-t-transparent rounded-full ml-auto"></div>
                         ) : (
-                          <span className="text-[10px] font-black uppercase text-green-500/50 flex items-center justify-end">
-                            <FaCheck className="mr-1" /> Al día
-                          </span>
+                          <div className="flex items-center justify-end text-primary-color opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-xs font-bold mr-2">Ver Detalle</span>
+                            <FaChevronRight className="text-[10px]" />
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -174,6 +209,24 @@ export default function SubscriptionsManagement() {
             </div>
           </div>
         </div>
+
+        {/* Modal de Detalle de Usuario e Historial */}
+        {selectedUserId && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+            <div className="bg-theme-component w-full max-w-5xl max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/10 flex flex-col relative animate-in zoom-in-95 duration-300">
+              <button
+                onClick={() => setSelectedUserId(null)}
+                className="absolute top-6 right-6 p-3 bg-white/5 hover:bg-rose-500/10 text-theme-tertiary hover:text-rose-500 rounded-full transition-all z-10 border border-white/5 shadow-xl"
+              >
+                <FaTimes size={20} />
+              </button>
+
+              <div className="flex-1 overflow-hidden">
+                <UserUsageModal userId={selectedUserId} onClose={() => setSelectedUserId(null)} />
+              </div>
+            </div>
+          </div>
+        )}
       </DashboardLayout>
     </ProtectedRoute>
   );

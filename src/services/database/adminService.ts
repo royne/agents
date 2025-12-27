@@ -44,6 +44,7 @@ export interface UserWithProfile {
     balance: number;
     plan_key: string;
     unlimited_credits: boolean;
+    expires_at?: string;
   };
 }
 
@@ -216,7 +217,8 @@ export const adminService = {
           credits: userCredits ? {
             balance: userCredits.balance,
             plan_key: userCredits.plan_key,
-            unlimited_credits: userCredits.unlimited_credits
+            unlimited_credits: userCredits.unlimited_credits,
+            expires_at: userCredits.expires_at
           } : undefined
         };
       });
