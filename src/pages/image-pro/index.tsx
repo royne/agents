@@ -41,6 +41,7 @@ export default function ImageProPage() {
   const [generationMode, setGenerationMode] = useState<'libre' | 'ads' | 'personas'>('libre');
   const [adsSubMode, setAdsSubMode] = useState<'sencillo' | 'completo'>('sencillo');
   const [personaOption, setPersonaOption] = useState<'generar' | 'fondo' | 'cara' | 'producto'>('generar');
+  const [faceSwapOption, setFaceSwapOption] = useState<'rostro' | 'completo'>('completo');
   const [currentAdStep, setCurrentAdStep] = useState(0);
   const [generations, setGenerations] = useState<Record<string, string>>({});
   const [isContextExpanded, setIsContextExpanded] = useState(false);
@@ -158,7 +159,8 @@ export default function ImageProPage() {
       }
     } else if (generationMode === 'personas') {
       const userInstructions = productData.details ? `| User Instructions: ${productData.details}` : '';
-      finalPrompt = `${PERSONA_PROMPTS[personaOption]} ${userInstructions}`;
+      const faceSwapMode = personaOption === 'cara' ? ` (${faceSwapOption.toUpperCase()})` : '';
+      finalPrompt = `${PERSONA_PROMPTS[personaOption]}${faceSwapMode} ${userInstructions}`;
     } else {
       // Modo LIBRE: Concatenar todo si existe
       const parts = [];
@@ -181,12 +183,12 @@ export default function ImageProPage() {
         },
         body: JSON.stringify({
           mode: generationMode,
-          subMode: generationMode === 'ads' ? adsSubMode : (generationMode === 'personas' ? personaOption : undefined),
+          subMode: generationMode === 'ads' ? adsSubMode : (generationMode === 'personas' ? (personaOption === 'cara' ? `cara_${faceSwapOption}` : personaOption) : undefined),
           prompt: finalPrompt,
-          baseImage: baseImageBase64,
-          styleImage: styleImageBase64,
           productData: productData,
           aspectRatio: aspectRatio,
+          referenceImage: styleImageBase64,
+          referenceType: generationMode === 'ads' ? 'layout' : 'style',
           isCorrection: isCorrection,
           previousImageUrl: previousUrl,
           debug: false
@@ -320,16 +322,35 @@ export default function ImageProPage() {
                 )}
 
                 {generationMode === 'personas' && (
-                  <div className="grid grid-cols-2 gap-2">
-                    {Object.keys(PERSONA_PROMPTS).map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() => setPersonaOption(opt as any)}
-                        className={`py-2 px-3 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all ${personaOption === opt ? 'border-purple-500 bg-purple-500/10 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.2)]' : 'border-white/5 bg-white/5 text-theme-tertiary hover:border-white/10'}`}
-                      >
-                        {opt === 'generar' ? 'Generar' : opt === 'fondo' ? 'Cambiar Fondo' : opt === 'cara' ? 'Cambiar Cara' : 'Agregar Prod.'}
-                      </button>
-                    ))}
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.keys(PERSONA_PROMPTS).map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() => setPersonaOption(opt as any)}
+                          className={`py-2 px-3 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all ${personaOption === opt ? 'border-purple-500 bg-purple-500/10 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.2)]' : 'border-white/5 bg-white/5 text-theme-tertiary hover:border-white/10'}`}
+                        >
+                          {opt === 'generar' ? 'Generar' : opt === 'fondo' ? 'Cambiar Fondo' : opt === 'cara' ? 'Cambiar Cara' : 'Agregar Prod.'}
+                        </button>
+                      ))}
+                    </div>
+
+                    {personaOption === 'cara' && (
+                      <div className="flex gap-2 p-1 bg-black/20 rounded-xl border border-white/5 animate-in fade-in slide-in-from-top-1">
+                        <button
+                          onClick={() => setFaceSwapOption('rostro')}
+                          className={`flex-1 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${faceSwapOption === 'rostro' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'text-theme-tertiary hover:text-white'}`}
+                        >
+                          Solo Rostro
+                        </button>
+                        <button
+                          onClick={() => setFaceSwapOption('completo')}
+                          className={`flex-1 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${faceSwapOption === 'completo' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'text-theme-tertiary hover:text-white'}`}
+                        >
+                          Rostro y Cabello
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 

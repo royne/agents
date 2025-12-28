@@ -140,11 +140,15 @@ export default async function handler(req: NextRequest) {
     const response = await result.response;
     const candidates = (response as any).candidates;
     let imageUrl = null;
+    const candidate = candidates?.[0];
+    const imagePart = candidate?.content?.parts?.find((p: any) => p.inlineData);
 
-    if (candidates && candidates[0]?.content?.parts[0]?.inlineData) {
-      const imageData = candidates[0].content.parts[0].inlineData;
+    if (imagePart?.inlineData) {
+      const imageData = imagePart.inlineData;
       imageUrl = `data:${imageData.mimeType};base64,${imageData.data}`;
     } else {
+      // Loggear para debug si falla
+      console.error('[api/image-pro] Estructura de respuesta inesperada:', JSON.stringify(candidate));
       throw new Error('No se recibió una imagen válida del modelo Imagen 3.');
     }
     

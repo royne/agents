@@ -11,31 +11,48 @@ export class PersonaService extends BaseImageProService {
       strategicPrompt = `PERSONA IMAGE REFINEMENT:
       Maintain human identity and consistency from ITEM 1.
       MODIFICATION: ${prompt}
-      ASPECT RATIO: ${aspectRatio}`;
+      ASPECT RATIO: ${aspectRatio}
+      INSTRUCTION: Keep everything intact except the requested change.`;
     } else {
       const marketingContext = (productData.name || productData.angle || productData.buyer) 
-        ? `\nCONTEXT: ${productData.name} ${productData.angle ? `| Angle: ${productData.angle}` : ''} ${productData.buyer ? `| Audience: ${productData.buyer}` : ''}`
+        ? `\nMARKETING CONTEXT: ${productData.name} | Angle: ${productData.angle} | Audience: ${productData.buyer}`
         : '';
 
-      strategicPrompt = `HIGH-END FASHION & PERSONA PHOTOGRAPHY
-      GOAL: ${subMode === 'cara' ? 'SWAP FACE' : subMode === 'fondo' ? 'CHANGE BACKGROUND' : subMode === 'producto' ? 'INTEGRATE PRODUCT' : 'GENERATE PERSONA'}
-      
-      INSTRUCTION: ${prompt}
+      const isFaceSwap = subMode?.startsWith('cara');
+      const isFullSwap = subMode === 'cara_completo';
+
+      const modeTitle = isFaceSwap ? 'IDENTITY TRANSFORMATION' 
+                      : subMode === 'fondo' ? 'ENVIRONMENT & BACKGROUND REPLACEMENT' 
+                      : subMode === 'producto' ? 'PRODUCT INTEGRATION' 
+                      : 'GENERATE REALISTIC PERSONA';
+
+      const fidelityDirectives = isFaceSwap 
+        ? `- ITEM 1 (BASE MODEL): Keep the body, clothes, background, and lighting of this image exactly.
+           - ITEM 2 (IDENTITY REFERENCE): Extract the features from this subject.
+           - MISSION: ${isFullSwap 
+               ? "Replace the HEAD (Face AND Hairstyle) in ITEM 1 with the identity from ITEM 2." 
+               : "Replace ONLY the Face features in ITEM 1 with the features from ITEM 2. Keep ITEM 1's original hair."}
+           - Match skin tone, lighting, and integration perfectly.`
+        : subMode === 'fondo'
+        ? `- ITEM 1 (MODEL & PRODUCT): Keep the person and product exactly as they are.
+           - MISSION: Place them in a new environment described as: ${prompt}. Match lighting and shadows.`
+        : subMode === 'producto'
+        ? `- ITEM 1 (SCENE): Use this as the base environment.
+           - ITEM 2 (PRODUCT): Integrate this product into the scene or subject's hands.
+           - MISSION: Make it look natural with realistic shadows and reflections.`
+        : `- MISSION: Generate a realistic person based on: ${prompt}. 
+           - If ITEM 1 exists, use it as a reference for pose and physical traits.`;
+
+      strategicPrompt = `HIGH-END COMMERCIAL PHOTOGRAPHY - PERSONA MODE
+      GOAL: ${modeTitle}
       ${marketingContext}
       
-      CRITICAL FIDELITY:
-      ${subMode === 'cara' 
-        ? "- Use the subject in ITEM 1 but REPLACE the face with the face from ITEM 2. Match lighting, age, and skin tone perfectly." 
-        : subMode === 'fondo'
-        ? "- Maintain the model and product from ITEM 1 exactly. ONLY change the background/environment to a premium setting."
-        : subMode === 'producto'
-        ? "- Integrate the product from ITEM 2 into the person's hands or scene in ITEM 1. Match shadows and reflections."
-        : "- Generate a realistic person. If ITEM 1 is provided, use it as a base for physical features and pose."}
+      SPECIFIC INSTRUCTIONS: ${prompt}
       
-      COMPOSITION:
-      - Preserve original lighting and textures if ITEM 1 exists.
-      - Cinematic aesthetic, high-detail skin, luxury photographic finish.
-      - NO TEXT OR GRAPHICS.
+      CORE DIRECTIVES:
+      ${fidelityDirectives}
+      - Aesthetics: Cinematic, 8k, ultra-realistic skin textures, professional studio lighting.
+      - NO TEXT, GRAPHICS, OR WATERMARKS.
       - ASPECT RATIO: ${aspectRatio}`;
     }
 
