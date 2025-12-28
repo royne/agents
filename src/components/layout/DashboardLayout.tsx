@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain, FaUsersCog, FaAd, FaChevronLeft, FaChevronRight, FaMagic } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain, FaUsersCog, FaAd, FaChevronLeft, FaChevronRight, FaMagic, FaFilm } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
 import type { ModuleKey } from '../../constants/plans';
@@ -15,6 +15,7 @@ const menuItems: MenuItem[] = [
   { name: 'Análisis de Datos', icon: FaBrain, path: '/data-analysis', moduleKey: 'data-analysis' },
   { name: 'Agente Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
   { name: 'Landing PRO', icon: FaAd, path: '/landing-pro', moduleKey: 'landing-pro' },
+  { name: 'Video PRO', icon: FaFilm, path: '/video-pro', moduleKey: 'video-pro' },
   { name: 'Master Chat', icon: FaRobot, path: '/chat', moduleKey: 'chat' },
   { name: 'Administración', icon: FaUsersCog, path: '/admin', adminOnly: true, showForAllAdmins: true, moduleKey: 'admin' },
   { name: 'Configuración', icon: FaCog, path: '/settings', moduleKey: 'settings' },
@@ -33,6 +34,7 @@ const mobileMenuItems: MobileMenuItem[] = [
   { name: 'Agentes', icon: FaComments, path: '/agents', moduleKey: 'agents' },
   { name: 'Calculadora', icon: FaDollarSign, path: '/calculator', moduleKey: 'calculator' },
   { name: 'Agente Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
+  { name: 'Video PRO', icon: FaFilm, path: '/video-pro', moduleKey: 'video-pro' },
 ];
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
