@@ -9,7 +9,7 @@ export type ImageProAspectRatio = '1:1' | '9:16';
 export type ImageProReferenceType = 'style' | 'layout';
 
 export interface ImageProRequest {
-  mode: 'libre' | 'ads' | 'personas' | 'landing';
+  mode: 'libre' | 'ads' | 'personas' | 'landing' | 'video';
   subMode?: string; // e.g., 'sencillo', 'completo', 'generar', 'cara', 'fondo', etc.
   prompt: string;
   referenceImage?: string;

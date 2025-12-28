@@ -36,6 +36,10 @@ export default function VideoProPage() {
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
+  const [lastFrameBase64, setLastFrameBase64] = useState<string | null>(null);
+  const [generationMode, setGenerationMode] = useState<'normal' | 'extend' | 'interpolation' | 'ugc'>('normal');
+  const [lastVideoUri, setLastVideoUri] = useState<string | null>(null);
+  const [ugcStep, setUgcStep] = useState(0); // 0: no ugc, 1, 2, 3: steps
   const [pollingStatus, setPollingStatus] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -57,9 +61,12 @@ export default function VideoProPage() {
     }
   };
 
-  const handleGenerate = async () => {
-    if (credits < 20 && !isSuperAdmin()) {
-      alert(`Necesitas al menos 20 créditos para generar un video. Tu saldo es de ${credits}.`);
+  const handleGenerate = async (overrideMode?: 'normal' | 'extend' | 'interpolation', overrideVideoUri?: string) => {
+    const activeMode = overrideMode || (generationMode === 'ugc' ? (ugcStep === 0 ? 'normal' : 'extend') : generationMode);
+
+    const requiredCredits = 20;
+    if (credits < requiredCredits && !isSuperAdmin()) {
+      alert(`Necesitas al menos ${requiredCredits} créditos. Tu saldo es de ${credits}.`);
       return;
     }
 
@@ -73,7 +80,13 @@ export default function VideoProPage() {
       return;
     }
 
+    if (activeMode === 'interpolation' && (!lastFrameBase64 || lastFrameBase64 === '')) {
+      setNotification({ message: 'El modo Interpolación requiere una Imagen Final.', type: 'error' });
+      return;
+    }
+
     setIsGenerating(true);
+    if (generationMode === 'ugc' && ugcStep === 0) setUgcStep(1);
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -101,6 +114,9 @@ export default function VideoProPage() {
           script,
           specs,
           previousImageUrl: firstFrameBase64,
+          lastFrameBase64: lastFrameBase64 || null,
+          previousVideoUri: overrideVideoUri || lastVideoUri || null,
+          generationMode: activeMode,
           aspectRatio: '9:16',
         }),
       });
@@ -108,7 +124,8 @@ export default function VideoProPage() {
       const data = await response.json();
 
       if (data.success && data.operationName) {
-        setPollingStatus('Iniciando procesamiento...');
+        const stepDisplay = generationMode === 'ugc' ? ` (Paso ${ugcStep || 1}/3)` : '';
+        setPollingStatus(`Iniciando procesamiento${stepDisplay}...`);
         pollOperationStatus(data.operationName, authToken);
       } else {
         setNotification({
@@ -116,47 +133,72 @@ export default function VideoProPage() {
           type: 'error'
         });
         setIsGenerating(false);
+        setUgcStep(0);
       }
     } catch (error) {
       console.error(error);
       setNotification({ message: 'Error de conexión', type: 'error' });
       setIsGenerating(false);
+      setUgcStep(0);
     }
   };
 
+  const handleExtend = () => {
+    if (!lastVideoUri) return;
+    handleGenerate('extend');
+  };
+
   const pollOperationStatus = async (operationName: string, authToken: string) => {
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch(`/api/video-pro/status?operationName=${encodeURIComponent(operationName)}`, {
-          headers: {
-            'Authorization': `Bearer ${authToken}`
+    setPollingStatus('Iniciando (espera inicial de 30s)...');
+
+    // Espera inicial de 30 segundos solicitada por el usuario
+    setTimeout(() => {
+      const interval = setInterval(async () => {
+        try {
+          const response = await fetch(`/api/video-pro/status?operationName=${encodeURIComponent(operationName)}`, {
+            headers: {
+              'Authorization': `Bearer ${authToken}`
+            }
+          });
+          const data = await response.json();
+
+          if (data.error) {
+            clearInterval(interval);
+            const fullError = data.details ? `${data.error}: ${data.details}` : data.error;
+            setNotification({ message: fullError, type: 'error' });
+            setIsGenerating(false);
+            setPollingStatus(null);
+            setUgcStep(0);
+            return;
           }
-        });
-        const data = await response.json();
 
-        if (data.error) {
-          clearInterval(interval);
-          const fullError = data.details ? `${data.error}: ${data.details}` : data.error;
-          setNotification({ message: fullError, type: 'error' });
-          setIsGenerating(false);
-          setPollingStatus(null);
-          return;
-        }
+          if (data.done) {
+            clearInterval(interval);
+            setGeneratedVideoUrl(data.videoUrl);
+            setLastVideoUri(data.rawVideoUri);
+            setPollingStatus(null);
 
-        if (data.done) {
-          clearInterval(interval);
-          setGeneratedVideoUrl(data.videoUrl);
-          setIsGenerating(false);
-          setPollingStatus(null);
-          setNotification({ message: 'Video generado con éxito', type: 'success' });
-          refreshCredits();
-        } else {
-          setPollingStatus(data.message || 'Generando video...');
+            if (generationMode === 'ugc' && ugcStep < 3) {
+              const nextStep = ugcStep + 1;
+              setUgcStep(nextStep);
+              setPollingStatus(`Preparando siguiente fragmento (Paso ${nextStep}/3)...`);
+              // Pequeña pausa antes de la siguiente llamada para asegurar que el backend procesó el crédito
+              setTimeout(() => handleGenerate('extend', data.rawVideoUri), 2000);
+            } else {
+              setIsGenerating(false);
+              setUgcStep(0);
+              setNotification({ message: 'Video generado con éxito', type: 'success' });
+              refreshCredits();
+            }
+          } else {
+            const stepDisplay = generationMode === 'ugc' ? ` (Paso ${ugcStep || 1}/3)` : '';
+            setPollingStatus(`Generando video${stepDisplay}...`);
+          }
+        } catch (error) {
+          console.error('Error in polling:', error);
         }
-      } catch (error) {
-        console.error('Error in polling:', error);
-      }
-    }, 5000);
+      }, 10000); // Intervalo de 10 segundos solicitado por el usuario
+    }, 30000);
   };
 
   return (
@@ -227,13 +269,58 @@ export default function VideoProPage() {
                   </div>
                 </div>
 
-                {/* First Frame Uploader */}
+                {/* Mode Selector */}
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-theme-tertiary uppercase tracking-[0.2em] ml-1 flex justify-between items-center">
-                    <span>1. Imagen Inicial (Referencia)</span>
-                    <span className="text-primary-color font-black animate-pulse">Requerido</span>
-                  </label>
-                  <ImageUploader onImageSelect={handleImageSelect} />
+                  <label className="text-[10px] font-black text-theme-tertiary uppercase tracking-[0.2em] ml-1">Modo de Generación</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setGenerationMode('normal')}
+                      className={`p-3 rounded-xl border text-[10px] font-black transition-all ${generationMode === 'normal' ? 'bg-primary-color/20 border-primary-color text-primary-color' : 'bg-theme-component border-white/5 text-theme-tertiary hover:border-white/20'}`}
+                    >
+                      RÁPIDO (7s)
+                    </button>
+                    <button
+                      onClick={() => setGenerationMode('interpolation')}
+                      className={`p-3 rounded-xl border text-[10px] font-black transition-all ${generationMode === 'interpolation' ? 'bg-primary-color/20 border-primary-color text-primary-color' : 'bg-theme-component border-white/5 text-theme-tertiary hover:border-white/20'}`}
+                    >
+                      INTERPOLACIÓN
+                    </button>
+                    <button
+                      onClick={() => setGenerationMode('ugc')}
+                      className={`p-3 rounded-xl border text-[10px] font-black transition-all col-span-2 ${generationMode === 'ugc' ? 'bg-primary-color/20 border-primary-color text-primary-color' : 'bg-theme-component border-white/5 text-theme-tertiary hover:border-white/20'}`}
+                    >
+                      UGC COMPLETO (21s - PRO)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Frames Uploaders */}
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-theme-tertiary uppercase tracking-[0.2em] ml-1 flex justify-between items-center">
+                      <span>1. Imagen Inicial</span>
+                      <span className="text-primary-color font-black animate-pulse">Requerido</span>
+                    </label>
+                    <ImageUploader onImageSelect={handleImageSelect} />
+                  </div>
+
+                  {generationMode === 'interpolation' && (
+                    <div className="space-y-3 animate-in fade-in slide-in-from-top duration-500">
+                      <label className="text-[10px] font-black text-theme-tertiary uppercase tracking-[0.2em] ml-1 flex justify-between items-center">
+                        <span>2. Imagen Final (Cierre)</span>
+                        <span className="text-primary-color font-black">Requerido</span>
+                      </label>
+                      <ImageUploader onImageSelect={(fileOrBase64) => {
+                        if (fileOrBase64 instanceof File) {
+                          const reader = new FileReader();
+                          reader.onload = () => setLastFrameBase64(reader.result as string);
+                          reader.readAsDataURL(fileOrBase64);
+                        } else {
+                          setLastFrameBase64((fileOrBase64 as string | null) || null);
+                        }
+                      }} />
+                    </div>
+                  )}
                 </div>
 
                 {/* Script Area */}
@@ -301,7 +388,7 @@ export default function VideoProPage() {
 
                 {/* Generate Button */}
                 <button
-                  onClick={handleGenerate}
+                  onClick={() => handleGenerate()}
                   disabled={isGenerating || !firstFrameBase64 || !productData.name || !script}
                   className={`w-full py-5 mt-6 text-black font-black rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_20px_rgba(18,216,250,0.2)] disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed uppercase tracking-widest text-xs btn-modern bg-primary-color`}
                 >
@@ -309,7 +396,8 @@ export default function VideoProPage() {
                     <div className="w-6 h-6 border-4 border-black border-t-transparent animate-spin rounded-full"></div>
                   ) : (
                     <>
-                      <FaRocket className="text-lg" /> Generar Video (20 Créditos)
+                      <FaRocket className="text-lg" />
+                      {generationMode === 'ugc' ? 'Generar UGC Completo (60 Cred)' : 'Generar Video (20 Créditos)'}
                     </>
                   )}
                 </button>
@@ -342,6 +430,17 @@ export default function VideoProPage() {
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 pointer-events-none ring-1 ring-inset ring-white/10 rounded-3xl"></div>
+
+                    {/* Action buttons over video */}
+                    <div className="absolute bottom-4 left-4 right-4 flex gap-2">
+                      <button
+                        onClick={handleExtend}
+                        disabled={isGenerating}
+                        className="flex-1 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-[10px] font-black text-white hover:bg-white/20 transition-all uppercase tracking-widest shadow-xl"
+                      >
+                        {isGenerating ? 'Extendiendo...' : '+ Extender 7s (+20 Cred)'}
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center space-y-8 animate-in fade-in zoom-in duration-1000">

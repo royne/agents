@@ -72,6 +72,7 @@ export default async function handler(req: NextRequest) {
         return NextResponse.json({ 
           done: true, 
           videoUrl: proxiedUrl,
+          rawVideoUri: videoUrl,
           success: true 
         });
       }
