@@ -28,7 +28,7 @@ export class AdsService extends BaseImageProService {
     }
 
     const parts = this.buildBasePart(strategicPrompt);
-    this.handleImages(parts, previousImageUrl, referenceImage, req.referenceType);
+    await this.handleImages(parts, previousImageUrl, referenceImage, req.referenceType);
     
     return { strategicPrompt, parts };
   }

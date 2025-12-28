@@ -40,7 +40,7 @@ export class PersonaService extends BaseImageProService {
     }
 
     const parts = this.buildBasePart(strategicPrompt);
-    this.handleImages(parts, previousImageUrl, referenceImage, 'style');
+    await this.handleImages(parts, previousImageUrl, referenceImage, 'style');
 
     return { strategicPrompt, parts };
   }

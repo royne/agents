@@ -18,6 +18,7 @@ export interface ImageProRequest {
   aspectRatio: ImageProAspectRatio;
   isCorrection: boolean;
   previousImageUrl?: string;
+  continuityImage?: string;
   currentStep?: number;
   debug?: boolean;
 }

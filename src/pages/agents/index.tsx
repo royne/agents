@@ -10,6 +10,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { agentDatabaseService } from '../../services/database/agentService';
 import type { Agent } from '../../types/database';
 import ProtectedRoute from '../../components/auth/ProtectedRoute';
+import UsageCounter from '../../components/ImageGen/UsageCounter';
 
 export default function AgentsPage() {
   const router = useRouter();
@@ -68,7 +69,8 @@ export default function AgentsPage() {
   return (
     <ProtectedRoute moduleKey={'agents'}>
       <DashboardLayout>
-        <div className='w-full md:w-3/4 mx-auto'>
+        <div className='w-full md:w-3/4 mx-auto space-y-4'>
+          <UsageCounter />
           <PageHeader
             title="Agentes"
             description="Gestiona y chatea con tus agentes de IA personalizados."

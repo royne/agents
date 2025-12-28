@@ -6,6 +6,7 @@ import { ImageProRequest } from '../../../services/image-pro/types';
 import { AdsService } from '../../../services/image-pro/adsService';
 import { PersonaService } from '../../../services/image-pro/personaService';
 import { LandingService } from '../../../services/image-pro/landingService';
+import { BaseImageProService } from '../../../services/image-pro/baseService';
 
 export const config = {
   runtime: 'edge',
@@ -109,10 +110,11 @@ export default async function handler(req: NextRequest) {
         const parts: any[] = [{ text: strategicPrompt }];
         // Usar lógica base para imágenes
         if (previousImageUrl) {
-           const base64 = previousImageUrl.split(',')[1] || previousImageUrl;
-           const mime = previousImageUrl.match(/data:(.*?);/)?.[1] || 'image/png';
-           parts.push({ text: "REFERENCE IMAGE:" });
-           parts.push({ inlineData: { data: base64, mimeType: mime } });
+           const imageData = await BaseImageProService.imageUrlToBase64(previousImageUrl);
+           if (imageData) {
+             parts.push({ text: "REFERENCE IMAGE:" });
+             parts.push({ inlineData: { data: imageData.data, mimeType: imageData.mimeType } });
+           }
         }
         promptConfig = { strategicPrompt, parts };
     }

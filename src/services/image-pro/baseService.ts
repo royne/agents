@@ -5,38 +5,83 @@ export class BaseImageProService {
     return [{ text: strategicPrompt }];
   }
 
-  protected static handleImages(
+  public static async imageUrlToBase64(url: string): Promise<{ data: string, mimeType: string } | null> {
+    if (!url) return null;
+    
+    // Si ya es base64
+    if (url.startsWith('data:')) {
+      const data = url.split(',')[1] || url;
+      const mimeType = url.match(/data:(.*?);/)?.[1] || 'image/png';
+      return { data, mimeType };
+    }
+
+    // Si es una URL externa (como Supabase Storage)
+    if (url.startsWith('http')) {
+      try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const buffer = await blob.arrayBuffer();
+        const mimeType = blob.type || 'image/png';
+        
+        // Convertir ArrayBuffer a Base64 en Edge Runtime
+        const base64 = btoa(
+          new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+        
+        return { data: base64, mimeType };
+      } catch (error) {
+        console.error(`[BaseImageProService] Error fetching image URL: ${url}`, error);
+        return null;
+      }
+    }
+
+    // Default si no es URL ni data: (asumimos que puede ser base64 puro sin prefijo)
+    return { data: url, mimeType: 'image/png' };
+  }
+
+  protected static async handleImages(
     parts: any[],
     previousImageUrl?: string,
     referenceImage?: string,
-    referenceType: 'style' | 'layout' = 'style'
+    referenceType: 'style' | 'layout' = 'style',
+    continuityImage?: string
   ) {
-    // 1. Añadir el PRODUCTO BASE como referencia principal de objeto
+    // 1. PRODUCTO (IDENTIDAD)
     if (previousImageUrl) {
-      const base64 = previousImageUrl.split(',')[1] || previousImageUrl;
-      const mime = previousImageUrl.match(/data:(.*?);/)?.[1] || 'image/png';
-      parts.push({ text: "ITEM 1: REFERENCE PRODUCT IDENTITY (Strictly keep this object/character):" });
-      parts.push({ inlineData: { data: base64, mimeType: mime } });
+      const imageData = await this.imageUrlToBase64(previousImageUrl);
+      if (imageData) {
+        parts.push({ text: "ITEM 1: MAIN PRODUCT IDENTITY (Keep shape and labels exactly):" });
+        parts.push({ inlineData: { data: imageData.data, mimeType: imageData.mimeType } });
+      }
     }
 
-    // 2. Añadir la REFERENCIA DE ESTILO/LAYOUT
+    // 2. REFERENCIA (ESTILO/COMPOSICIÓN)
     if (referenceImage && referenceImage !== previousImageUrl) {
-      const base64Data = referenceImage.split(',')[1] || referenceImage;
-      const mimeType = referenceImage.match(/data:(.*?);/)?.[1] || 'image/png';
+      const imageData = await this.imageUrlToBase64(referenceImage);
+      if (imageData) {
+        const refLabel = referenceType === 'layout' ? 'COMPOSITION & LAYOUT GUIDE' : 'VISUAL STYLE & MOOD GUIDE';
+        parts.push({ text: `ITEM 2: ${refLabel}:` });
+        parts.push({ inlineData: { data: imageData.data, mimeType: imageData.mimeType } });
+      }
+    }
 
-      if (base64Data) {
-        const refLabel = referenceType === 'layout' ? 'LAYOUT & COMPOSITION GUIDE' : 'VISUAL STYLE & MOOD GUIDE';
-        parts.push({ text: `ITEM 2: ${refLabel} (Follow instructions for '${referenceType}' type):` });
-        parts.push({ inlineData: { data: base64Data, mimeType } });
+    // 3. CONTINUIDAD
+    if (continuityImage && continuityImage !== previousImageUrl && continuityImage !== referenceImage) {
+      const imageData = await this.imageUrlToBase64(continuityImage);
+      if (imageData) {
+        parts.push({ text: "ITEM 3: DESIGN CONTINUITY REFERENCE (Follow style/vibes):" });
+        parts.push({ inlineData: { data: imageData.data, mimeType: imageData.mimeType } });
       }
     }
   }
 
   protected static getCommonMarketingContext(productData: any): string {
+    const productName = productData.name || "the product in ITEM 1";
     return `
-    PRODUCT IDENTITY: ${productData.name}
+    PRODUCT: ${productName}
     MARKETING STRATEGY: 
-    - SELL TO: ${productData.buyer || 'High-end premium customers'}
-    - CORE ANGLE: ${productData.angle || 'Exclusivity and superior quality'}`;
+    - TARGET AUDIENCE: ${productData.buyer || 'High-end premium market'}
+    - VALUE PROPOSITION: ${productData.angle || 'Exclusivity and superior quality'}
+    - VISUAL GOAL: ${productData.details || 'Professional studio lighting, clean background, sharp focus'}`;
   }
 }
