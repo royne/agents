@@ -3,7 +3,7 @@ export const CREDIT_COSTS = {
   CHAT_RAG: 1,
   EXCEL_ANALYSIS: 0,
   CALCULATOR: 0,
-  VIDEO_GEN: 20,
+  VIDEO_GEN: 80,
 };
 
 export const PLAN_LIMITS = {

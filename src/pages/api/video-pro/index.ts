@@ -31,7 +31,7 @@ export default async function handler(req: NextRequest) {
   const isSuperAdmin = ['owner', 'superadmin', 'super_admin'].includes(profile?.role?.toLowerCase() || '');
 
   const { can, balance } = await CreditService.canPerformAction(user.id, 'VIDEO_GEN', supabaseAdmin);
-  if (!can && !isSuperAdmin) return NextResponse.json({ error: 'Créditos insuficientes.', balance, required: 20 }, { status: 402 });
+  if (!can && !isSuperAdmin) return NextResponse.json({ error: 'Créditos insuficientes.', balance, required: 80 }, { status: 402 });
 
   const apiKey = process.env.GOOGLE_AI_KEY;
   if (!apiKey) return NextResponse.json({ error: 'Falta Google AI Key.' }, { status: 500 });

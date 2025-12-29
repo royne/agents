@@ -64,7 +64,7 @@ export default function VideoProPage() {
   const handleGenerate = async (overrideMode?: 'normal' | 'extend' | 'interpolation', overrideVideoUri?: string) => {
     const activeMode = overrideMode || (generationMode === 'ugc' ? (ugcStep === 0 ? 'normal' : 'extend') : generationMode);
 
-    const requiredCredits = 20;
+    const requiredCredits = 80;
     if (credits < requiredCredits && !isSuperAdmin()) {
       alert(`Necesitas al menos ${requiredCredits} créditos. Tu saldo es de ${credits}.`);
       return;
@@ -397,7 +397,7 @@ export default function VideoProPage() {
                   ) : (
                     <>
                       <FaRocket className="text-lg" />
-                      {generationMode === 'ugc' ? 'Generar UGC Completo (60 Cred)' : 'Generar Video (20 Créditos)'}
+                      {generationMode === 'ugc' ? 'Generar UGC Completo (240 Cred)' : 'Generar Video (80 Créditos)'}
                     </>
                   )}
                 </button>
@@ -440,7 +440,7 @@ export default function VideoProPage() {
                         disabled={isGenerating}
                         className="flex-1 py-4 bg-primary-color text-black border border-primary-color/20 rounded-2xl text-[11px] font-black hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest shadow-xl"
                       >
-                        {isGenerating ? 'Extendiendo...' : '+ Extender 7s (+20 Cred)'}
+                        {isGenerating ? 'Extendiendo...' : '+ Extender 7s (+80 Cred)'}
                       </button>
                     </div>
                   </div>
