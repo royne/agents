@@ -51,7 +51,7 @@ export class PersonaService extends BaseImageProService {
       
       CORE DIRECTIVES:
       ${fidelityDirectives}
-      - Aesthetics: Cinematic, 8k, ultra-realistic skin textures, professional studio lighting.
+      - Aesthetics: Cinematic, 2k, ultra-realistic skin textures, professional studio lighting.
       - NO TEXT, GRAPHICS, OR WATERMARKS.
       - ASPECT RATIO: ${aspectRatio}`;
     }

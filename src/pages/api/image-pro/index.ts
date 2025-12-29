@@ -106,7 +106,7 @@ export default async function handler(req: NextRequest) {
         break;
       default:
         // Lógica "Libre" o default
-        const strategicPrompt = `PROFESSIONAL PHOTOGRAPHY: ${prompt} | Aspect Ratio: ${aspectRatio}`;
+        const strategicPrompt = `PROFESSIONAL PHOTOGRAPHY (2K resolution): ${prompt} | Aspect Ratio: ${aspectRatio}`;
         const parts: any[] = [{ text: strategicPrompt }];
         // Usar lógica base para imágenes
         if (previousImageUrl) {

@@ -48,7 +48,7 @@ export class LandingService extends BaseImageProService {
         ? "RENDER professional, clean, and legible typography only for the headlines/copy requested in the prompt. Integrate it artistically into the design."
         : "KEEP IT PURELY VISUAL. No text or watermarks in the scene."
     }
-    - Focus on visual storytelling and high commercial production value (8k, studio lighting).
+    - Focus on visual storytelling and high commercial production value (2k, studio lighting).
     
     REFERENCE HANDLING: 
     - ITEM 1 (PRODUCT): Maintain this product identity (labels, shape) perfectly.
