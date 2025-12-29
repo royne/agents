@@ -124,8 +124,7 @@ export default function VideoProPage() {
       const data = await response.json();
 
       if (data.success && data.operationName) {
-        const stepDisplay = generationMode === 'ugc' ? ` (Paso ${ugcStep || 1}/3)` : '';
-        setPollingStatus(`Iniciando procesamiento${stepDisplay}...`);
+        setPollingStatus('Espere un momento y no cierre esta página para no perder el resultado');
         pollOperationStatus(data.operationName, authToken);
       } else {
         setNotification({
@@ -149,7 +148,7 @@ export default function VideoProPage() {
   };
 
   const pollOperationStatus = async (operationName: string, authToken: string) => {
-    setPollingStatus('Iniciando (espera inicial de 30s)...');
+    setPollingStatus('Espere un momento y no cierre esta página para no perder el resultado');
 
     // Espera inicial de 30 segundos solicitada por el usuario
     setTimeout(() => {
@@ -191,8 +190,7 @@ export default function VideoProPage() {
               refreshCredits();
             }
           } else {
-            const stepDisplay = generationMode === 'ugc' ? ` (Paso ${ugcStep || 1}/3)` : '';
-            setPollingStatus(`Generando video${stepDisplay}...`);
+            setPollingStatus('Generando video... por favor, no cierre esta página.');
           }
         } catch (error) {
           console.error('Error in polling:', error);
@@ -285,12 +283,14 @@ export default function VideoProPage() {
                     >
                       INTERPOLACIÓN
                     </button>
+                    {/* 
                     <button
                       onClick={() => setGenerationMode('ugc')}
                       className={`p-3 rounded-xl border text-[10px] font-black transition-all col-span-2 ${generationMode === 'ugc' ? 'bg-primary-color/20 border-primary-color text-primary-color' : 'bg-theme-component border-white/5 text-theme-tertiary hover:border-white/20'}`}
                     >
                       UGC COMPLETO (21s - PRO)
                     </button>
+                    */}
                   </div>
                 </div>
 
@@ -422,21 +422,23 @@ export default function VideoProPage() {
 
               <div className="flex-1 flex flex-col items-center justify-center p-12 relative bg-[#05070A]">
                 {generatedVideoUrl ? (
-                  <div className="w-full max-w-[320px] aspect-[9/16] bg-black rounded-3xl shadow-2xl overflow-hidden border border-white/10 relative group-result">
-                    <video
-                      src={generatedVideoUrl}
-                      controls
-                      autoPlay
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 pointer-events-none ring-1 ring-inset ring-white/10 rounded-3xl"></div>
+                  <div className="flex flex-col items-center gap-6 w-full">
+                    <div className="w-full max-w-[320px] aspect-[9/16] bg-black rounded-3xl shadow-2xl overflow-hidden border border-white/10 relative group-result">
+                      <video
+                        src={generatedVideoUrl}
+                        controls
+                        autoPlay
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 pointer-events-none ring-1 ring-inset ring-white/10 rounded-3xl"></div>
+                    </div>
 
-                    {/* Action buttons over video */}
-                    <div className="absolute bottom-4 left-4 right-4 flex gap-2">
+                    {/* Action buttons below video */}
+                    <div className="w-full max-w-[320px] flex gap-2">
                       <button
                         onClick={handleExtend}
                         disabled={isGenerating}
-                        className="flex-1 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-[10px] font-black text-white hover:bg-white/20 transition-all uppercase tracking-widest shadow-xl"
+                        className="flex-1 py-4 bg-primary-color text-black border border-primary-color/20 rounded-2xl text-[11px] font-black hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest shadow-xl"
                       >
                         {isGenerating ? 'Extendiendo...' : '+ Extender 7s (+20 Cred)'}
                       </button>
