@@ -1,38 +1,39 @@
 import React from 'react';
-import { FaImage } from 'react-icons/fa';
+import { FaBolt } from 'react-icons/fa';
 import { useImageUsage } from '../../hooks/useImageUsage';
 
 interface UsageCounterProps {
-  limit?: number;
   showText?: boolean;
 }
 
 const UsageCounter: React.FC<UsageCounterProps> = ({ showText = true }) => {
   const { credits, limit, loading } = useImageUsage();
 
-  // Calcular el progreso para el círculo (basado en lo que queda)
+  // Calcular el progreso para el círculo (basado en lo que queda - Saldo Disponible)
   const radius = 20;
   const circumference = 2 * Math.PI * radius;
-  const progressPercent = Math.min((credits / limit) * 100, 100);
-  const offset = circumference - (progressPercent / 100) * circumference;
+  const remainingPercent = Math.max((credits / limit) * 100, 0);
+
+  // Barra inversa: se vacía a medida que gastas, reflejando el "Saldo Disponible"
+  const offset = circumference - (remainingPercent / 100) * circumference;
 
   return (
-    <div className="bg-gradient-to-br from-theme-component/80 to-theme-component border border-white/5 p-4 rounded-2xl flex items-center justify-between shadow-xl backdrop-blur-sm group hover:border-primary-color/30 transition-all duration-500">
+    <div className="bg-gradient-to-br from-theme-component/90 to-theme-component border border-primary-color/20 p-4 rounded-2xl flex items-center justify-between shadow-[0_0_25px_rgba(18,216,250,0.05)] backdrop-blur-md group hover:border-primary-color/40 transition-all duration-500">
       <div className="flex items-center gap-4">
         <div className="w-12 h-12 rounded-2xl bg-primary-color/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-inner">
-          <FaImage className="text-primary-color text-xl drop-shadow-[0_0_8px_rgba(18,216,250,0.5)]" />
+          <FaBolt className="text-primary-color text-xl drop-shadow-[0_0_8px_rgba(18,216,250,0.6)]" />
         </div>
         <div>
           {showText && (
-            <p className="text-[10px] text-theme-tertiary uppercase font-black tracking-[0.15em] opacity-60">
-              Saldo de Créditos
+            <p className="text-[10px] text-primary-color uppercase font-black tracking-[0.2em] mb-0.5 opacity-80">
+              Saldo Disponible
             </p>
           )}
-          <div className="flex items-baseline gap-1">
+          <div className="flex items-baseline gap-1.5">
             <span className="text-2xl font-black text-theme-primary tracking-tighter">
               {loading ? '...' : credits.toLocaleString()}
             </span>
-            <span className="text-xs text-theme-tertiary font-bold opacity-40">/ {limit.toLocaleString()}</span>
+            <span className="text-[10px] text-theme-tertiary font-bold uppercase opacity-50 tracking-widest">Créditos</span>
           </div>
         </div>
       </div>
@@ -45,16 +46,16 @@ const UsageCounter: React.FC<UsageCounterProps> = ({ showText = true }) => {
             cy="28"
             r={radius}
             fill="transparent"
-            stroke="rgba(255,255,255,0.05)"
+            stroke="rgba(255,255,255,0.03)"
             strokeWidth="4"
           />
-          {/* Círculo de progreso */}
+          {/* Círculo de progreso (Saldo Restante) */}
           <circle
             cx="28"
             cy="28"
             r={radius}
             fill="transparent"
-            stroke="url(#usageGradient)"
+            stroke="url(#usageGradientUnified)"
             strokeWidth="4"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
@@ -62,14 +63,14 @@ const UsageCounter: React.FC<UsageCounterProps> = ({ showText = true }) => {
             className="transition-all duration-1000 ease-out"
           />
           <defs>
-            <linearGradient id="usageGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="usageGradientUnified" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#12D8FA" />
               <stop offset="100%" stopColor="#0ea5e9" />
             </linearGradient>
           </defs>
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[8px] font-black text-primary-color/50">{Math.round(progressPercent)}%</span>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-[9px] font-black text-theme-primary leading-none">{Math.round(remainingPercent)}%</span>
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ export type FeatureKey =
   | 'calculator.use'
   | 'image-pro.full-access'
   | 'landing-pro.full-access'
+  | 'video-pro.full-access'
   ;
 
 // Habilitación de features por plan (por defecto)
@@ -31,6 +32,7 @@ export const DEFAULT_PLAN_FEATURES: Record<Plan, Partial<Record<FeatureKey, bool
     'calculator.use': true,
     'image-pro.full-access': true,
     'landing-pro.full-access': true,
+    'video-pro.full-access': true,
   },
   pro: {
     'agents.create': true,
@@ -41,6 +43,7 @@ export const DEFAULT_PLAN_FEATURES: Record<Plan, Partial<Record<FeatureKey, bool
     'calculator.use': true,
     'image-pro.full-access': true,
     'landing-pro.full-access': true,
+    'video-pro.full-access': true,
   },
   business: {
     'agents.create': true,
@@ -51,6 +54,7 @@ export const DEFAULT_PLAN_FEATURES: Record<Plan, Partial<Record<FeatureKey, bool
     'calculator.use': true,
     'image-pro.full-access': true,
     'landing-pro.full-access': true,
+    'video-pro.full-access': true,
   },
   tester: {
     'agents.create': true,
@@ -61,6 +65,7 @@ export const DEFAULT_PLAN_FEATURES: Record<Plan, Partial<Record<FeatureKey, bool
     'calculator.use': true,
     'image-pro.full-access': true,
     'landing-pro.full-access': true,
+    'video-pro.full-access': true,
   },
 };
 
