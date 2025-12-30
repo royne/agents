@@ -63,6 +63,16 @@ export default function RegisterPage() {
       <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] opacity-50"></div>
 
       <div className="soft-card p-8 md:p-10 max-w-md w-full relative z-10 border-white/5 shadow-2xl backdrop-blur-xl">
+        {/* Botón Volver al sitio */}
+        <div className="absolute top-6 left-6">
+          <Link href="/" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-primary-color transition-colors group">
+            <div className="w-6 h-6 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center group-hover:border-primary-color/30">
+              <FaArrowRight className="rotate-180 text-[8px]" />
+            </div>
+            Volver al sitio
+          </Link>
+        </div>
+
         <div className="flex flex-col items-center mb-8">
           {/* Logo DROPAPP */}
           <Link href="/" className="relative group mb-6">

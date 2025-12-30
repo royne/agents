@@ -43,6 +43,15 @@ export const MODULE_METADATA: Record<ModuleKey, ModuleMetadata> = {
 
 export const PLAN_ORDER: Plan[] = ['free', 'starter', 'pro', 'business', 'tester'];
 
+export const PLAN_CREDITS: Record<Plan, number> = {
+  free: 50,
+  starter: 200,
+  pro: 1200,
+  business: 5000,
+  tester: 99999
+};
+
+
 export function isPlanAtLeast(userPlan: Plan | undefined, required: Plan) {
   const up = userPlan || 'free';
   return PLAN_ORDER.indexOf(up) >= PLAN_ORDER.indexOf(required);

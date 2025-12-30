@@ -22,6 +22,7 @@ type AppContextType = {
     plan?: Plan;
     modulesOverride?: Partial<Record<ModuleKey, boolean>>;
     activeModules?: ModuleKey[];
+    credits?: number;
   } | null;
   themeConfig: ThemeConfig;
   setApiKey: (key: string | null) => void;
@@ -50,6 +51,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     plan?: Plan;
     modulesOverride?: Partial<Record<ModuleKey, boolean>>;
     activeModules?: ModuleKey[];
+    credits?: number;
   } | null>(null);
   const [themeConfig, setThemeConfig] = useState<ThemeConfig>({
     primaryColor: '#3B82F6', // Color azul predeterminado
@@ -81,9 +83,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
           const { data: creditsData } = await supabase
             .from('user_credits')
-            .select('plan_key')
+            .select('plan_key, balance')
             .eq('user_id', session.user.id)
             .single();
+
+          console.log('🔍 [DEBUG] Credits data:', creditsData);
 
           const planKey = (creditsData?.plan_key || 'free') as Plan;
 
@@ -104,6 +108,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             role: profile?.role,
             name: profile?.name,
             plan: planKey,
+            credits: creditsData?.balance || 0,
             modulesOverride: (profile as any)?.modules_override || undefined,
             activeModules: activeModules,
           };
@@ -211,7 +216,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const { data: creditsData } = await supabase
         .from('user_credits')
-        .select('plan_key')
+        .select('plan_key, balance')
         .eq('user_id', data.user.id)
         .single();
 
@@ -234,6 +239,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         role: profile?.role,
         name: profile?.name,
         plan: planKey,
+        credits: creditsData?.balance || 0,
         modulesOverride: (profile as any)?.modules_override || undefined,
         activeModules: activeModules,
       };
