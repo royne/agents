@@ -153,7 +153,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Obtener datos del usuario a crear
-    const { email, password, name, role, company_id, company_name, plan } = req.body;
+    const { email, password, name, phone, role, company_id, company_name, plan } = req.body;
 
     // Validar datos
     if (!email || !password || !name || !role) {
@@ -211,11 +211,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Crear usuario usando la API de administración
-    // Esto no afecta la sesión actual
+    // Esto disparará el trigger on_auth_user_created en la base de datos
     const { data: authData, error: authError } = await adminSupabase.auth.admin.createUser({
       email,
       password,
-      email_confirm: true
+      email_confirm: true,
+      user_metadata: {
+        full_name: name,
+        phone: phone,
+        role: role,
+        company_id: companyId,
+        plan: userPlan
+      }
     });
 
     if (authError || !authData.user) {
@@ -224,26 +231,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Crear perfil para el usuario
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({
-        id: authData.user.id,
-        user_id: authData.user.id,
-        company_id: companyId,
-        role,
-        name,
-        email,
-        plan: userPlan
-      });
-
-    if (profileError) {
-      // Si falla la creación del perfil, intentar eliminar el usuario creado
-      await adminSupabase.auth.admin.deleteUser(authData.user.id);
-      return res.status(500).json({ 
-        error: `Error al crear perfil: ${profileError.message}` 
-      });
-    }
+    // El perfil y créditos se crean automáticamente vía Trigger SQL
+    // No es necesario insertar manualmente aquí
 
     // Éxito
     return res.status(200).json({ 

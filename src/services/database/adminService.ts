@@ -24,6 +24,7 @@ export interface UserCreateData {
   email: string;
   password: string;
   name: string;
+  phone?: string;
   role: 'superadmin' | 'admin' | 'user';
   company_id?: string;
   company_name?: string;

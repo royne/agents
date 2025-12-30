@@ -22,6 +22,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
 }) => {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'admin' | 'user'>('user');
@@ -67,6 +68,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
     setRole('user');
     setPlan('free');
     setNewCompanyName('');
+    setPhone('');
     setCreateNewCompany(false);
     setError(null);
     setSuccess(false);
@@ -100,6 +102,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
       const userData: UserCreateData = {
         email,
         name,
+        phone,
         password,
         role: isSuperAdmin ? role : 'user', // Los admin normales solo pueden crear usuarios normales
         plan: plan,
@@ -198,6 +201,19 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
                   className="w-full px-4 py-2 border rounded-lg bg-theme-primary text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary-color"
                   placeholder="Nombre y apellido"
                   required
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-theme-secondary text-sm font-medium mb-2">
+                  Celular (WhatsApp)
+                </label>
+                <input
+                  type="text"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-4 py-2 border rounded-lg bg-theme-primary text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary-color"
+                  placeholder="+57..."
                 />
               </div>
 
