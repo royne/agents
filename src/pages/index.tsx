@@ -13,9 +13,11 @@ import DashboardSection from '../components/dashboard/DashboardSection';
 import ModuleCard from '../components/dashboard/ModuleCard';
 import Head from 'next/head';
 import PublicLanding from '../components/public/PublicLanding';
+import { useRouter } from 'next/router';
 
 export default function Dashboard() {
-  const { authData, isAdmin, canAccessModule } = useAppContext();
+  const { authData, isAdmin, canAccessModule, isSyncing } = useAppContext();
+  const router = useRouter();
 
   const getModuleStatus = (key: ModuleKey) => {
     return canAccessModule(key);
@@ -63,11 +65,14 @@ export default function Dashboard() {
           <div className="flex flex-col md:items-end gap-3 min-w-[280px]">
             <div className="flex items-center justify-between w-full text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">
               <span className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary-color shadow-[0_0_8px_rgba(18,216,250,0.5)]"></div>
+                <div className={`w-1.5 h-1.5 rounded-full ${isSyncing ? 'bg-amber-500 animate-pulse' : 'bg-primary-color'} shadow-[0_0_8px_rgba(18,216,250,0.5)]`}></div>
                 Plan {authData.plan || 'Free'}
               </span>
-              <span className="text-white/80">
-                <span className="text-primary-color">{currentCredits}</span> / {maxCredits} Créditos
+              <span className="text-white/80 flex items-center gap-2">
+                {isSyncing && (
+                  <div className="w-3 h-3 border-2 border-primary-color/30 border-t-primary-color rounded-full animate-spin"></div>
+                )}
+                <span className="text-primary-color font-bold">{currentCredits}</span> / {maxCredits} Créditos
               </span>
             </div>
 

@@ -37,22 +37,31 @@ type AppContextType = {
   hasFeature: (feature: FeatureKey) => boolean;
   updateTheme: (config: Partial<ThemeConfig>) => void;
   register: (email: string, password: string, phone: string, name: string) => Promise<{ success: boolean; error?: string }>;
+  isSyncing: boolean;
 };
 
 const AppContext = createContext<AppContextType>({} as AppContextType);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [authData, setAuthData] = useState<{
-    isAuthenticated: boolean;
-    userId?: string;
-    company_id?: string;
-    role?: string;
-    name?: string;
-    plan?: Plan;
-    modulesOverride?: Partial<Record<ModuleKey, boolean>>;
-    activeModules?: ModuleKey[];
-    credits?: number;
-  } | null>(null);
+  const [authData, setAuthData] = useState<AppContextType['authData']>(() => {
+    // Inicialización híbrida: Intentar cargar desde localStorage inmediatamente
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('auth_data');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          console.log('🚀 [DEBUG] AppProvider: Restaurando sesión desde caché local');
+          return parsed;
+        } catch (e) {
+          console.error('Error parsing cached auth data', e);
+        }
+      }
+    }
+    return null;
+  });
+
+  const [isSyncing, setIsSyncing] = useState(false);
+
   const [themeConfig, setThemeConfig] = useState<ThemeConfig>({
     primaryColor: '#3B82F6', // Color azul predeterminado
     useDarkMode: true
@@ -60,69 +69,83 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const checkSession = async () => {
-      console.log('🔍 [DEBUG] checkSession: Iniciando...');
-      try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        console.log('🔍 [DEBUG] checkSession: getSession result', { sessionExists: !!session, error: sessionError });
+    const dbTimeout = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), ms));
 
-        if (sessionError) throw sessionError;
+    const checkSession = async (providedSession?: any) => {
+      console.log('🔍 [DEBUG] checkSession: Iniciando actualización de datos...');
+      setIsSyncing(true);
+      try {
+        let session = providedSession;
+        if (!session) {
+          const { data: { session: s }, error: sessionError } = await supabase.auth.getSession();
+          if (sessionError) throw sessionError;
+          session = s;
+        }
 
         if (session) {
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('company_id, role, name, plan, modules_override')
-            .eq('user_id', session.user.id)
-            .single();
+          try {
+            // Consultas con timeout para evitar bloqueos
+            const [profileRes, creditsRes] = await Promise.race([
+              Promise.all([
+                supabase.from('profiles').select('company_id, role, name, plan, modules_override').eq('user_id', session.user.id).single(),
+                supabase.from('user_credits').select('plan_key, balance').eq('user_id', session.user.id).single()
+              ]),
+              dbTimeout(5000) as Promise<[any, any]>
+            ]);
 
-          if (profileError && profileError.code !== 'PGRST116') {
-            console.error('Error fetching profile:', profileError);
+            const profile = profileRes.data;
+            const creditsData = creditsRes.data;
+            const planKey = (creditsData?.plan_key || profile?.plan || 'free') as Plan;
+
+            const planRes = await Promise.race([
+              supabase.from('subscription_plans').select('features').eq('key', planKey).single(),
+              dbTimeout(4000) as Promise<any>
+            ]);
+
+            const planData = planRes.data;
+            if (planRes.error) console.warn('⚠️ Error plan features:', planRes.error);
+
+            let activeModules: ModuleKey[] = [];
+            if (planData?.features?.active_modules) {
+              activeModules = planData.features.active_modules;
+            }
+
+            const newAuthData = {
+              isAuthenticated: true,
+              userId: session.user.id,
+              company_id: profile?.company_id,
+              role: profile?.role,
+              name: profile?.name,
+              plan: planKey,
+              credits: creditsData?.balance || 0,
+              modulesOverride: (profile as any)?.modules_override || undefined,
+              activeModules: activeModules,
+            };
+
+            console.log('✅ [DEBUG] checkSession: Datos actualizados correctamente');
+            localStorage.setItem('auth_data', JSON.stringify(newAuthData));
+            setAuthData(newAuthData);
+          } catch (innerError) {
+            console.warn('⚠️ [DEBUG] checkSession: Fallo temporal en DB, manteniendo sesión actual:', innerError);
+            // Si ya tenemos datos (de localStorage), no los sobrescribimos con fallbacks vacíos
+            setAuthData(prev => prev || {
+              isAuthenticated: true,
+              userId: session.user.id,
+              plan: 'free',
+              credits: 0,
+              activeModules: []
+            });
           }
-
-          let activeModules: ModuleKey[] = [];
-
-          const { data: creditsData } = await supabase
-            .from('user_credits')
-            .select('plan_key, balance')
-            .eq('user_id', session.user.id)
-            .single();
-
-          console.log('🔍 [DEBUG] Credits data:', creditsData);
-
-          const planKey = (creditsData?.plan_key || 'free') as Plan;
-
-          const { data: planData } = await supabase
-            .from('subscription_plans')
-            .select('features')
-            .eq('key', planKey)
-            .single();
-
-          if (planData?.features?.active_modules) {
-            activeModules = planData.features.active_modules;
-          }
-
-          const newAuthData = {
-            isAuthenticated: true,
-            userId: session.user.id,
-            company_id: profile?.company_id,
-            role: profile?.role,
-            name: profile?.name,
-            plan: planKey,
-            credits: creditsData?.balance || 0,
-            modulesOverride: (profile as any)?.modules_override || undefined,
-            activeModules: activeModules,
-          };
-
-          localStorage.setItem('auth_data', JSON.stringify(newAuthData));
-          setAuthData(newAuthData);
         } else {
+          console.log('🔍 [DEBUG] checkSession: No hay sesión activa');
           localStorage.removeItem('auth_data');
           setAuthData({ isAuthenticated: false });
         }
       } catch (error) {
-        console.error('Check session error:', error);
-        // En caso de error crítico, al menos desbloqueamos la UI
+        console.error('🚨 [DEBUG] checkSession: FALLO CRÍTICO:', error);
         setAuthData({ isAuthenticated: false });
+      } finally {
+        setIsSyncing(false);
       }
     };
 
@@ -131,7 +154,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       console.log('🔔 [DEBUG] onAuthStateChange:', event, !!session);
 
       if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
-        console.log('🔍 [DEBUG] Auth Event: Limpiando sesión');
         localStorage.removeItem('auth_data');
         setAuthData({ isAuthenticated: false });
 
@@ -140,16 +162,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
           router.push('/');
         }
       } else if (session) {
-        console.log('🔍 [DEBUG] Auth Event: Sesión activa, verificando perfil...');
-        await checkSession();
+        await checkSession(session);
       } else {
-        console.log('🔍 [DEBUG] Auth Event: Ninguno de los anteriores, desbloqueando con defaults');
         setAuthData(prev => prev || { isAuthenticated: false });
       }
     });
 
-    // Verificación inicial forzada como respaldo
-    const timeoutId = setTimeout(() => {
+    // Verificación inicial forzada si no se ha resuelto en 2 segundos
+    const backupTimeout = setTimeout(() => {
       if (authData === null) {
         console.warn('⚠️ Backup session check triggered');
         checkSession();
@@ -158,7 +178,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     return () => {
       subscription.unsubscribe();
-      clearTimeout(timeoutId);
+      clearTimeout(backupTimeout);
     };
   }, []);
 
@@ -393,7 +413,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       canAccessModule,
       hasFeature,
       updateTheme,
-      register
+      register,
+      isSyncing,
     }}>
       {children}
     </AppContext.Provider>
