@@ -214,15 +214,6 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
         <div className="flex-grow">
           {children}
         </div>
-
-        {/* Footer con créditos */}
-        <div className="mt-auto pt-4 text-center text-theme-secondary">
-          <div className="flex flex-col justify-center items-center">
-            <div className="text-xs mt-1 opacity-70">
-              Desarrollado por <span className="text-primary-color">RAC</span>
-            </div>
-          </div>
-        </div>
       </main>
     </div>
   );
