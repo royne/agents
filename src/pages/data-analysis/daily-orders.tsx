@@ -28,7 +28,7 @@ const DailyOrdersAnalysis = () => {
             <PageHeader
               title={<><FaChartBar className="inline-block mr-2" /> Análisis Diario de Órdenes por UTM</>}
               description="Sube el Excel del POS y analiza el rendimiento por campaña (UTM term) y anuncio (UTM content)."
-              backLink="/data-analysis"
+              backLink="/admin"
             />
 
             <ExcelFileUploader

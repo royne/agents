@@ -11,9 +11,9 @@ type MenuItem = { name: string; icon: any; path: string; adminOnly?: boolean; sh
 const menuItems: MenuItem[] = [
   { name: 'Agentes', icon: FaComments, path: '/agents', moduleKey: 'agents' },
   { name: 'Calculadora de Precios', icon: FaDollarSign, path: '/calculator', moduleKey: 'calculator' },
-  { name: 'Logística', icon: FaTruck, path: '/logistic', moduleKey: 'logistic' },
-  { name: 'Análisis de Datos', icon: FaBrain, path: '/data-analysis', moduleKey: 'data-analysis' },
-  { name: 'Agente Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
+  { name: 'Gestión Logística', icon: FaTruck, path: '/logistic', moduleKey: 'logistic' },
+  { name: 'Análisis de Rentabilidad', icon: FaBrain, path: '/data-analysis/analysis', moduleKey: 'data-analysis' },
+  { name: 'Imagen Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
   { name: 'Landing PRO', icon: FaAd, path: '/landing-pro', moduleKey: 'landing-pro' },
   { name: 'Video PRO', icon: FaFilm, path: '/video-pro', moduleKey: 'video-pro' },
   { name: 'Master Chat', icon: FaRobot, path: '/chat', moduleKey: 'chat' },
@@ -33,7 +33,7 @@ const mobileMenuItems: MobileMenuItem[] = [
   },
   { name: 'Agentes', icon: FaComments, path: '/agents', moduleKey: 'agents' },
   { name: 'Calculadora', icon: FaDollarSign, path: '/calculator', moduleKey: 'calculator' },
-  { name: 'Agente Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
+  { name: 'Imagen Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
   { name: 'Video PRO', icon: FaFilm, path: '/video-pro', moduleKey: 'video-pro' },
 ];
 

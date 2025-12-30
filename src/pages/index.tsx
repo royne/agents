@@ -104,7 +104,7 @@ export default function Dashboard() {
             isLarge={true}
           />
           <ModuleCard
-            name="Agente PRO"
+            name="Imagen PRO"
             description="Imágenes, Banners & Catálogos publicitarios en segundos"
             icon={FaMagic}
             path="/image-pro"
@@ -134,11 +134,11 @@ export default function Dashboard() {
             name="Análisis de Rentabilidad"
             description="Análisis de ventas y ganancias"
             icon={FaFileExcel}
-            path="/profitability"
+            path="/data-analysis/analysis"
             gradientClass="gradient-subtle-blue"
             buttonText="Analizar Archivo"
             buttonClass="btn-premium-gray"
-            disabled={!getModuleStatus('profitability')}
+            disabled={!getModuleStatus('data-analysis')}
           />
           <ModuleCard
             name="Calculadora de Precios"

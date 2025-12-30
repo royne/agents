@@ -1,6 +1,6 @@
 import React from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { FaUsers, FaDatabase, FaTruck, FaShieldAlt, FaMagic } from 'react-icons/fa';
+import { FaUsers, FaDatabase, FaTruck, FaShieldAlt, FaMagic, FaChartLine } from 'react-icons/fa';
 import Link from 'next/link';
 import Head from 'next/head';
 import ProtectedRoute from '../../components/auth/ProtectedRoute';
@@ -51,11 +51,18 @@ const adminModules = [
     superAdminOnly: false
   },
   {
-    name: 'Configuración Agente Pro',
+    name: 'Configuración Imagen Pro',
     icon: FaMagic,
     description: 'Gestionar plantillas y modelos de imágenes',
     path: '/admin/image-config',
     superAdminOnly: true
+  },
+  {
+    name: 'Análisis Diario',
+    icon: FaChartLine,
+    description: 'Análisis de rendimiento por campaña y anuncio',
+    path: '/data-analysis/daily-orders',
+    superAdminOnly: false
   }
 ];
 

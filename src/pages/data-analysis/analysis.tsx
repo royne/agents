@@ -34,9 +34,9 @@ const Analysis = () => {
         <FeatureGate feature={'data-analysis.excel-analysis'}>
           <div className="mx-auto w-full">
             <PageHeader
-              title={<><FaBrain className="inline-block mr-2" /> Análisis de Archivos Excel</>}
+              title={<><FaBrain className="inline-block mr-2" /> Análisis de Rentabilidad</>}
               description="Analiza datos de órdenes y productos desde archivos Excel"
-              backLink="/data-analysis"
+              backLink="/"
             />
 
             <ExcelFileUploader
