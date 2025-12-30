@@ -100,6 +100,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         localStorage.setItem('auth_data', JSON.stringify(authData));
         setAuthData(authData);
+      } else {
+        setAuthData({ isAuthenticated: false });
       }
     };
 
@@ -197,8 +199,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     await supabase.auth.signOut();
     localStorage.removeItem('auth_data');
-    setAuthData(null);
-    router.push('/auth/login');
+    setAuthData({ isAuthenticated: false });
+    router.push('/');
   };
 
   const isAdmin = (): boolean => {

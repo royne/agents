@@ -162,7 +162,6 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
           <div className="border-t border-white/5 pt-6">
             <button
               onClick={() => {
-                router.push('/auth/login');
                 logout();
               }}
               className={`w-full flex items-center p-3 rounded-2xl hover:bg-rose-500/10 transition-all group/logout text-gray-500 hover:text-rose-400 ${isSidebarOpen ? 'px-4' : 'px-2 justify-center'}`}
@@ -197,7 +196,6 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
           <div
             className="flex items-center justify-center py-3 px-3 text-red-400"
             onClick={() => {
-              router.push('/auth/login');
               logout();
             }}
           >

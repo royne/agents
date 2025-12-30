@@ -9,11 +9,11 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export default function App({ Component, pageProps }: AppProps) {
-const router = useRouter();
+  const router = useRouter();
   return (
     <AppProvider>
       <PomodoroProvider>
-        <AuthWrapper {...{Component, pageProps}} router={useRouter()} />
+        <AuthWrapper {...{ Component, pageProps }} router={useRouter()} />
       </PomodoroProvider>
     </AppProvider>
   );
@@ -33,14 +33,14 @@ function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (session && !authData) {
         await new Promise(resolve => setTimeout(resolve, 500));
       }
-      
+
       if (session && router.pathname.startsWith('/auth')) {
         router.push('/');
-      } else if (!session && !router.pathname.startsWith('/auth')) {
+      } else if (!session && !router.pathname.startsWith('/auth') && router.pathname !== '/') {
         router.push('/auth/login');
       }
       setLoading(false);
@@ -48,7 +48,7 @@ function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
 
     checkAuth();
   }, [router, authData]);
-  
+
   // Efecto para inicializar el tema
   useEffect(() => {
     if (themeConfig) {
@@ -62,12 +62,12 @@ function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
   if (loading) return <div className="min-h-screen bg-theme-primary"></div>;
 
   return (
-    <div className="min-h-screen max-h-screen bg-theme-primary text-theme-primary border border-transparent overflow-hidden">
+    <div className="min-h-screen bg-theme-primary text-theme-primary border border-transparent">
       <Component {...pageProps} />
-      
+
       {/* Renderizar el MiniPomodoro cuando hay una tarea activa */}
       {isPomodorActive && activeTask && (
-        <MiniPomodoro 
+        <MiniPomodoro
           taskId={activeTask.id}
           taskTitle={activeTask.title}
           onClose={stopPomodoro}

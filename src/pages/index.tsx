@@ -11,13 +11,31 @@ import type { ModuleKey } from '../constants/plans';
 import DashboardSection from '../components/dashboard/DashboardSection';
 import ModuleCard from '../components/dashboard/ModuleCard';
 import Head from 'next/head';
+import PublicLanding from '../components/public/PublicLanding';
 
 export default function Dashboard() {
-  const { isAdmin, canAccessModule } = useAppContext();
+  const { authData, isAdmin, canAccessModule } = useAppContext();
 
   const getModuleStatus = (key: ModuleKey) => {
     return canAccessModule(key);
   };
+
+  // Si authData es null (está cargando o verificando), mostramos un fondo oscuro mientras se decide
+  if (!authData) {
+    return <div className="min-h-screen bg-[#050608]"></div>;
+  }
+
+  // Mostrar la Landing Page si no hay sesión iniciada
+  if (!authData.isAuthenticated) {
+    return (
+      <>
+        <Head>
+          <title>DROPLAB - IA para E-commerce</title>
+        </Head>
+        <PublicLanding />
+      </>
+    );
+  }
 
   return (
     <DashboardLayout>
