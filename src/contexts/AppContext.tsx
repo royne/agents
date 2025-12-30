@@ -35,6 +35,7 @@ type AppContextType = {
   canAccessModule: (module: ModuleKey) => boolean;
   hasFeature: (feature: FeatureKey) => boolean;
   updateTheme: (config: Partial<ThemeConfig>) => void;
+  register: (email: string, password: string, phone: string, name: string) => Promise<{ success: boolean; error?: string }>;
 };
 
 const AppContext = createContext<AppContextType>({} as AppContextType);
@@ -219,6 +220,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return false;
   };
 
+  const register = async (email: string, password: string, phone: string, name: string): Promise<{ success: boolean; error?: string }> => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name,
+          phone: phone,
+        }
+      }
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    if (data.user) {
+      // El perfil y los créditos se crean automáticamente vía Trigger SQL
+      // gracias a los metadatos pasados en el signUp.
+      return { success: true };
+    }
+
+    return { success: false, error: 'Error desconocido durante el registro' };
+  };
+
   const logout = async () => {
     try {
       // Limpiar localmente primero para feedback instantáneo
@@ -335,7 +361,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       hasPlan,
       canAccessModule,
       hasFeature,
-      updateTheme
+      updateTheme,
+      register
     }}>
       {children}
     </AppContext.Provider>

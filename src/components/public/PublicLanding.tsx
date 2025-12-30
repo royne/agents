@@ -27,7 +27,7 @@ const PublicLanding: React.FC = () => {
             <Link href="/auth/login" className="text-sm font-bold text-gray-400 hover:text-white transition-colors">
               Entrar
             </Link>
-            <Link href="/auth/login" className="btn-premium py-2 px-6 text-xs font-black uppercase tracking-wider bg-primary-color text-white rounded-xl shadow-lg shadow-primary-color/20 hover:scale-105 transition-all">
+            <Link href="/auth/register" className="btn-premium py-2 px-6 text-xs font-black uppercase tracking-wider bg-primary-color text-white rounded-xl shadow-lg shadow-primary-color/20 hover:scale-105 transition-all">
               Pruébalo Gratis
             </Link>
           </div>
@@ -51,7 +51,7 @@ const PublicLanding: React.FC = () => {
           </p>
 
           <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-            <Link href="/auth/login" className="w-full md:w-auto px-8 py-4 bg-primary-color text-white rounded-2xl font-black text-sm tracking-wide shadow-2xl shadow-primary-color/30 hover:scale-105 transition-all flex items-center justify-center gap-3 border border-white/10">
+            <Link href="/auth/register" className="w-full md:w-auto px-8 py-4 bg-primary-color text-white rounded-2xl font-black text-sm tracking-wide shadow-2xl shadow-primary-color/30 hover:scale-105 transition-all flex items-center justify-center gap-3 border border-white/10">
               INICIAR AHORA <FaArrowRight />
             </Link>
             <Link href="#features" className="w-full md:w-auto px-8 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black text-sm tracking-wide transition-all border border-white/5 flex items-center justify-center gap-3 backdrop-blur-sm">
@@ -211,7 +211,7 @@ const PublicLanding: React.FC = () => {
                 </li>
               </ul>
 
-              <Link href="/auth/login" className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-black text-[9px] tracking-widest uppercase transition-all text-center border border-white/5">
+              <Link href="/auth/register" className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-black text-[9px] tracking-widest uppercase transition-all text-center border border-white/5">
                 Empezar Gratis
               </Link>
             </div>
@@ -238,7 +238,7 @@ const PublicLanding: React.FC = () => {
                 </li>
               </ul>
 
-              <Link href="/auth/login" className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-black text-[9px] tracking-widest uppercase transition-all text-center border border-white/5">
+              <Link href="/auth/register" className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-black text-[9px] tracking-widest uppercase transition-all text-center border border-white/5">
                 Seleccionar Plan
               </Link>
             </div>
@@ -272,7 +272,7 @@ const PublicLanding: React.FC = () => {
                 </li>
               </ul>
 
-              <Link href="/auth/login" className="w-full py-3 bg-primary-color text-white rounded-xl font-black text-[9px] tracking-widest uppercase shadow-xl shadow-primary-color/20 hover:scale-105 transition-all text-center">
+              <Link href="/auth/register" className="w-full py-3 bg-primary-color text-white rounded-xl font-black text-[9px] tracking-widest uppercase shadow-xl shadow-primary-color/20 hover:scale-105 transition-all text-center">
                 Elegir PRO
               </Link>
             </div>
@@ -299,7 +299,7 @@ const PublicLanding: React.FC = () => {
                 </li>
               </ul>
 
-              <Link href="/auth/login" className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-black text-[9px] tracking-widest uppercase transition-all text-center border border-white/5">
+              <Link href="/auth/register" className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-black text-[9px] tracking-widest uppercase transition-all text-center border border-white/5">
                 Seleccionar Plan
               </Link>
             </div>
@@ -313,7 +313,7 @@ const PublicLanding: React.FC = () => {
           <h2 className="text-4xl md:text-5xl font-black mb-8 tracking-tighter italic">¿Listo para <span className="text-primary-color not-italic">Escalar?</span></h2>
           <p className="text-gray-400 font-medium mb-12">Unete a cientos de emprendedores que ya están usando DROPAPP para dominar sus mercados.</p>
 
-          <Link href="/auth/login" className="inline-flex px-10 py-5 bg-gradient-to-r from-primary-color to-blue-600 text-white rounded-2xl font-black text-lg tracking-wide shadow-2xl shadow-primary-color/40 hover:scale-110 transition-all border border-white/20 items-center gap-3">
+          <Link href="/auth/register" className="inline-flex px-10 py-5 bg-gradient-to-r from-primary-color to-blue-600 text-white rounded-2xl font-black text-lg tracking-wide shadow-2xl shadow-primary-color/40 hover:scale-110 transition-all border border-white/20 items-center gap-3">
             EMPEZAR GRATIS <FaArrowRight />
           </Link>
 
