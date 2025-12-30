@@ -500,11 +500,29 @@ body {
   color: var(--text-primary);
 }
 
-.custom-theme .prose-dark h1,
-.custom-theme .prose-dark h2,
-.custom-theme .prose-dark h3,
-.custom-theme .prose-dark h4,
-.custom-theme .prose-dark h5,
-.custom-theme .prose-dark h6 {
-  color: var(--text-primary);
+
+/* Animaciones para el Loader Premium */
+@keyframes logo-pulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 15px rgba(18, 216, 250, 0.4));
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 30px rgba(18, 216, 250, 0.7));
+  }
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+
+.animate-logo-pulse {
+  animation: logo-pulse 3s infinite ease-in-out;
+}
+
+.loader-glow {
+  background: radial-gradient(circle, rgba(18, 216, 250, 0.2) 0%, transparent 70%);
 }

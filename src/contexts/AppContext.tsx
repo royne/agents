@@ -59,76 +59,101 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔍 [DEBUG] checkSession: Iniciando...');
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        console.log('🔍 [DEBUG] checkSession: getSession result', { sessionExists: !!session, error: sessionError });
 
-      if (session) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('company_id, role, name, plan, modules_override')
-          .eq('user_id', session.user.id)
-          .single();
+        if (sessionError) throw sessionError;
 
-        let activeModules: ModuleKey[] = [];
+        if (session) {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('company_id, role, name, plan, modules_override')
+            .eq('user_id', session.user.id)
+            .single();
 
-        const { data: creditsData } = await supabase
-          .from('user_credits')
-          .select('plan_key')
-          .eq('user_id', session.user.id)
-          .single();
+          if (profileError && profileError.code !== 'PGRST116') {
+            console.error('Error fetching profile:', profileError);
+          }
 
-        const planKey = (creditsData?.plan_key || 'free') as Plan;
+          let activeModules: ModuleKey[] = [];
 
-        const { data: planData } = await supabase
-          .from('subscription_plans')
-          .select('features')
-          .eq('key', planKey)
-          .single();
+          const { data: creditsData } = await supabase
+            .from('user_credits')
+            .select('plan_key')
+            .eq('user_id', session.user.id)
+            .single();
 
-        if (planData?.features?.active_modules) {
-          activeModules = planData.features.active_modules;
+          const planKey = (creditsData?.plan_key || 'free') as Plan;
+
+          const { data: planData } = await supabase
+            .from('subscription_plans')
+            .select('features')
+            .eq('key', planKey)
+            .single();
+
+          if (planData?.features?.active_modules) {
+            activeModules = planData.features.active_modules;
+          }
+
+          const newAuthData = {
+            isAuthenticated: true,
+            userId: session.user.id,
+            company_id: profile?.company_id,
+            role: profile?.role,
+            name: profile?.name,
+            plan: planKey,
+            modulesOverride: (profile as any)?.modules_override || undefined,
+            activeModules: activeModules,
+          };
+
+          localStorage.setItem('auth_data', JSON.stringify(newAuthData));
+          setAuthData(newAuthData);
+        } else {
+          localStorage.removeItem('auth_data');
+          setAuthData({ isAuthenticated: false });
         }
-
-        const authData = {
-          isAuthenticated: true,
-          userId: session.user.id,
-          company_id: profile?.company_id,
-          role: profile?.role,
-          name: profile?.name,
-          plan: planKey,
-          modulesOverride: (profile as any)?.modules_override || undefined,
-          activeModules: activeModules,
-        };
-
-        localStorage.setItem('auth_data', JSON.stringify(authData));
-        setAuthData(authData);
-      } else {
+      } catch (error) {
+        console.error('Check session error:', error);
+        // En caso de error crítico, al menos desbloqueamos la UI
         setAuthData({ isAuthenticated: false });
       }
     };
 
     // Listener para cambios de autenticación - FUENTE DE VERDAD ÚNICA
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔔 Auth Event:', event);
+      console.log('🔔 [DEBUG] onAuthStateChange:', event, !!session);
 
-      if (event === 'SIGNED_OUT') {
+      if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
+        console.log('🔍 [DEBUG] Auth Event: Limpiando sesión');
         localStorage.removeItem('auth_data');
         setAuthData({ isAuthenticated: false });
+
         // Solo redirigir si no estamos ya en una ruta pública permitida
-        if (!router.pathname.startsWith('/auth') && router.pathname !== '/') {
+        if (event === 'SIGNED_OUT' && !router.pathname.startsWith('/auth') && router.pathname !== '/') {
           router.push('/');
         }
-      } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        if (session) {
-          await checkSession();
-        }
+      } else if (session) {
+        console.log('🔍 [DEBUG] Auth Event: Sesión activa, verificando perfil...');
+        await checkSession();
+      } else {
+        console.log('🔍 [DEBUG] Auth Event: Ninguno de los anteriores, desbloqueando con defaults');
+        setAuthData(prev => prev || { isAuthenticated: false });
       }
     });
 
-    // Verificación inicial
-    checkSession();
+    // Verificación inicial forzada como respaldo
+    const timeoutId = setTimeout(() => {
+      if (authData === null) {
+        console.warn('⚠️ Backup session check triggered');
+        checkSession();
+      }
+    }, 2000);
 
     return () => {
       subscription.unsubscribe();
+      clearTimeout(timeoutId);
     };
   }, []);
 

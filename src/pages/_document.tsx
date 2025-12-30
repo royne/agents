@@ -14,7 +14,7 @@ export default function Document() {
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <link rel="manifest" href="/manifest.json" />
       </Head>
-      <body>
+      <body className="bg-[#050608]">
         <Main />
         <NextScript />
       </body>

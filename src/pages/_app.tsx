@@ -7,6 +7,7 @@ import MiniPomodoro from '../components/planning/pomodoro/MiniPomodoro';
 import { useRouter, type NextRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import BrandLoader from '../components/common/BrandLoader';
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -31,25 +32,40 @@ function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Si authData es null, todavía estamos verificando la sesión inicial
-    if (authData === null) return;
+    console.log('🔍 [DEBUG] AuthWrapper: Mount/Update', { loading, authDataNull: authData === null });
+
+    // Safety fallback: Desbloqueo absoluto tras 6 segundos pase lo que pase
+    const globalTimeout = setTimeout(() => {
+      if (loading) {
+        console.error('🚨 [DEBUG] AuthWrapper: GLOBAL TIMEOUT REACHED');
+        setLoading(false);
+      }
+    }, 6000);
+
+    if (authData === null) {
+      console.log('🔍 [DEBUG] AuthWrapper: authData es null, esperando...');
+      return () => clearTimeout(globalTimeout);
+    };
+
+    console.log('🔍 [DEBUG] AuthWrapper: Procesando authData', authData);
 
     const isAuthPath = router.pathname.startsWith('/auth');
     const isPublicPath = router.pathname === '/';
 
     if (authData.isAuthenticated) {
-      // Si está autenticado e intenta ir a login/registro, al dashboard
       if (isAuthPath) {
+        console.log('🔍 [DEBUG] AuthWrapper: Redirect to /');
         router.push('/');
       }
     } else {
-      // Si NO está autenticado y NO está en una ruta pública, al login
       if (!isAuthPath && !isPublicPath) {
+        console.log('🔍 [DEBUG] AuthWrapper: Redirect to login');
         router.push('/auth/login');
       }
     }
 
     setLoading(false);
+    return () => clearTimeout(globalTimeout);
   }, [router.pathname, authData]);
 
   // Efecto para inicializar el tema
@@ -62,7 +78,9 @@ function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
     }
   }, [themeConfig]);
 
-  if (loading) return <div className="min-h-screen bg-theme-primary"></div>;
+  if (loading) {
+    return <BrandLoader />;
+  }
 
   return (
     <div className="min-h-screen bg-theme-primary text-theme-primary border border-transparent">
