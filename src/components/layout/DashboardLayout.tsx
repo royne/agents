@@ -27,7 +27,7 @@ const mobileMenuItems: MobileMenuItem[] = [
   {
     name: 'Dashboard', icon: () => (
       <div className="w-5 h-5 rounded-full overflow-hidden relative">
-        <Image src="/droplab.png" alt="DROPLAB" fill className="object-cover" />
+        <Image src="/droplab.png" alt="DROPAPP" fill className="object-cover" />
       </div>
     ), path: '/'
   },
@@ -122,11 +122,11 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
               <Link href={'/'} className={`flex items-center ${isSidebarOpen ? 'justify-start w-full gap-3' : 'justify-center'} group`}>
                 <div className={`flex items-center justify-center rounded-xl bg-white/5 border border-white/10 group-hover:scale-110 transition-all duration-500 shadow-inner translate-z-0 ${isSidebarOpen ? 'w-10 h-10 p-2' : 'w-9 h-9 p-1.5'}`}>
                   <div className="relative w-full h-full">
-                    <Image src="/droplab.png" alt="DROPLAB" fill className="object-cover" />
+                    <Image src="/droplab.png" alt="DROPAPP" fill className="object-cover" />
                   </div>
                 </div>
                 {isSidebarOpen && (
-                  <span className="text-white font-black text-xl tracking-tighter group-hover:text-primary-color transition-colors">DROPLAB</span>
+                  <span className="text-white font-black text-xl tracking-tighter group-hover:text-primary-color transition-colors">DROPAPP</span>
                 )}
               </Link>
             </div>

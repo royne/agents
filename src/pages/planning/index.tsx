@@ -9,7 +9,7 @@ export default function Planning() {
     <ProtectedRoute moduleKey={'planning'}>
       <DashboardLayout>
         <Head>
-          <title>DROPLAB - Planeación</title>
+          <title>DROPAPP - Planeación</title>
         </Head>
         <div className="max-w-6xl mx-auto">
           <h1 className="text-2xl mb-8 border-l-4 border-primary-color pl-3">Planeación</h1>

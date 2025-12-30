@@ -66,7 +66,7 @@ export default function AdminDashboard() {
     <ProtectedRoute adminOnly={true}>
       <DashboardLayout>
         <Head>
-          <title>DROPLAB - Panel de Administración</title>
+          <title>DROPAPP - Panel de Administración</title>
         </Head>
         <div>
           <PageHeader

@@ -1,6 +1,6 @@
 {
-  "name": "DROPLAB",
-  "short_name": "DROPLAB",
+  "name": "DROPAPP",
+  "short_name": "DROPAPP",
   "description": "Plataforma de gestión Ecommerce",
   "start_url": "/",
   "display": "standalone",

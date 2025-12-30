@@ -55,7 +55,7 @@ export default function SubscriptionsManagement() {
     <ProtectedRoute adminOnly={true}>
       <DashboardLayout>
         <Head>
-          <title>DROPLAB - Créditos y Suscripciones</title>
+          <title>DROPAPP - Créditos y Suscripciones</title>
         </Head>
         <div className="max-w-6xl mx-auto">
           <PageHeader

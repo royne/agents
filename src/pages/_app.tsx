@@ -31,23 +31,26 @@ function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    // Si authData es null, todavía estamos verificando la sesión inicial
+    if (authData === null) return;
 
-      if (session && !authData) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
+    const isAuthPath = router.pathname.startsWith('/auth');
+    const isPublicPath = router.pathname === '/';
 
-      if (session && router.pathname.startsWith('/auth')) {
+    if (authData.isAuthenticated) {
+      // Si está autenticado e intenta ir a login/registro, al dashboard
+      if (isAuthPath) {
         router.push('/');
-      } else if (!session && !router.pathname.startsWith('/auth') && router.pathname !== '/') {
+      }
+    } else {
+      // Si NO está autenticado y NO está en una ruta pública, al login
+      if (!isAuthPath && !isPublicPath) {
         router.push('/auth/login');
       }
-      setLoading(false);
-    };
+    }
 
-    checkAuth();
-  }, [router, authData]);
+    setLoading(false);
+  }, [router.pathname, authData]);
 
   // Efecto para inicializar el tema
   useEffect(() => {

@@ -8,7 +8,7 @@ export default function TeamPage() {
   return (
     <DashboardLayout>
       <Head>
-        <title>DROPLAB - Asignaciones de Equipo</title>
+        <title>DROPAPP - Asignaciones de Equipo</title>
       </Head>
       <div className="max-w-6xl mx-auto">
         <PageHeader

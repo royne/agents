@@ -21,7 +21,7 @@ export default function CalendarPage() {
   return (
     <DashboardLayout>
       <Head>
-        <title>DROPLAB - Calendario</title>
+        <title>DROPAPP - Calendario</title>
       </Head>
       <div className="max-w-6xl mx-auto">
         <PageHeader

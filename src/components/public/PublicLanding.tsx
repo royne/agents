@@ -18,9 +18,9 @@ const PublicLanding: React.FC = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center shadow-lg">
-              <Image src="/droplab.png" alt="DROPLAB" width={24} height={24} className="object-cover" />
+              <Image src="/droplab.png" alt="DROPAPP" width={24} height={24} className="object-cover" />
             </div>
-            <span className="text-xl font-black tracking-tighter">DROPLAB</span>
+            <span className="text-xl font-black tracking-tighter">DROPAPP</span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -151,7 +151,7 @@ const PublicLanding: React.FC = () => {
                   <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50"></div>
                   <div className="w-2.5 h-2.5 rounded-full bg-green-500/50"></div>
                 </div>
-                <span className="text-[10px] text-gray-500 font-mono">DROPLAB_DASHBOARD</span>
+                <span className="text-[10px] text-gray-500 font-mono">DROPAPP_DASHBOARD</span>
               </div>
               <div className="space-y-3">
                 <div className="h-20 w-full bg-white/5 rounded-xl flex items-center px-4 gap-4">
@@ -180,11 +180,138 @@ const PublicLanding: React.FC = () => {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="py-24 px-6 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4 italic">Elige tu <span className="text-primary-color not-italic">Plan de Vuelo</span></h2>
+            <p className="text-gray-500 font-medium italic">Escala desde cero hasta la dominación total del mercado.</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+            {/* Free Plan */}
+            <div className="premium-card p-6 group hover:border-white/20 transition-all flex flex-col h-fit">
+              <div className="mb-6">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2 block">Personal / Tester</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black text-white">$0</span>
+                  <span className="text-gray-500 font-bold text-xs">/mes</span>
+                </div>
+              </div>
+
+              <ul className="space-y-2 mb-8 flex-1">
+                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
+                  <FaCheckCircle className="text-emerald-500 shrink-0" /> Agentes de Chat
+                </li>
+                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
+                  <FaCheckCircle className="text-emerald-500 shrink-0" /> Calculadora
+                </li>
+                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
+                  <FaCheckCircle className="text-emerald-500 shrink-0" /> Configuración Básica
+                </li>
+              </ul>
+
+              <Link href="/auth/login" className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-black text-[9px] tracking-widest uppercase transition-all text-center border border-white/5">
+                Empezar Gratis
+              </Link>
+            </div>
+
+            {/* Starter Plan */}
+            <div className="premium-card p-6 group hover:border-white/20 transition-all flex flex-col h-fit">
+              <div className="mb-6">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2 block">Pyme / Starter</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black text-white">$19</span>
+                  <span className="text-gray-500 font-bold text-xs">/mes</span>
+                </div>
+              </div>
+
+              <ul className="space-y-2 mb-8 flex-1">
+                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
+                  <FaCheckCircle className="text-emerald-500 shrink-0" /> Todo lo de FREE
+                </li>
+                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
+                  <FaCheckCircle className="text-emerald-500 shrink-0" /> Módulo de Logística
+                </li>
+                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
+                  <FaCheckCircle className="text-emerald-500 shrink-0" /> Análisis de Datos
+                </li>
+              </ul>
+
+              <Link href="/auth/login" className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-black text-[9px] tracking-widest uppercase transition-all text-center border border-white/5">
+                Seleccionar Plan
+              </Link>
+            </div>
+
+            {/* Pro Plan */}
+            <div className="premium-card p-6 border-primary-color/30 bg-primary-color/5 group hover:border-primary-color/50 transition-all flex flex-col h-fit relative scale-105 shadow-2xl shadow-primary-color/10">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary-color text-white text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg">
+                MÁS POPULAR
+              </div>
+
+              <div className="mb-6">
+                <span className="text-[10px] font-black uppercase tracking-widest text-primary-color mb-2 block">Escalación / PRO</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-white">$39</span>
+                  <span className="text-gray-500 font-bold text-xs">/mes</span>
+                </div>
+              </div>
+
+              <ul className="space-y-2 mb-8 flex-1">
+                <li className="flex items-center gap-2 text-[11px] font-bold text-gray-200">
+                  <FaCheckCircle className="text-primary-color shrink-0" /> Todo lo de Starter
+                </li>
+                <li className="flex items-center gap-2 text-[11px] font-bold text-gray-200">
+                  <FaCheckCircle className="text-primary-color shrink-0" /> Landings PRO Ilimitadas
+                </li>
+                <li className="flex items-center gap-2 text-[11px] font-bold text-gray-200">
+                  <FaCheckCircle className="text-primary-color shrink-0" /> Agente PRO (Imágenes 2K)
+                </li>
+                <li className="flex items-center gap-2 text-[11px] font-bold text-gray-200">
+                  <FaCheckCircle className="text-primary-color shrink-0" /> Master Chat con RAG
+                </li>
+              </ul>
+
+              <Link href="/auth/login" className="w-full py-3 bg-primary-color text-white rounded-xl font-black text-[9px] tracking-widest uppercase shadow-xl shadow-primary-color/20 hover:scale-105 transition-all text-center">
+                Elegir PRO
+              </Link>
+            </div>
+
+            {/* Business Plan */}
+            <div className="premium-card p-6 group hover:border-purple-500/20 transition-all flex flex-col h-fit">
+              <div className="mb-6">
+                <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 mb-2 block">Dominación / Business</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black text-white">$79</span>
+                  <span className="text-gray-500 font-bold text-xs">/mes</span>
+                </div>
+              </div>
+
+              <ul className="space-y-2 mb-8 flex-1">
+                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
+                  <FaCheckCircle className="text-purple-500 shrink-0" /> Todo lo de PRO
+                </li>
+                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
+                  <FaCheckCircle className="text-purple-500 shrink-0" /> Video PRO Generativo
+                </li>
+                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
+                  <FaCheckCircle className="text-purple-500 shrink-0" /> Soporte Prioritario
+                </li>
+              </ul>
+
+              <Link href="/auth/login" className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-black text-[9px] tracking-widest uppercase transition-all text-center border border-white/5">
+                Seleccionar Plan
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer / CTA Section */}
       <footer className="py-32 px-6 relative overflow-hidden text-center">
         <div className="max-w-3xl mx-auto relative z-10">
           <h2 className="text-4xl md:text-5xl font-black mb-8 tracking-tighter italic">¿Listo para <span className="text-primary-color not-italic">Escalar?</span></h2>
-          <p className="text-gray-400 font-medium mb-12">Unete a cientos de emprendedores que ya están usando DROPLAB para dominar sus mercados.</p>
+          <p className="text-gray-400 font-medium mb-12">Unete a cientos de emprendedores que ya están usando DROPAPP para dominar sus mercados.</p>
 
           <Link href="/auth/login" className="inline-flex px-10 py-5 bg-gradient-to-r from-primary-color to-blue-600 text-white rounded-2xl font-black text-lg tracking-wide shadow-2xl shadow-primary-color/40 hover:scale-110 transition-all border border-white/20 items-center gap-3">
             EMPEZAR GRATIS <FaArrowRight />
@@ -193,9 +320,9 @@ const PublicLanding: React.FC = () => {
           <div className="mt-24 pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 p-1.5 flex items-center justify-center">
-                <Image src="/droplab.png" alt="DROPLAB" width={16} height={16} className="object-cover" />
+                <Image src="/droplab.png" alt="DROPAPP" width={16} height={16} className="object-cover" />
               </div>
-              <span className="text-sm font-black tracking-tighter">DROPLAB &copy; 2025</span>
+              <span className="text-sm font-black tracking-tighter">DROPAPP &copy; 2025</span>
             </div>
             <div className="flex gap-8">
               <Link href="#" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">Términos</Link>

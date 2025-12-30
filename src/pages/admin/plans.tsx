@@ -81,7 +81,7 @@ export default function PlansManagement() {
     <ProtectedRoute superAdminOnly={true}>
       <DashboardLayout>
         <Head>
-          <title>DROPLAB - Configuración de Planes</title>
+          <title>DROPAPP - Configuración de Planes</title>
         </Head>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

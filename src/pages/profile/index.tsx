@@ -45,7 +45,7 @@ export default function ProfilePage() {
     <ProtectedRoute>
       <DashboardLayout>
         <Head>
-          <title>DROPLAB - Mi Perfil</title>
+          <title>DROPAPP - Mi Perfil</title>
         </Head>
         <div className="max-w-6xl mx-auto">
           <PageHeader

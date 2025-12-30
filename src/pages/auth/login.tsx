@@ -33,7 +33,7 @@ export default function LoginPage() {
 
       <div className="soft-card p-10 md:p-12 max-w-md w-full relative z-10 border-white/5 shadow-2xl backdrop-blur-xl">
         <div className="flex flex-col items-center mb-10">
-          {/* Logo DROPLAB Premium */}
+          {/* Logo DROPAPP Premium */}
           <div className="relative group mb-8">
             <div className="absolute -inset-2 bg-primary-color/20 rounded-[2rem] blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-700"></div>
             <div className="relative p-1 rounded-[1.5rem] bg-gradient-to-br from-white/20 to-transparent border border-white/10 shadow-xl backdrop-blur-md">
@@ -41,7 +41,7 @@ export default function LoginPage() {
                 <div className="relative w-20 h-20">
                   <Image
                     src="/droplab.png"
-                    alt="DROPLAB"
+                    alt="DROPAPP"
                     fill
                     className="object-cover"
                     priority

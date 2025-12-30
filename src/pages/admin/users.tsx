@@ -129,7 +129,7 @@ export default function UsersManagement() {
     <ProtectedRoute adminOnly={true}>
       <DashboardLayout>
         <Head>
-          <title>DROPLAB - Gestión de Usuarios</title>
+          <title>DROPAPP - Gestión de Usuarios</title>
         </Head>
         <div>
           <PageHeader

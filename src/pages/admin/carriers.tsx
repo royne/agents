@@ -10,7 +10,7 @@ export default function CarriersAdminPage() {
     <ProtectedRoute adminOnly={true}>
       <DashboardLayout>
         <Head>
-          <title>DROPLAB - Gestión de Transportadoras</title>
+          <title>DROPAPP - Gestión de Transportadoras</title>
         </Head>
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center mb-6">

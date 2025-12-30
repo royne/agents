@@ -30,7 +30,7 @@ export default function Dashboard() {
     return (
       <>
         <Head>
-          <title>DROPLAB - IA para E-commerce</title>
+          <title>DROPAPP - IA para E-commerce</title>
         </Head>
         <PublicLanding />
       </>
@@ -40,7 +40,7 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <Head>
-        <title>DROPLAB - Dashboard</title>
+        <title>DROPAPP - Dashboard</title>
       </Head>
       <div className="w-full px-8 py-6">
         {/* Sección 1: ¿Qué quieres hacer hoy? */}

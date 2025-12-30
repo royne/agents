@@ -105,7 +105,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     };
 
+    // Listener para cambios de autenticación - FUENTE DE VERDAD ÚNICA
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔔 Auth Event:', event);
+
+      if (event === 'SIGNED_OUT') {
+        localStorage.removeItem('auth_data');
+        setAuthData({ isAuthenticated: false });
+        // Solo redirigir si no estamos ya en una ruta pública permitida
+        if (!router.pathname.startsWith('/auth') && router.pathname !== '/') {
+          router.push('/');
+        }
+      } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        if (session) {
+          await checkSession();
+        }
+      }
+    });
+
+    // Verificación inicial
     checkSession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -197,10 +220,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    localStorage.removeItem('auth_data');
-    setAuthData({ isAuthenticated: false });
-    router.push('/');
+    try {
+      // Limpiar localmente primero para feedback instantáneo
+      localStorage.removeItem('auth_data');
+      setAuthData({ isAuthenticated: false });
+
+      // SignOut global en Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) console.error('Error during signOut:', error);
+
+      // onAuthStateChange se encargará de la redirección final
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
   };
 
   const isAdmin = (): boolean => {

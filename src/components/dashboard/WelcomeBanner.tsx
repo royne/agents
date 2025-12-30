@@ -36,7 +36,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ userName }) => {
             <span className="bg-gradient-to-r from-primary-color via-blue-400 to-white bg-clip-text animate-gradient-x">{displayName}</span> 👋
           </h1>
           <p className="text-gray-400 text-base md:text-lg font-medium max-w-xl mx-auto md:mx-0">
-            Bienvenido a <span className="text-white font-bold tracking-widest uppercase text-sm">DROPLAB</span>. <br className="hidden md:block" />
+            Bienvenido a <span className="text-white font-bold tracking-widest uppercase text-sm">DROPAPP</span>. <br className="hidden md:block" />
             <span className="opacity-70">Potencia tu operativa con inteligencia estratégica.</span>
           </p>
           <div className="mt-8 flex flex-wrap justify-center md:justify-start gap-5">
@@ -68,7 +68,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ userName }) => {
               <div className="relative w-32 h-32 md:w-40 md:h-40 group-hover:scale-105 transition-transform duration-700">
                 <Image
                   src="/droplab.png"
-                  alt="DROPLAB"
+                  alt="DROPAPP"
                   fill
                   className="object-cover"
                   priority
