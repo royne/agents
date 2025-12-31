@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FaRocket, FaMagic, FaFilm, FaComments, FaArrowRight, FaCheckCircle, FaChartLine, FaRobot } from 'react-icons/fa';
+import PlanPricing from '../profile/PlanPricing';
 
 const PublicLanding: React.FC = () => {
   return (
@@ -76,10 +77,10 @@ const PublicLanding: React.FC = () => {
             <p className="text-gray-500 font-medium italic">Diseñado para vender más con menos esfuerzo.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-8">
             {/* Landing PRO */}
-            <div className="premium-card p-8 group hover:border-emerald-500/30 transition-all">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <div className="premium-card p-8 group hover:border-emerald-500/30 transition-all duration-500 bg-emerald-500/[0.02] hover:bg-emerald-500/[0.05]">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-transform shadow-[0_0_20px_rgba(16,185,129,0.1)]">
                 <FaRocket className="text-2xl text-emerald-400" />
               </div>
               <h3 className="text-xl font-black mb-3">Landing PRO</h3>
@@ -92,8 +93,8 @@ const PublicLanding: React.FC = () => {
             </div>
 
             {/* Agente PRO */}
-            <div className="premium-card p-8 group hover:border-blue-500/30 transition-all">
-              <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <div className="premium-card p-8 group hover:border-blue-500/30 transition-all duration-500 bg-blue-500/[0.02] hover:bg-blue-500/[0.05]">
+              <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:-rotate-3 transition-transform shadow-[0_0_20px_rgba(59,130,246,0.1)]">
                 <FaMagic className="text-2xl text-blue-400" />
               </div>
               <h3 className="text-xl font-black mb-3">Agente PRO</h3>
@@ -106,8 +107,8 @@ const PublicLanding: React.FC = () => {
             </div>
 
             {/* Video PRO */}
-            <div className="premium-card p-8 group hover:border-purple-500/30 transition-all">
-              <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <div className="premium-card p-8 group hover:border-purple-500/30 transition-all duration-500 bg-purple-500/[0.02] hover:bg-purple-500/[0.05]">
+              <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-transform shadow-[0_0_20px_rgba(168,85,247,0.1)]">
                 <FaFilm className="text-2xl text-purple-400" />
               </div>
               <h3 className="text-xl font-black mb-3">Video PRO</h3>
@@ -181,129 +182,14 @@ const PublicLanding: React.FC = () => {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-24 px-6 relative overflow-hidden">
+      <section id="pricing" className="py-24 px-6 relative overflow-visible">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4 italic">Elige tu <span className="text-primary-color not-italic">Plan de Vuelo</span></h2>
             <p className="text-gray-500 font-medium italic">Escala desde cero hasta la dominación total del mercado.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
-            {/* Free Plan */}
-            <div className="premium-card p-6 group hover:border-white/20 transition-all flex flex-col h-fit">
-              <div className="mb-6">
-                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2 block">Personal / Tester</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-white">$0</span>
-                  <span className="text-gray-500 font-bold text-xs">/mes</span>
-                </div>
-              </div>
-
-              <ul className="space-y-2 mb-8 flex-1">
-                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
-                  <FaCheckCircle className="text-emerald-500 shrink-0" /> Agentes de Chat
-                </li>
-                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
-                  <FaCheckCircle className="text-emerald-500 shrink-0" /> Calculadora
-                </li>
-                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
-                  <FaCheckCircle className="text-emerald-500 shrink-0" /> Configuración Básica
-                </li>
-              </ul>
-
-              <Link href="/auth/register" className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-black text-[9px] tracking-widest uppercase transition-all text-center border border-white/5">
-                Empezar Gratis
-              </Link>
-            </div>
-
-            {/* Starter Plan */}
-            <div className="premium-card p-6 group hover:border-white/20 transition-all flex flex-col h-fit">
-              <div className="mb-6">
-                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2 block">Pyme / Starter</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-white">$19</span>
-                  <span className="text-gray-500 font-bold text-xs">/mes</span>
-                </div>
-              </div>
-
-              <ul className="space-y-2 mb-8 flex-1">
-                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
-                  <FaCheckCircle className="text-emerald-500 shrink-0" /> Todo lo de FREE
-                </li>
-                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
-                  <FaCheckCircle className="text-emerald-500 shrink-0" /> Módulo de Logística
-                </li>
-                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
-                  <FaCheckCircle className="text-emerald-500 shrink-0" /> Análisis de Datos
-                </li>
-              </ul>
-
-              <Link href="/auth/register" className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-black text-[9px] tracking-widest uppercase transition-all text-center border border-white/5">
-                Seleccionar Plan
-              </Link>
-            </div>
-
-            {/* Pro Plan */}
-            <div className="premium-card p-6 border-primary-color/30 bg-primary-color/5 group hover:border-primary-color/50 transition-all flex flex-col h-fit relative scale-105 shadow-2xl shadow-primary-color/10">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary-color text-white text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg">
-                MÁS POPULAR
-              </div>
-
-              <div className="mb-6">
-                <span className="text-[10px] font-black uppercase tracking-widest text-primary-color mb-2 block">Escalación / PRO</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-white">$39</span>
-                  <span className="text-gray-500 font-bold text-xs">/mes</span>
-                </div>
-              </div>
-
-              <ul className="space-y-2 mb-8 flex-1">
-                <li className="flex items-center gap-2 text-[11px] font-bold text-gray-200">
-                  <FaCheckCircle className="text-primary-color shrink-0" /> Todo lo de Starter
-                </li>
-                <li className="flex items-center gap-2 text-[11px] font-bold text-gray-200">
-                  <FaCheckCircle className="text-primary-color shrink-0" /> Landings PRO Ilimitadas
-                </li>
-                <li className="flex items-center gap-2 text-[11px] font-bold text-gray-200">
-                  <FaCheckCircle className="text-primary-color shrink-0" /> Agente PRO (Imágenes 2K)
-                </li>
-                <li className="flex items-center gap-2 text-[11px] font-bold text-gray-200">
-                  <FaCheckCircle className="text-primary-color shrink-0" /> Master Chat con RAG
-                </li>
-              </ul>
-
-              <Link href="/auth/register" className="w-full py-3 bg-primary-color text-white rounded-xl font-black text-[9px] tracking-widest uppercase shadow-xl shadow-primary-color/20 hover:scale-105 transition-all text-center">
-                Elegir PRO
-              </Link>
-            </div>
-
-            {/* Business Plan */}
-            <div className="premium-card p-6 group hover:border-purple-500/20 transition-all flex flex-col h-fit">
-              <div className="mb-6">
-                <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 mb-2 block">Dominación / Business</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-white">$79</span>
-                  <span className="text-gray-500 font-bold text-xs">/mes</span>
-                </div>
-              </div>
-
-              <ul className="space-y-2 mb-8 flex-1">
-                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
-                  <FaCheckCircle className="text-purple-500 shrink-0" /> Todo lo de PRO
-                </li>
-                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
-                  <FaCheckCircle className="text-purple-500 shrink-0" /> Video PRO Generativo
-                </li>
-                <li className="flex items-center gap-2 text-[11px] font-medium text-gray-400">
-                  <FaCheckCircle className="text-purple-500 shrink-0" /> Soporte Prioritario
-                </li>
-              </ul>
-
-              <Link href="/auth/register" className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-black text-[9px] tracking-widest uppercase transition-all text-center border border-white/5">
-                Seleccionar Plan
-              </Link>
-            </div>
-          </div>
+          <PlanPricing isPublic={true} />
         </div>
       </section>
 

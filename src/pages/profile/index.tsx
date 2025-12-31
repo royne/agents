@@ -41,6 +41,7 @@ export default function ProfilePage() {
 
   const planKey = credits?.plan_key || authData?.plan || 'free';
   const status: 'active' | 'inactive' | 'trial' = planKey === 'tester' ? 'trial' : 'active';
+
   return (
     <ProtectedRoute>
       <DashboardLayout>
@@ -84,6 +85,16 @@ export default function ProfilePage() {
           </div>
         </div>
       </DashboardLayout>
+
+      <style jsx>{`
+        .animate-fade-in {
+          animation: fadeIn 0.5s ease-out forwards;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </ProtectedRoute>
   );
 }

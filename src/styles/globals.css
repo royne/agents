@@ -182,8 +182,7 @@ body {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(24px);
-  border-radius: 1.5rem;
-  overflow: hidden;
+  border-radius: 2rem;
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -199,6 +198,7 @@ body {
   inset: 0;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent);
   pointer-events: none;
+  border-radius: inherit;
 }
 
 .premium-card.disabled {
@@ -503,10 +503,13 @@ body {
 
 /* Animaciones para el Loader Premium */
 @keyframes logo-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
     filter: drop-shadow(0 0 15px rgba(18, 216, 250, 0.4));
   }
+
   50% {
     transform: scale(1.05);
     filter: drop-shadow(0 0 30px rgba(18, 216, 250, 0.7));
@@ -514,9 +517,19 @@ body {
 }
 
 @keyframes scan-line {
-  0% { transform: translateY(-100%); opacity: 0; }
-  50% { opacity: 1; }
-  100% { transform: translateY(100%); opacity: 0; }
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
 }
 
 .animate-logo-pulse {

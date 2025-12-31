@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain, FaUsersCog, FaAd, FaChevronLeft, FaChevronRight, FaMagic, FaFilm } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain, FaUsersCog, FaAd, FaChevronLeft, FaChevronRight, FaMagic, FaFilm, FaRocket } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
 import type { ModuleKey } from '../../constants/plans';
@@ -64,7 +64,7 @@ const mobileMenuItems: MobileMenuItem[] = [
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
-  const { logout, themeConfig, isAdmin, canAccessModule } = useAppContext();
+  const { logout, themeConfig, isAdmin, canAccessModule, authData } = useAppContext();
   const [hasHydrated, setHasHydrated] = useState(false);
   const [navInProgress, setNavInProgress] = useState(false);
   // Por defecto, el sidebar estará abierto, pero intentamos hidratar desde localStorage
@@ -202,12 +202,37 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
             </nav>
           </div>
 
-          <div className="border-t border-white/5 pt-4 px-3">
+          <div className="border-t border-white/5 pt-4 px-3 space-y-1">
+            {/* VIP / UPGRADE BUTTON */}
+            {authData?.plan !== 'business' && (
+              <Link
+                href="/pricing"
+                className={`
+                  w-full flex items-center p-3 rounded-xl transition-all duration-300 group/upgrade
+                  ${authData?.plan !== 'free' && authData?.plan !== 'tester'
+                    ? 'bg-white/[0.03] hover:bg-white/10 text-primary-color border border-primary-color/20'
+                    : 'bg-gradient-to-br from-[#12D8FA]/80 to-[#0066FF]/80 text-white shadow-[0_0_15px_rgba(18,216,250,0.1)] hover:shadow-[0_0_25px_rgba(18,216,250,0.3)] hover:scale-[1.02] active:scale-95'
+                  }
+                  ${isSidebarOpen ? 'justify-start' : 'justify-center'}
+                `}
+                title="Mejorar Plan"
+              >
+                <div className="flex items-center justify-center w-6 h-6 shrink-0">
+                  <FaRocket className={`text-lg transition-transform duration-500 ${isSidebarOpen ? 'group-hover/upgrade:rotate-12 group-hover/upgrade:-translate-y-0.5' : ''}`} />
+                </div>
+                {isSidebarOpen && (
+                  <span className="ml-3 text-[10px] font-black uppercase tracking-widest whitespace-nowrap overflow-hidden">
+                    {authData?.plan !== 'free' && authData?.plan !== 'tester' ? 'Subir Nivel' : 'Mejorar Plan'}
+                  </span>
+                )}
+              </Link>
+            )}
+
             <button
               onClick={logout}
               className={`w-full flex items-center p-3 rounded-xl transition-all group/logout duration-300 ${isSidebarOpen
-                ? 'hover:bg-rose-500/10 text-gray-500 hover:text-rose-400'
-                : 'justify-center text-gray-500 hover:text-rose-400'
+                ? 'hover:bg-rose-500/5 text-gray-600 hover:text-rose-400'
+                : 'justify-center text-gray-600 hover:text-rose-400'
                 }`}
               title="Cerrar Sesión"
             >
