@@ -8,17 +8,42 @@ import Image from 'next/image';
 
 type MenuItem = { name: string; icon: any; path: string; adminOnly?: boolean; showForAllAdmins?: boolean; moduleKey: ModuleKey };
 
-const menuItems: MenuItem[] = [
-  { name: 'Agentes', icon: FaComments, path: '/agents', moduleKey: 'agents' },
-  { name: 'Calculadora de Precios', icon: FaDollarSign, path: '/calculator', moduleKey: 'calculator' },
-  { name: 'Gestión Logística', icon: FaTruck, path: '/logistic', moduleKey: 'logistic' },
-  { name: 'Análisis de Rentabilidad', icon: FaBrain, path: '/data-analysis/analysis', moduleKey: 'data-analysis' },
-  { name: 'Imagen Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
-  { name: 'Landing PRO', icon: FaAd, path: '/landing-pro', moduleKey: 'landing-pro' },
-  { name: 'Video PRO', icon: FaFilm, path: '/video-pro', moduleKey: 'video-pro' },
-  { name: 'Master Chat', icon: FaRobot, path: '/chat', moduleKey: 'chat' },
-  { name: 'Administración', icon: FaUsersCog, path: '/admin', adminOnly: true, showForAllAdmins: true, moduleKey: 'admin' },
-  { name: 'Configuración', icon: FaCog, path: '/settings', moduleKey: 'settings' },
+type MenuSection = {
+  title: string;
+  items: MenuItem[];
+};
+
+const menuSections: MenuSection[] = [
+  {
+    title: 'CREACIÓN',
+    items: [
+      { name: 'Landing PRO', icon: FaAd, path: '/landing-pro', moduleKey: 'landing-pro' },
+      { name: 'Imagen Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
+      { name: 'Video PRO', icon: FaFilm, path: '/video-pro', moduleKey: 'video-pro' },
+    ]
+  },
+  {
+    title: 'CONTROL',
+    items: [
+      { name: 'Análisis de Rentabilidad', icon: FaBrain, path: '/data-analysis/analysis', moduleKey: 'data-analysis' },
+      { name: 'Calculadora de Precios', icon: FaDollarSign, path: '/calculator', moduleKey: 'calculator' },
+      { name: 'Gestión Logística', icon: FaTruck, path: '/logistic', moduleKey: 'logistic' },
+    ]
+  },
+  {
+    title: 'INTELIGENCIA',
+    items: [
+      { name: 'Agentes', icon: FaComments, path: '/agents', moduleKey: 'agents' },
+      { name: 'Master Chat', icon: FaRobot, path: '/chat', moduleKey: 'chat' },
+    ]
+  },
+  {
+    title: 'SISTEMA',
+    items: [
+      { name: 'Configuración', icon: FaCog, path: '/settings', moduleKey: 'settings' },
+      { name: 'Administración', icon: FaUsersCog, path: '/admin', adminOnly: true, showForAllAdmins: true, moduleKey: 'admin' },
+    ]
+  }
 ];
 
 // Elementos que se mostrarán en la barra de navegación móvil
@@ -32,9 +57,9 @@ const mobileMenuItems: MobileMenuItem[] = [
     ), path: '/'
   },
   { name: 'Agentes', icon: FaComments, path: '/agents', moduleKey: 'agents' },
-  { name: 'Calculadora', icon: FaDollarSign, path: '/calculator', moduleKey: 'calculator' },
   { name: 'Imagen Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
-  { name: 'Video PRO', icon: FaFilm, path: '/video-pro', moduleKey: 'video-pro' },
+  { name: 'Rentabilidad', icon: FaBrain, path: '/data-analysis/analysis', moduleKey: 'data-analysis' },
+  { name: 'Admin', icon: FaUsersCog, path: '/admin', moduleKey: 'admin' },
 ];
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -101,7 +126,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       {/* Sidebar para escritorio/tablet - Oculto en móviles */}
       <div
         className={`${isSidebarOpen ? 'w-64' : 'w-16'
-          } bg-[#0A0C10] border-r border-white/5 ${(hasHydrated && !navInProgress) ? 'transition-all duration-500' : 'transition-none'} fixed h-screen z-40 hidden md:block`}
+          } bg-[#0A0C10] border-r border-white/5 ${(hasHydrated && !navInProgress) ? 'transition-all duration-500' : 'transition-none'} fixed h-screen z-40 hidden md:block overflow-hidden`}
       >
         {/* Botón flotante para mostrar/ocultar el sidebar */}
         <button
@@ -115,9 +140,9 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
             <FaChevronRight className="text-primary-color text-[10px] group-hover/btn:translate-x-0.5 transition-transform" />}
         </button>
 
-        <div className="p-4 flex flex-col h-full justify-between overflow-hidden">
-          <div className="space-y-10">
-            <div className={`flex flex-col ${isSidebarOpen ? 'items-start px-2' : 'items-center'}`}>
+        <div className="flex flex-col h-full justify-between pb-4 overflow-hidden">
+          <div className="flex flex-col h-full overflow-hidden">
+            <div className={`pt-6 pb-8 flex flex-col ${isSidebarOpen ? 'items-start px-6' : 'items-center'}`}>
               {/* Logo Premium */}
               <Link href={'/'} className={`flex items-center ${isSidebarOpen ? 'justify-start w-full gap-3' : 'justify-center'} group`}>
                 <div className={`flex items-center justify-center rounded-xl bg-white/5 border border-white/10 group-hover:scale-110 transition-all duration-500 shadow-inner translate-z-0 ${isSidebarOpen ? 'w-10 h-10 p-2' : 'w-9 h-9 p-1.5'}`}>
@@ -131,44 +156,66 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
               </Link>
             </div>
 
-            <nav className="space-y-2">
-              {menuItems.map((item) => {
-                if (item.adminOnly && !isAdmin() && !item.showForAllAdmins) return null;
-                if (!canAccessModule(item.moduleKey)) return null;
+            <nav className="flex-1 px-3 space-y-6 overflow-y-auto custom-scrollbar pb-10">
+              {menuSections.map((section) => {
+                // Filtrar los items de la sección según permisos
+                const visibleItems = section.items.filter(item => {
+                  if (item.adminOnly && !isAdmin() && !item.showForAllAdmins) return false;
+                  if (!canAccessModule(item.moduleKey)) return false;
+                  return true;
+                });
 
-                const isActive = router.pathname === item.path || router.pathname.startsWith(item.path + '/');
+                if (visibleItems.length === 0) return null;
 
                 return (
-                  <Link key={item.path} href={item.path}>
-                    <div
-                      className={`flex items-center py-3 rounded-2xl transition-all duration-300 cursor-pointer group/item relative ${isSidebarOpen ? 'px-3' : 'px-2 justify-center'} ${isActive ? 'bg-primary-color/10 ring-1 ring-primary-color/20' : 'hover:bg-white/5'}`}
-                    >
-                      {isActive && isSidebarOpen && (
-                        <div className="absolute left-0 w-1 h-6 bg-primary-color rounded-full -ml-1"></div>
-                      )}
-                      <item.icon className={`text-xl transition-transform duration-300 group-hover/item:scale-110 ${isActive ? 'text-primary-color' : 'text-gray-500 group-hover/item:text-white'}`} />
-                      {isSidebarOpen && (
-                        <span className={`ml-4 text-sm font-bold transition-all duration-300 whitespace-nowrap ${isActive ? 'text-white' : 'text-gray-500 group-hover/item:text-gray-300'}`}>
-                          {item.name}
-                        </span>
-                      )}
+                  <div key={section.title} className="space-y-2">
+                    {isSidebarOpen && (
+                      <h3 className="px-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 mb-2">
+                        {section.title}
+                      </h3>
+                    )}
+                    <div className="space-y-1">
+                      {visibleItems.map((item) => {
+                        const isActive = router.pathname === item.path || router.pathname.startsWith(item.path + '/');
+                        return (
+                          <Link key={item.path} href={item.path}>
+                            <div
+                              className={`flex items-center py-2.5 rounded-xl transition-all duration-300 cursor-pointer group/item relative ${isSidebarOpen ? 'px-3' : 'px-1 justify-center'} ${isActive ? 'bg-primary-color/10 ring-1 ring-primary-color/20 text-white' : 'hover:bg-white/5 text-gray-500'}`}
+                            >
+                              {isActive && isSidebarOpen && (
+                                <div className="absolute left-0 w-0.5 h-5 bg-primary-color rounded-full"></div>
+                              )}
+                              <item.icon className={`text-lg transition-transform duration-300 group-hover/item:scale-110 ${isActive ? 'text-primary-color' : 'group-hover/item:text-white'}`} title={item.name} />
+                              {isSidebarOpen && (
+                                <span className={`ml-3 text-xs font-bold transition-all duration-300 whitespace-nowrap ${isActive ? 'text-white' : 'group-hover/item:text-gray-300'}`}>
+                                  {item.name}
+                                </span>
+                              )}
+                            </div>
+                          </Link>
+                        );
+                      })}
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </nav>
           </div>
 
-          <div className="border-t border-white/5 pt-6">
+          <div className="border-t border-white/5 pt-4 px-3">
             <button
-              onClick={() => {
-                logout();
-              }}
-              className={`w-full flex items-center p-3 rounded-2xl hover:bg-rose-500/10 transition-all group/logout text-gray-500 hover:text-rose-400 ${isSidebarOpen ? 'px-4' : 'px-2 justify-center'}`}
+              onClick={logout}
+              className={`w-full flex items-center p-3 rounded-xl transition-all group/logout duration-300 ${isSidebarOpen
+                ? 'hover:bg-rose-500/10 text-gray-500 hover:text-rose-400'
+                : 'justify-center text-gray-500 hover:text-rose-400'
+                }`}
+              title="Cerrar Sesión"
             >
-              <FaSignOutAlt className="text-xl transition-transform group-hover/logout:-translate-x-1" />
+              <div className="flex items-center justify-center w-6 h-6">
+                <FaSignOutAlt className="text-xl transition-transform group-hover/logout:-translate-x-1" />
+              </div>
               {isSidebarOpen && (
-                <span className="ml-4 text-sm font-bold whitespace-nowrap">Cerrar Sesión</span>
+                <span className="ml-3 text-xs font-bold whitespace-nowrap">Cerrar Sesión</span>
               )}
             </button>
           </div>
@@ -176,40 +223,41 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       </div>
 
       {/* Barra de navegación inferior para móviles */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-theme-component z-50">
-        <div className="flex justify-around items-center">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0A0C10]/95 backdrop-blur-xl border-t border-white/5 z-50 h-16 safe-area-bottom">
+        <div className="grid grid-cols-5 h-full max-w-lg mx-auto">
           {mobileMenuItems.map((item) => {
             if (item.moduleKey && !canAccessModule(item.moduleKey)) {
               return null;
             }
+            const isActive = router.pathname === item.path;
             return (
-              <Link key={item.path} href={item.path}>
-                <div
-                  className={`flex items-center justify-center py-3 px-3 ${router.pathname === item.path ? 'text-primary-color' : 'text-theme-secondary'
-                    }`}
-                >
+              <Link key={item.path} href={item.path} className="flex flex-col items-center justify-center relative group">
+                <div className={`p-2 rounded-xl transition-all duration-300 ${isActive ? 'text-primary-color' : 'text-gray-500'}`}>
                   <item.icon className="text-xl" />
                 </div>
+                {isActive && (
+                  <div className="absolute top-0 w-8 h-0.5 bg-primary-color rounded-full shadow-[0_0_10px_rgba(18,216,250,0.5)]"></div>
+                )}
               </Link>
             );
           })}
           <div
-            className="flex items-center justify-center py-3 px-3 text-red-400"
-            onClick={() => {
-              logout();
-            }}
+            className="flex flex-col items-center justify-center text-rose-500/70 active:scale-95 transition-transform"
+            onClick={logout}
           >
-            <FaSignOutAlt className="text-xl" />
+            <div className="p-2">
+              <FaSignOutAlt className="text-xl" />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Content - Ajustado para móviles */}
       <main
-        className={`flex-1 bg-theme-primary p-8 overflow-y-auto h-screen ${(hasHydrated && !navInProgress) ? 'transition-all duration-300' : 'transition-none'}
-                   md:ml-16 ${isSidebarOpen ? 'md:ml-64' : 'md:ml-16'} pb-16 md:pb-8 flex flex-col`}
+        className={`flex-1 bg-theme-primary overflow-y-auto h-screen ${(hasHydrated && !navInProgress) ? 'transition-all duration-300' : 'transition-none'}
+                   md:ml-16 ${isSidebarOpen ? 'md:ml-64' : 'md:ml-16'} pb-16 md:pb-0 flex flex-col`}
       >
-        <div className="flex-grow">
+        <div className="flex-grow p-4 md:p-8">
           {children}
         </div>
       </main>
