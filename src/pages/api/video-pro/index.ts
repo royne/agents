@@ -37,7 +37,6 @@ export default async function handler(req: NextRequest) {
   if (!apiKey) return NextResponse.json({ error: 'Falta Google AI Key.' }, { status: 500 });
 
   const body = await req.json() as VideoProRequest;
-  console.log('[VideoPro API] Request:', JSON.stringify(body, null, 2));
 
   try {
     // Usamos el modelo vea-3.1-fast-generate-preview que soporta predictLongRunning
@@ -46,10 +45,6 @@ export default async function handler(req: NextRequest) {
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:predictLongRunning?key=${apiKey}`;
 
-    console.log('[VideoPro API] Sending to Google:', JSON.stringify(restPayload, (key, value) => {
-      if (typeof value === 'string' && value.length > 100) return value.substring(0, 50) + '... (truncated)';
-      return value;
-    }, 2));
 
     const response = await fetch(url, {
       method: 'POST',

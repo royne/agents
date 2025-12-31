@@ -1,21 +1,14 @@
 import type { AppProps } from 'next/app'
 import '../styles/globals.css'
-import '../styles/pomodoro.css'
 import { AppProvider, useAppContext } from '../contexts/AppContext';
-import { PomodoroProvider, usePomodoroContext } from '../contexts/PomodoroContext';
-import MiniPomodoro from '../components/planning/pomodoro/MiniPomodoro';
 import { useRouter, type NextRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
 import BrandLoader from '../components/common/BrandLoader';
 
 export default function App({ Component, pageProps }: AppProps) {
-  const router = useRouter();
   return (
     <AppProvider>
-      <PomodoroProvider>
-        <AuthWrapper {...{ Component, pageProps }} router={useRouter()} />
-      </PomodoroProvider>
+      <AuthWrapper {...{ Component, pageProps }} router={useRouter()} />
     </AppProvider>
   );
 }
@@ -28,11 +21,9 @@ interface AuthWrapperProps {
 
 function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
   const { authData, themeConfig } = useAppContext();
-  const { activeTask, isPomodorActive, stopPomodoro } = usePomodoroContext();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-
     // Safety fallback: Desbloqueo absoluto tras 6 segundos pase lo que pase
     const globalTimeout = setTimeout(() => {
       if (loading) {
@@ -79,16 +70,6 @@ function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
   return (
     <div className="min-h-screen bg-theme-primary text-theme-primary border border-transparent">
       <Component {...pageProps} />
-
-      {/* Renderizar el MiniPomodoro cuando hay una tarea activa */}
-      {isPomodorActive && activeTask && (
-        <MiniPomodoro
-          taskId={activeTask.id}
-          taskTitle={activeTask.title}
-          onClose={stopPomodoro}
-        />
-      )}
     </div>
   );
-
 }

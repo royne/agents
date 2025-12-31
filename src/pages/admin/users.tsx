@@ -28,7 +28,6 @@ export default function UsersManagement() {
     { key: 'campaign-control', label: 'Control de Campañas' },
     { key: 'calculator', label: 'Calculadora' },
     { key: 'logistic', label: 'Logística' },
-    { key: 'planning', label: 'Planeación' },
     { key: 'data-analysis', label: 'Análisis de Datos' },
     { key: 'dbmanager', label: 'DB Manager' },
     { key: 'chat', label: 'Master Chat (requiere admin)' },

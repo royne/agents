@@ -8,7 +8,6 @@ export type ModuleKey =
   | 'logistic'
   | 'data-analysis'
   | 'dbmanager'            // Deprecated
-  | 'planning'
   | 'chat'
   | 'settings'
   | 'image-pro'
@@ -32,7 +31,6 @@ export const MODULE_METADATA: Record<ModuleKey, ModuleMetadata> = {
   logistic: { key: 'logistic', label: 'Logística', description: 'Gestión de envíos y transportadoras.', icon: 'FaTruck' },
   'data-analysis': { key: 'data-analysis', label: 'Análisis de Rentabilidad', description: 'Dashboards y métricas de ventas.', icon: 'FaDatabase' },
   dbmanager: { key: 'dbmanager', label: 'DB Manager', description: 'Administración de base de datos.', icon: 'FaServer', isDeprecated: true },
-  planning: { key: 'planning', label: 'Planeación', description: 'Calendario y organización de tareas.', icon: 'FaCalendarAlt' },
   chat: { key: 'chat', label: 'Master Chat', description: 'Chat con RAG avanzado (Admin).', icon: 'FaComments' },
   settings: { key: 'settings', label: 'Configuración', description: 'Ajustes de cuenta y perfil.', icon: 'FaCog' },
   'image-pro': { key: 'image-pro', label: 'Imagen Pro', description: 'Generación de imágenes con IA.', icon: 'FaImage' },
