@@ -126,7 +126,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       {/* Sidebar para escritorio/tablet - Oculto en móviles */}
       <div
         className={`${isSidebarOpen ? 'w-64' : 'w-16'
-          } bg-[#0A0C10] border-r border-white/5 ${(hasHydrated && !navInProgress) ? 'transition-all duration-500' : 'transition-none'} fixed h-screen z-40 hidden md:block overflow-hidden`}
+          } bg-[#0A0C10] border-r border-white/5 ${(hasHydrated && !navInProgress) ? 'transition-all duration-500' : 'transition-none'} fixed h-screen z-40 hidden md:block`}
       >
         {/* Botón flotante para mostrar/ocultar el sidebar */}
         <button
@@ -224,14 +224,14 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
       {/* Barra de navegación inferior para móviles */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0A0C10]/95 backdrop-blur-xl border-t border-white/5 z-50 h-16 safe-area-bottom">
-        <div className="grid grid-cols-5 h-full max-w-lg mx-auto">
+        <div className="flex justify-around items-center h-full max-w-lg mx-auto px-2">
           {mobileMenuItems.map((item) => {
             if (item.moduleKey && !canAccessModule(item.moduleKey)) {
               return null;
             }
             const isActive = router.pathname === item.path;
             return (
-              <Link key={item.path} href={item.path} className="flex flex-col items-center justify-center relative group">
+              <Link key={item.path} href={item.path} className="flex-1 flex flex-col items-center justify-center relative h-full group">
                 <div className={`p-2 rounded-xl transition-all duration-300 ${isActive ? 'text-primary-color' : 'text-gray-500'}`}>
                   <item.icon className="text-xl" />
                 </div>
@@ -242,7 +242,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
             );
           })}
           <div
-            className="flex flex-col items-center justify-center text-rose-500/70 active:scale-95 transition-transform"
+            className="flex-1 flex flex-col items-center justify-center text-rose-500/70 active:scale-95 transition-transform h-full"
             onClick={logout}
           >
             <div className="p-2">
