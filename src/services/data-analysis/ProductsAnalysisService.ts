@@ -90,7 +90,6 @@ class ProductsAnalysisService extends BaseExcelService {
     // Primero buscar coincidencias exactas
     for (const field of possibleCategoryFields) {
       if (item[field] !== undefined) {
-        console.log(`Campo de categoría encontrado: ${field}`);
         return field;
       }
     }
@@ -101,14 +100,12 @@ class ProductsAnalysisService extends BaseExcelService {
     for (const key of Object.keys(item)) {
       const lowerKey = key.toLowerCase();
       if (keywordsToFind.some(keyword => lowerKey.includes(keyword))) {
-        console.log(`Campo de categoría encontrado por palabra clave: ${key}`);
         return key;
       }
     }
     
     // Si no se encuentra ninguna categoría, crear una categoría artificial basada en el nombre
     if (item['nombre'] !== undefined) {
-      console.log('Usando nombre de producto como categoría');
       return 'nombre';
     }
     
@@ -125,7 +122,6 @@ class ProductsAnalysisService extends BaseExcelService {
     
     // Buscar específicamente el campo DEPARTAMENTO DESTINO
     if (item['DEPARTAMENTO DESTINO'] !== undefined) {
-      console.log('Campo de departamento destino encontrado: DEPARTAMENTO DESTINO');
       return 'DEPARTAMENTO DESTINO';
     }
     
@@ -137,7 +133,6 @@ class ProductsAnalysisService extends BaseExcelService {
     
     for (const field of possibleFields) {
       if (item[field] !== undefined) {
-        console.log(`Campo de departamento destino encontrado: ${field}`);
         return field;
       }
     }
@@ -147,7 +142,6 @@ class ProductsAnalysisService extends BaseExcelService {
       const lowerKey = key.toLowerCase();
       if (lowerKey.includes('destino') || 
           (lowerKey.includes('depart') && lowerKey.includes('dest'))) {
-        console.log(`Campo de departamento destino encontrado por palabra clave: ${key}`);
         return key;
       }
     }
@@ -472,16 +466,8 @@ class ProductsAnalysisService extends BaseExcelService {
       }
     });
     // Ordenar los datos de tendencia por fecha
-    const trendData = Array.from(trendMap.values())
+    const finalTrendData = Array.from(trendMap.values())
       .sort((a, b) => a.date.localeCompare(b.date));
-      
-    // Depurar los datos de productos por día
-    console.log('Datos de productos por día:', 
-      trendData.map(day => ({
-        date: day.date,
-        sales: day.sales,
-        productCount: day.products?.length || 0
-      })));
     
     const result: ProductAnalysisResult = {
       uniqueProductsCount: uniqueProducts.size,
@@ -495,10 +481,9 @@ class ProductsAnalysisService extends BaseExcelService {
       productsByDepartment: sortedProductsByDepartment,
       productProfitData,
       variationData,
-      trendData
+      trendData: finalTrendData
     };
     
-    console.log('Resultado del análisis de productos:', result);
     return result;
   }
 }

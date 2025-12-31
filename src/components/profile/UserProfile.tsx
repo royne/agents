@@ -42,11 +42,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ showEditButton = true }) => {
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
-      console.log('Iniciando carga de perfil de usuario');
       
       // 1. Obtener datos de autenticación
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('Usuario autenticado:', user);
       
       if (!user) {
         console.error('No hay usuario autenticado');
@@ -60,7 +58,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ showEditButton = true }) => {
         .eq('user_id', user.id)
         .single();
       
-      console.log('Perfil obtenido:', profile);
       
       if (profileError) {
         console.error('Error al obtener perfil:', profileError);
@@ -78,7 +75,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ showEditButton = true }) => {
         
         if (company) {
           companyName = company.name;
-          console.log('Empresa obtenida:', company.name);
         }
       }
       
@@ -91,7 +87,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ showEditButton = true }) => {
         avatar_url: profile.avatar_url
       };
       
-      console.log('Datos finales del usuario:', userData);
       setUserProfile(userData);
       
     } catch (error) {

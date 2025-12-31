@@ -56,14 +56,11 @@ class ExcelAnalysisService extends BaseExcelService {
       });
     });
     
-    console.log(`Detección automática: coincidencias de órdenes=${orderMatches}, coincidencias de productos=${productMatches}`);
     
     // Determinar el tipo de datos basado en la mayor cantidad de coincidencias
     if (orderMatches >= productMatches) {
-      console.log('Detectado como datos de órdenes');
       return this.analyzeOrdersData(data);
     } else {
-      console.log('Detectado como datos de productos');
       return this.analyzeProductsData(data);
     }
   }

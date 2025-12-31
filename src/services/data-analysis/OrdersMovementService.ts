@@ -214,7 +214,6 @@ export class OrdersMovementService {
     // Log simple para validar conteos de antigüedad en desarrollo
     try {
       // eslint-disable-next-line no-console
-      console.log('[OrdersMovementService] ageBucketsCount', result.ageBucketsCount);
     } catch {}
 
     return result;

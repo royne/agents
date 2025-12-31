@@ -23,7 +23,6 @@ const ProductDepartmentChart: React.FC<ProductDepartmentChartProps> = ({
   
   // Depurar los datos recibidos
   React.useEffect(() => {
-    console.log('ProductDepartmentChart - Datos recibidos:', productsByDepartment);
   }, [productsByDepartment]);
   
   // Crear datos por defecto si no hay departamentos
@@ -47,7 +46,6 @@ const ProductDepartmentChart: React.FC<ProductDepartmentChartProps> = ({
   
   // Preparar datos para el gráfico
   const data = useMemo(() => {
-    console.log('ProductCategoryChart - Datos procesados:', processedData);
     
     // Limitar a las 8 categorías principales y agrupar el resto
     if (processedData.length > 8) {

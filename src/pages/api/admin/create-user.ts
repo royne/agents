@@ -49,7 +49,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const { data } = await supabase.auth.getUser(token);
           if (data.user) {
             userId = data.user.id;
-            console.log('Autenticación por token en encabezado exitosa. User ID:', userId);
           }
         } catch (error) {
           console.error('Error al verificar token en encabezado:', error);
@@ -66,7 +65,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const { data } = await supabase.auth.getUser(authToken);
         if (data.user) {
           userId = data.user.id;
-          console.log('Autenticación por token en cuerpo exitosa. User ID:', userId);
         }
       } catch (error) {
         console.error('Error al verificar token en cuerpo:', error);
@@ -75,11 +73,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   
   // Registrar información de depuración
-  console.log('Session:', session ? `Existe - User ID: ${session.user.id}` : 'No existe');
-  console.log('User ID por token:', userId || 'No encontrado');
-  console.log('Cookies recibidas:', req.headers.cookie ? 'Sí' : 'No');
-  console.log('Headers de autorización:', req.headers.authorization ? 'Sí' : 'No');
-  console.log('Token en cuerpo:', req.body._authToken ? 'Sí' : 'No');
   
   // Determinar si hay autenticación válida
   const isAuthenticated = !!session || !!userId;
@@ -87,12 +80,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!isAuthenticated) {
     if (allowBypass) {
       // En desarrollo o con bypass habilitado, asumimos rol de superadmin
-      console.log('Sin autenticación pero bypass permitido: asumiendo rol de superadmin');
       isAdmin = true;
       isSuperAdmin = true;
     } else {
       // En producción sin bypass, requerimos autenticación
-      console.log('Sin autenticación en producción y sin bypass');
       return res.status(401).json({ 
         error: 'No autorizado - Se requiere iniciar sesión',
         details: {
@@ -120,7 +111,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .eq('user_id', userIdToCheck)
           .single();
         
-        console.log('Perfil:', profile, 'Error:', profileError);
         
         if (profileError) {
           console.error('Error al obtener perfil:', profileError);

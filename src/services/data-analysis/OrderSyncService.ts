@@ -57,7 +57,6 @@ class OrderSyncService {
       if (isNaN(date.getTime())) return undefined;
       return date.toISOString();
     } catch (e) {
-      console.log('Error al parsear fecha:', dateStr, e);
       return undefined;
     }
   }
@@ -86,12 +85,9 @@ class OrderSyncService {
    * Extrae datos de la orden del registro Excel, incluyendo datos del cliente
    */
   private extractOrderData(excelData: ExcelOrderData): Omit<Order, 'id' | 'created_at' | 'updated_at'> {
-    console.log('=== DEBUG: extractOrderData ===');
-    console.log('Datos del Excel para orden:', excelData);
     
     // Normalizar ID externo
     const externalId = this.normalizeExternalId(excelData.ID);
-    console.log('ID externo normalizado:', externalId);
     
     // Normalizar valores monetarios
     const orderValue = this.normalizeMonetaryValue(excelData["VALOR DE COMPRA EN PRODUCTOS"]);
@@ -160,7 +156,6 @@ class OrderSyncService {
       company_id: ''
     };
     
-    console.log('Datos de la orden extraídos:', orderData);
     return orderData;
   }
   
@@ -168,9 +163,6 @@ class OrderSyncService {
    * Verifica si hay cambios significativos que ameriten actualización
    */
   private hasSignificantChanges(existingOrder: Order, newOrderData: Omit<Order, 'id' | 'created_at' | 'updated_at'>): boolean {
-    console.log('=== DEBUG: hasSignificantChanges ===');
-    console.log('Orden existente:', existingOrder);
-    console.log('Nuevos datos:', newOrderData);
     
     // Verificar cambios en campos clave
     if (existingOrder.status !== newOrderData.status) return true;
@@ -193,7 +185,6 @@ class OrderSyncService {
     if (existingOrder.customer_city !== newOrderData.customer_city) return true;
     if (existingOrder.customer_state !== newOrderData.customer_state) return true;
     
-    console.log('No se detectaron cambios significativos');
     return false;
   }
   
@@ -201,9 +192,6 @@ class OrderSyncService {
    * Sincroniza datos del Excel con la base de datos
    */
   async syncOrdersFromExcel(excelData: ExcelOrderData[], companyId: string): Promise<OrderSyncResult> {
-    console.log('=== DEBUG: Iniciando syncOrdersFromExcel ===');
-    console.log('Company ID:', companyId);
-    console.log('Total registros Excel:', excelData.length);
     
     const result: OrderSyncResult = {
       created: 0,
@@ -216,45 +204,34 @@ class OrderSyncService {
     for (const orderData of excelData) {
       const externalId = this.normalizeExternalId(orderData.ID);
       if (!externalId) {
-        console.log('Ignorando registro sin ID:', orderData);
         continue; // Ignorar registros sin ID
       }
       
-      console.log(`=== DEBUG: Procesando orden con ID externo: ${externalId} ===`);
       
       try {
         // Paso 1: Extraer datos de la orden (incluye datos del cliente)
-        console.log('Paso 1: Extrayendo datos de la orden y cliente');
         const newOrderData = this.extractOrderData(orderData);
         newOrderData.company_id = companyId;
-        console.log('Datos de la orden extraídos:', newOrderData);
         
         // Paso 2: Verificar si la orden ya existe
-        console.log('Paso 2: Verificando si la orden existe');
         const existingOrder = await ordersDatabaseService.getOrderByExternalId(externalId, companyId);
-        console.log('¿Orden existente?', existingOrder ? 'Sí' : 'No');
         
         if (existingOrder) {
           // Verificar si hay cambios significativos
-          console.log('Verificando cambios en la orden existente');
           if (this.hasSignificantChanges(existingOrder, newOrderData)) {
-            console.log('Hay cambios significativos, actualizando orden');
             // Actualizar la orden existente
             await ordersDatabaseService.updateOrder(existingOrder.id, newOrderData, companyId);
             result.updated++;
             result.details.push({ id: externalId, action: 'updated' });
           } else {
             // Sin cambios significativos
-            console.log('No hay cambios significativos');
             result.unchanged++;
             result.details.push({ id: externalId, action: 'unchanged' });
           }
         } else {
           // Crear nueva orden
-          console.log('Creando nueva orden');
           const newOrder = await ordersDatabaseService.createOrder(newOrderData, companyId);
           if (newOrder) {
-            console.log('Orden creada correctamente:', newOrder.id);
             result.created++;
             result.details.push({ id: externalId, action: 'created' });
           } else {
@@ -262,7 +239,7 @@ class OrderSyncService {
           }
         }
       } catch (error) {
-        console.error(`=== DEBUG: Error procesando orden ${externalId} ===`);
+        console.error(`Error procesando orden ${externalId}`);
         console.error('Tipo de error:', typeof error);
         console.error('Error completo:', error);
         console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace disponible');

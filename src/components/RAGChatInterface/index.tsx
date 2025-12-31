@@ -39,23 +39,16 @@ const useRAGChatLogic = (groqApiKey: string, openaiApiKey?: string) => {
     try {
       // Convertir mensajes a formato API
       const apiMessages = chatHistoryService.convertToApiMessages([...messages, userMessage]);
-      
+
       // Estimar tokens antes de enviar
       const estimatedTokens = chatHistoryService.estimateMessagesTokens(apiMessages);
       const willReduceContext = estimatedTokens > 8000; // Mismo valor que MAX_CONTEXT_TOKENS
-      
+
       const endpoint = `/api/agents/script`;
-      console.log('[rag] Enviando mensaje', {
-        endpoint,
-        hasGroqKey: !!groqApiKey,
-        hasOpenAIKey: !!openaiApiKey,
-        messagesCount: apiMessages.length,
-        estimatedTokens
-      });
 
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'X-Api-Key': groqApiKey,
           'X-OpenAI-Key': openaiApiKey || ''
@@ -67,7 +60,6 @@ const useRAGChatLogic = (groqApiKey: string, openaiApiKey?: string) => {
       });
 
       const data = await response.json().catch(() => ({} as any));
-      console.log('[rag] Respuesta del servidor', { status: response.status, ok: response.ok, data });
       if (!response.ok) {
         throw new Error((data && (data.error || data.message || data.detail)) || `HTTP ${response.status}`);
       }
@@ -81,7 +73,7 @@ const useRAGChatLogic = (groqApiKey: string, openaiApiKey?: string) => {
           timestamp: new Date(),
           isSystemMessage: true
         };
-        
+
         setMessages(prev => [...prev, systemMessage]);
         setContextReduced(true);
       }
@@ -100,7 +92,7 @@ const useRAGChatLogic = (groqApiKey: string, openaiApiKey?: string) => {
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
       console.error('Error:', error);
-      
+
       // Mensaje de error para el usuario
       const errorMessage: Message = {
         id: Date.now().toString(),
@@ -110,7 +102,7 @@ const useRAGChatLogic = (groqApiKey: string, openaiApiKey?: string) => {
         isSystemMessage: true,
         isError: true
       };
-      
+
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
@@ -169,7 +161,7 @@ export default function RAGChatInterface() {
         </div>
         {messages.length > 0 && (
           <div className="flex space-x-2">
-            <button 
+            <button
               onClick={handleSaveChat}
               className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-sm rounded-lg transition-colors"
               title="Guardar en la base de datos"
@@ -177,7 +169,7 @@ export default function RAGChatInterface() {
               Guardar
             </button>
             <div className="relative group">
-              <button 
+              <button
                 className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-sm rounded-lg transition-colors flex items-center"
                 title="Exportar conversación"
               >

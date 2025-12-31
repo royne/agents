@@ -20,7 +20,6 @@ export const useApiKey = () => {
 
   const openApiKeyModal = (provider: 'groq' | 'openai' | 'google') => {
     // Ya no permitimos abrir el modal para editar llaves si están centralizadas
-    console.log(`Las llaves de ${provider} están configuradas globalmente en el servidor.`);
     // setIsApiKeyModalOpen(true);
     // setModalProvider(provider);
     // setError(null);

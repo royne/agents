@@ -185,7 +185,6 @@ class OrdersAnalysisService extends BaseExcelService {
       };
     }
     
-    console.log('Analizando datos de órdenes, muestra:', data[0]);
     
     // Asegurar que los datos estén normalizados
     const normalizedData = this.normalizeOrderData(data);
@@ -230,9 +229,6 @@ class OrdersAnalysisService extends BaseExcelService {
     
     // Analizar cada orden
     normalizedData.forEach((order, index) => {
-      if (index === 0) {
-        console.log('Procesando primera orden normalizada:', order);
-      }
       
       // Obtener valores principales
       const orderStatus = this.getOrderStatus(order.estatus);
@@ -249,8 +245,6 @@ class OrdersAnalysisService extends BaseExcelService {
       if (orderStatus === OrderStatus.IN_PROGRESS && (!order.ganancia || order.ganancia.toString().trim() === "")) {
         // Calcular ganancia con la fórmula: GANANCIA = VALOR DE COMPRA - PRECIO PROVEEDOR - FLETE
         profit = value - providerPrice - shippingCost;
-        console.log(`Calculando ganancia para orden en proceso: ${order.id || index}`);
-        console.log(`Valor: ${value} - Precio proveedor: ${providerPrice} - Flete: ${shippingCost} = Ganancia: ${profit}`);
       } else {
         // Si ya tiene ganancia definida, usarla
         profit = order.ganancia ? this.extractNumber(order.ganancia) : 0;
@@ -445,7 +439,6 @@ class OrdersAnalysisService extends BaseExcelService {
       carrierEfficiency
     };
     
-    console.log('Resultado del análisis de órdenes:', result);
     return result;
   }
 }

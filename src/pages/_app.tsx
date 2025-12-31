@@ -32,34 +32,28 @@ function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('🔍 [DEBUG] AuthWrapper: Mount/Update', { loading, authDataNull: authData === null });
 
     // Safety fallback: Desbloqueo absoluto tras 6 segundos pase lo que pase
     const globalTimeout = setTimeout(() => {
       if (loading) {
-        console.error('🚨 [DEBUG] AuthWrapper: GLOBAL TIMEOUT REACHED');
+        console.error('AuthWrapper: GLOBAL TIMEOUT REACHED');
         setLoading(false);
       }
     }, 6000);
 
     if (authData === null) {
-      console.log('🔍 [DEBUG] AuthWrapper: authData es null, esperando...');
       return () => clearTimeout(globalTimeout);
     };
-
-    console.log('🔍 [DEBUG] AuthWrapper: Procesando authData', authData);
 
     const isAuthPath = router.pathname.startsWith('/auth');
     const isPublicPath = router.pathname === '/';
 
     if (authData.isAuthenticated) {
       if (isAuthPath) {
-        console.log('🔍 [DEBUG] AuthWrapper: Redirect to /');
         router.push('/');
       }
     } else {
       if (!isAuthPath && !isPublicPath) {
-        console.log('🔍 [DEBUG] AuthWrapper: Redirect to login');
         router.push('/auth/login');
       }
     }

@@ -169,10 +169,6 @@ export const embeddingService = {
       
       const results = data || [];
       
-      for (const result of results) {
-        console.log(`🔍 Similitud: ${result.similarity.toFixed(3)} - Chunk: ${result.content.substring(0, 80)}...`);
-      }
-
       return results;
     } catch (error) {
       console.error('Error al buscar scripts similares:', error);

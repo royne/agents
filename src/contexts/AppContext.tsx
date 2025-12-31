@@ -50,7 +50,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          console.log('🚀 [DEBUG] AppProvider: Restaurando sesión desde caché local');
           return parsed;
         } catch (e) {
           console.error('Error parsing cached auth data', e);
@@ -72,7 +71,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const dbTimeout = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), ms));
 
     const checkSession = async (providedSession?: any) => {
-      console.log('🔍 [DEBUG] checkSession: Iniciando actualización de datos...');
       setIsSyncing(true);
       try {
         let session = providedSession;
@@ -103,7 +101,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ]);
 
             const planData = planRes.data;
-            if (planRes.error) console.warn('⚠️ Error plan features:', planRes.error);
+            if (planRes.error) console.warn('Error plan features:', planRes.error);
 
             let activeModules: ModuleKey[] = [];
             if (planData?.features?.active_modules) {
@@ -122,11 +120,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
               activeModules: activeModules,
             };
 
-            console.log('✅ [DEBUG] checkSession: Datos actualizados correctamente');
             localStorage.setItem('auth_data', JSON.stringify(newAuthData));
             setAuthData(newAuthData);
           } catch (innerError) {
-            console.warn('⚠️ [DEBUG] checkSession: Fallo temporal en DB, manteniendo sesión actual:', innerError);
+            console.warn('Fallo temporal en DB, manteniendo sesión actual:', innerError);
             // Si ya tenemos datos (de localStorage), no los sobrescribimos con fallbacks vacíos
             setAuthData(prev => prev || {
               isAuthenticated: true,
@@ -137,12 +134,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
             });
           }
         } else {
-          console.log('🔍 [DEBUG] checkSession: No hay sesión activa');
           localStorage.removeItem('auth_data');
           setAuthData({ isAuthenticated: false });
         }
       } catch (error) {
-        console.error('🚨 [DEBUG] checkSession: FALLO CRÍTICO:', error);
+        console.error('FALLO CRÍTICO de sesión:', error);
         setAuthData({ isAuthenticated: false });
       } finally {
         setIsSyncing(false);
@@ -151,7 +147,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // Listener para cambios de autenticación - FUENTE DE VERDAD ÚNICA
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔔 [DEBUG] onAuthStateChange:', event, !!session);
 
       if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
         localStorage.removeItem('auth_data');
@@ -171,7 +166,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // Verificación inicial forzada si no se ha resuelto en 2 segundos
     const backupTimeout = setTimeout(() => {
       if (authData === null) {
-        console.warn('⚠️ Backup session check triggered');
+        console.warn('Backup session check triggered');
         checkSession();
       }
     }, 2000);

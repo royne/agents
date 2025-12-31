@@ -76,7 +76,6 @@ const ProductDailySalesChart: React.FC<ProductDailySalesChartProps> = ({
 
   // Depurar los datos para verificar que tenemos la información correcta
   React.useEffect(() => {
-    console.log('Datos de ventas diarias:', sortedSales);
   }, [sortedSales]);
 
   // Función para renderizar el contenido del tooltip personalizado
@@ -86,7 +85,6 @@ const ProductDailySalesChart: React.FC<ProductDailySalesChartProps> = ({
     }
     
     const data = payload[0].payload;
-    console.log('Datos en tooltip:', data); // Depurar los datos en el tooltip
     
     const formattedDate = formatDate(label);
     

@@ -82,8 +82,6 @@ const OrdersMovementViewer: React.FC<OrdersMovementViewerProps> = ({ data, summa
   };
 
   // Verificar si hay datos para analizar
-  console.log('Datos de órdenes:', data);
-  console.log('Resumen de órdenes:', summary);
  
   // Listas disponibles para filtros (deben declararse antes de cualquier return condicional)
   const availableStatuses = useMemo(() => Object.keys(analysisResult?.ordersByStatus || {}), [analysisResult]);

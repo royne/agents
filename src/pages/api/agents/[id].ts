@@ -110,7 +110,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   // Enriquecer con RAG solo si es el agente de scripts predefinido
   if (id === 'script' && isDefaultAgent) {
     try {
-      console.log('[api/agents/script] enrichWithRAG', { hasOpenAIKey: !!openAIApiKey });
       const enrichedMessages = await enrichWithRAG(safeMessages, openAIApiKey);
       safeMessages = enrichedMessages;
     } catch (error) {
@@ -126,13 +125,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   };
 
   try {
-    console.log(`[api/agents/${id}] solicitando a Groq`, {
-      model: (payload as any).model,
-      messages: payload.messages?.length || 0,
-      hasApiKey: !!apiKey,
-      company_id
-    });
-
     let completion = await groq.chat.completions.create(payload);
 
     // Si no hay contenido, intentar fallback de modelo
@@ -141,7 +133,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       console.warn(`[api/agents/${id}] Respuesta vacía, intentando fallback de modelo`);
       const fallbackModel = process.env.NEXT_PUBLIC_GROQ_FALLBACK_MODEL || 'llama-3.3-70b-versatile';
       const fallbackPayload = { ...payload, model: fallbackModel } as any;
-      console.log(`[api/agents/${id}] Fallback model: ${fallbackModel}`);
       completion = await groq.chat.completions.create(fallbackPayload);
       content = completion?.choices?.[0]?.message?.content || content;
     }
@@ -161,7 +152,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       if (/model|unsupported|not found|Invalid model/i.test(errMsg)) {
         const fallbackModel = process.env.NEXT_PUBLIC_GROQ_FALLBACK_MODEL || 'llama-3.3-70b-versatile';
         const fallbackPayload = { ...payload, model: fallbackModel } as any;
-        console.log(`[api/agents/${id}] Reintentando con fallback model: ${fallbackModel}`);
         const completion = await groq.chat.completions.create(fallbackPayload);
         const content = completion?.choices?.[0]?.message?.content || '';
         return res.status(200).json({ response: content });

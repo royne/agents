@@ -119,8 +119,6 @@ export default function CampaignControl() {
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayString = yesterday.toISOString().split('T')[0];
 
-      console.log('campaignDailyRecords', campaignDailyRecords);
-      console.log('campaigns', campaigns);
       const combinedData: CampaignWithDailyData[] = campaigns.map(campaign => {
         const dailyRecord = campaignDailyRecords.find(
           record => record.campaign_id === campaign.id && record.date === selectedDate

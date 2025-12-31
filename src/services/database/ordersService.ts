@@ -3,9 +3,6 @@ import type { Order, OrderStatus } from '../../types/orders';
 
 export const ordersDatabaseService = {
   async createOrder(orderData: Omit<Order, 'id' | 'created_at' | 'updated_at'>, company_id: string): Promise<Order | null> {
-    console.log('=== DEBUG: createOrder ===');
-    console.log('Datos de la orden:', JSON.stringify(orderData));
-    console.log('Company ID:', company_id);
     
     try {
       // Si existe carrier pero no shipping_company, usar carrier como shipping_company
@@ -38,7 +35,6 @@ export const ordersDatabaseService = {
         return null;
       }
       
-      console.log('Orden creada exitosamente:', data?.id);
       return data;
     } catch (error) {
       console.error('Excepción al crear orden:');
@@ -67,9 +63,6 @@ export const ordersDatabaseService = {
   },
 
   async getOrderByExternalId(externalId: string, company_id: string): Promise<Order | null> {
-    console.log('=== DEBUG: getOrderByExternalId ===');
-    console.log('ID externo:', externalId);
-    console.log('Company ID:', company_id);
     
     try {
       const { data, error } = await supabase
@@ -88,7 +81,6 @@ export const ordersDatabaseService = {
       }
 
       if (!data) {
-        console.log('No se encontró orden con ID externo:', externalId);
         return null;
       }
       
@@ -103,7 +95,6 @@ export const ordersDatabaseService = {
         profit
       };
       
-      console.log('Orden encontrada:', fullData.id);
       return fullData;
     } catch (error) {
       console.error('Excepción al buscar orden por ID externo:');
@@ -113,10 +104,6 @@ export const ordersDatabaseService = {
   },
 
   async updateOrder(orderId: string, orderData: Partial<Order>, company_id: string): Promise<Order | null> {
-    console.log('=== DEBUG: updateOrder ===');
-    console.log('ID de la orden:', orderId);
-    console.log('Datos de actualización:', JSON.stringify(orderData));
-    console.log('Company ID:', company_id);
     
     try {
       // Si existe carrier pero no shipping_company, usar carrier como shipping_company
@@ -165,7 +152,6 @@ export const ordersDatabaseService = {
         return null;
       }
       
-      console.log('Orden actualizada exitosamente:', data?.id);
       return data;
     } catch (error) {
       console.error('Excepción al actualizar orden:');

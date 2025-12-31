@@ -10,7 +10,6 @@ export const campaignBudgetChangeService = {
       date: change.date.includes('T') ? change.date : new Date(change.date).toISOString()
     };
     
-    console.log('Guardando cambio de presupuesto con fecha completa:', changeWithFullDate.date);
     
     const { data, error } = await supabase
       .from('campaign_budget_changes')

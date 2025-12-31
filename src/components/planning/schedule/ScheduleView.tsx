@@ -49,7 +49,6 @@ const ScheduleViewContent: React.FC<ScheduleViewProps> = ({ onAddEvent }) => {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
-        console.log('No hay usuario autenticado');
         return;
       }
 
@@ -60,7 +59,6 @@ const ScheduleViewContent: React.FC<ScheduleViewProps> = ({ onAddEvent }) => {
       const tasks = await taskService.getUserTasks();
 
       if (!Array.isArray(tasks)) {
-        console.log('No se recibieron tareas o el formato es incorrecto');
         setScheduleEvents([]);
         return;
       }

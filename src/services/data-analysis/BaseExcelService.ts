@@ -42,7 +42,6 @@ class BaseExcelService {
             throw new Error('No se encontraron datos en el archivo Excel');
           }
           
-          console.log('Datos del Excel:', jsonData[0]);
           resolve(jsonData);
         } catch (error) {
           console.error('Error al procesar Excel:', error);
@@ -68,7 +67,6 @@ class BaseExcelService {
   protected normalizeColumnNames(data: any[], columnMapping: Record<string, string>): any[] {
     if (!data || data.length === 0) return [];
     
-    console.log('Datos originales:', data[0]); // Mostrar los nombres de columnas originales para depuración
     
     // Normalizar los datos
     const result = data.map(item => {
@@ -100,7 +98,6 @@ class BaseExcelService {
     
     // Mostrar el resultado para depuración
     if (result.length > 0) {
-      console.log('Datos normalizados:', result[0]);
     }
     
     return result;
@@ -139,7 +136,6 @@ class BaseExcelService {
       }
       
       const numericValue = parseFloat(processedValue) || 0;
-      console.log(`Procesando valor: '${value}' → formato: '${processedValue}' → resultado: ${numericValue}`);
       return numericValue;
     }
     

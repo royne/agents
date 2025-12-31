@@ -178,7 +178,6 @@ class CarrierDatabaseService {
       
       // Si no existe, creamos una nueva transportadora para esta compañía
       if (!existingData) {
-        console.log('Transportadora no encontrada, creando una nueva');
         return this.createUserCarrier(updates as Omit<UserCarrier, 'id' | 'company_id' | 'created_at' | 'updated_at'>);
       }
       

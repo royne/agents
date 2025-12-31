@@ -14,7 +14,6 @@ export default function CalendarPage() {
 
   // Manejador para añadir un nuevo evento en una hora y sala específica
   const handleAddEvent = (roomId: string, hour: string) => {
-    console.log(`Añadir evento en sala ${roomId} a las ${hour}`);
     // Aquí se implementaría la lógica para abrir un modal de creación de evento
   };
 

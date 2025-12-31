@@ -198,7 +198,6 @@ export default function ImageProPage() {
       const data = await response.json();
 
       if (data.debug) {
-        console.log("DEBUG API RESPONSE:", data);
         alert(`STRATEGIC PROMPT (BACKEND):\n\n${data.strategicPrompt}\n\n(Revisa consola para ver las PARTES enviadas)`);
         setIsGenerating(false);
         return;

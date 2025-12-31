@@ -78,7 +78,6 @@ const MiniPomodoro: React.FC<MiniPomodoroProps> = ({ taskId, taskTitle, onClose 
   useEffect(() => {
     if (timeLeft === 0) {
       // Aquí se podría implementar una notificación
-      console.log('¡Tiempo de Pomodoro completado!');
     }
   }, [timeLeft]);
   

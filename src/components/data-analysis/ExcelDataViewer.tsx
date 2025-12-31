@@ -24,15 +24,11 @@ const ExcelDataViewer: React.FC<ExcelDataViewerProps> = ({ data, analysisType })
       try {
         if (analysisType === 'orders') {
           // Análisis por órdenes
-          console.log('Analizando datos de órdenes:', data);
           const result = ExcelAnalysisService.analyzeOrdersData(data);
-          console.log('Resultado del análisis:', result);
           setSummary(result);
         } else {
           // Análisis por productos
-          console.log('Analizando datos de productos:', data);
           const result = ExcelAnalysisService.analyzeProductsData(data);
-          console.log('Resultado del análisis:', result);
           setSummary(result);
         }
       } catch (error) {

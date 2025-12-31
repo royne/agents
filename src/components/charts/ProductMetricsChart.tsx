@@ -39,12 +39,12 @@ const ProductMetricsChart: React.FC<ProductMetricsChartProps> = ({
     cantidad: '#4caf50',  // Verde
     valor: '#ff9800'      // Naranja
   }), []);
-  
+
   // Función para limpiar el nombre del producto (quitar números al inicio)
   const cleanProductName = (name: string) => {
     return name.replace(/^[\d\s\-_.:#]+\s*/g, '');
   };
-  
+
   // Obtener los 5 productos principales para el radar
   const topProducts = useMemo(() => {
     return productProfitData
@@ -56,12 +56,12 @@ const ProductMetricsChart: React.FC<ProductMetricsChartProps> = ({
         value: product.totalValue || 0 // Usar totalValue en lugar de value
       })) || [];
   }, [productProfitData]);
-  
+
   // Verificar si hay datos válidos
   const hasValidData = useMemo(() => {
     return topProducts.some(p => p.profit > 0 || p.quantity > 0 || p.value > 0);
   }, [topProducts]);
-  
+
   // Calcular valores máximos para normalización
   const { maxProfit, maxQuantity, maxValue } = useMemo(() => {
     return {
@@ -70,23 +70,15 @@ const ProductMetricsChart: React.FC<ProductMetricsChartProps> = ({
       maxValue: Math.max(...topProducts.map(p => p.value), 1)
     };
   }, [topProducts]);
-  
+
   // Preparar datos para el radar chart
   const data = useMemo(() => {
-    console.log('Preparando datos para radar chart:', { 
-      topProducts, 
-      maxProfit, 
-      maxQuantity, 
-      maxValue,
-      colors: COLORS
-    });
-    
     return topProducts.map(product => {
       // Normalizar valores a porcentajes para el radar
       const profitPercent = (product.profit / maxProfit) * 100;
       const quantityPercent = (product.quantity / maxQuantity) * 100;
       const valuePercent = (product.value / maxValue) * 100;
-      
+
       return {
         subject: product.name,
         Ganancia: profitPercent,
@@ -116,21 +108,21 @@ const ProductMetricsChart: React.FC<ProductMetricsChartProps> = ({
         <ResponsiveContainer width="100%" height="85%">
           <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
             <PolarGrid strokeOpacity={0.5} />
-            <PolarAngleAxis 
-              dataKey="subject" 
+            <PolarAngleAxis
+              dataKey="subject"
               tick={{ fill: '#e2e8f0', fontSize: 11 }}
               tickFormatter={(value) => {
                 // Limitar la longitud del texto
                 return value.length > 15 ? value.substring(0, 15) + '...' : value;
               }}
             />
-            <PolarRadiusAxis 
-              angle={30} 
-              domain={[0, 100]} 
+            <PolarRadiusAxis
+              angle={30}
+              domain={[0, 100]}
               tick={{ fill: '#e2e8f0' }}
               tickCount={5}
             />
-            
+
             {/* Radar para Ganancia */}
             <Radar
               name="Ganancia"
@@ -141,7 +133,7 @@ const ProductMetricsChart: React.FC<ProductMetricsChartProps> = ({
               animationDuration={1000}
               isAnimationActive={true}
             />
-            
+
             {/* Radar para Cantidad */}
             <Radar
               name="Cantidad"
@@ -152,7 +144,7 @@ const ProductMetricsChart: React.FC<ProductMetricsChartProps> = ({
               animationDuration={1000}
               isAnimationActive={true}
             />
-            
+
             {/* Radar para Valor */}
             <Radar
               name="Valor"
@@ -163,12 +155,12 @@ const ProductMetricsChart: React.FC<ProductMetricsChartProps> = ({
               animationDuration={1000}
               isAnimationActive={true}
             />
-            
+
             {/* Tooltip personalizado */}
-            <Tooltip 
+            <Tooltip
               formatter={(value: number, name: string, props: any) => {
                 const entry = props.payload;
-                
+
                 if (name === 'Ganancia') {
                   return [formatCurrency(entry.originalProfit), 'Ganancia'];
                 } else if (name === 'Cantidad') {
@@ -178,17 +170,17 @@ const ProductMetricsChart: React.FC<ProductMetricsChartProps> = ({
                 }
                 return [value, name];
               }}
-              contentStyle={{ 
-                backgroundColor: '#1e293b', 
+              contentStyle={{
+                backgroundColor: '#1e293b',
                 border: '1px solid #475569',
                 color: '#e2e8f0',
                 padding: '8px',
                 borderRadius: '4px'
               }}
             />
-            
+
             {/* Leyenda personalizada */}
-            <Legend 
+            <Legend
               iconType="circle"
               wrapperStyle={{
                 paddingTop: '10px',

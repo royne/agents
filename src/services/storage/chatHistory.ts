@@ -111,7 +111,6 @@ export const chatHistoryService = {
       return messages;
     }
 
-    console.log(`Reduciendo contexto. Tokens estimados: ${estimatedTokens}, límite: ${MAX_CONTEXT_TOKENS}`);
     
     // Comenzamos con el mensaje del sistema
     const reducedMessages: ApiMessage[] = [systemPrompt];
@@ -133,7 +132,6 @@ export const chatHistoryService = {
       }
     }
 
-    console.log(`Contexto reducido. Mensajes originales: ${messages.length}, mensajes reducidos: ${reducedMessages.length}`);
     
     return reducedMessages;
   }

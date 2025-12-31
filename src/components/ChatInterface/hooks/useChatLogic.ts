@@ -37,13 +37,6 @@ export const useChatLogic = (apiKey: string, openaiApiKey?: string) => {
       const estimatedTokens = chatHistoryService.estimateMessagesTokens(apiMessages);
       const willReduceContext = estimatedTokens > 8000; // Mismo valor que MAX_CONTEXT_TOKENS
       const endpoint = `/api/agents/${selectedAgentId}`;
-      console.log('[chat] Enviando mensaje', {
-        selectedAgentId,
-        endpoint,
-        hasApiKey: !!apiKey,
-        messagesCount: apiMessages.length,
-        estimatedTokens
-      });
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -58,7 +51,6 @@ export const useChatLogic = (apiKey: string, openaiApiKey?: string) => {
       });
 
       const data = await response.json().catch(() => ({}));
-      console.log('[chat] Respuesta del servidor', { status: response.status, ok: response.ok, data });
       if (!response.ok) {
         throw new Error((data && (data.error || data.message)) || `HTTP ${response.status}`);
       }
