@@ -43,9 +43,9 @@ export const PLAN_ORDER: Plan[] = ['free', 'starter', 'pro', 'business', 'tester
 
 export const PLAN_CREDITS: Record<Plan, number> = {
   free: 50,
-  starter: 200,
+  starter: 500,
   pro: 1200,
-  business: 5000,
+  business: 3000,
   tester: 99999
 };
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaRocket, FaMagic, FaFilm, FaComments, FaArrowRight, FaCheckCircle, FaChartLine, FaRobot } from 'react-icons/fa';
+import { FaRocket, FaMagic, FaFilm, FaComments, FaArrowRight, FaCheckCircle, FaChartLine, FaRobot, FaPlayCircle, FaFileExcel } from 'react-icons/fa';
 import PlanPricing from '../profile/PlanPricing';
 
 const PublicLanding: React.FC = () => {
@@ -37,35 +37,48 @@ const PublicLanding: React.FC = () => {
 
       {/* Hero Section */}
       <section className="relative pt-40 pb-20 px-6 overflow-hidden">
-        <div className="max-w-5xl mx-auto text-center relative z-10">
+        <div className="max-w-7xl mx-auto flex flex-col items-center relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-color/10 border border-primary-color/20 text-primary-color text-[10px] font-black uppercase tracking-widest mb-8 animate-fade-in">
-            <FaRobot className="animate-pulse" /> IA Generativa para E-commerce
+            <FaRobot className="animate-pulse" /> IA Generativa & Control de Negocios
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[1.1] mb-8 bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-transparent italic">
-            Tu Negocio en <br />
-            <span className="text-primary-color not-italic">Piloto Automático</span>
+          <h1 className="text-5xl md:text-8xl font-black tracking-tighter leading-[0.95] mb-8 bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-transparent italic text-center">
+            Crea como un genio. <br />
+            <span className="text-primary-color not-italic">Controla como un experto.</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-gray-400 font-medium max-w-2xl mx-auto mb-12 leading-relaxed">
-            Crea Landings de alta conversión, creatividades publicitarias y videos virales en segundos con el poder de la Inteligencia Artificial más avanzada.
+          <p className="text-lg md:text-xl text-gray-400 font-medium max-w-3xl mx-auto mb-12 leading-relaxed text-center">
+            Domina el E-commerce con la suite más potente de IA. Desde creatividades virales hasta auditorías de rentabilidad en segundos.
           </p>
 
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-            <Link href="/auth/register" className="w-full md:w-auto px-8 py-4 bg-primary-color text-white rounded-2xl font-black text-sm tracking-wide shadow-2xl shadow-primary-color/30 hover:scale-105 transition-all flex items-center justify-center gap-3 border border-white/10">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-20">
+            <Link href="/auth/register" className="w-full md:w-auto px-10 py-5 bg-primary-color text-white rounded-2xl font-black text-sm tracking-wide shadow-[0_0_40px_rgba(18,216,250,0.3)] hover:scale-105 transition-all flex items-center justify-center gap-3 border border-white/10">
               INICIAR AHORA <FaArrowRight />
             </Link>
-            <Link href="#features" className="w-full md:w-auto px-8 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black text-sm tracking-wide transition-all border border-white/5 flex items-center justify-center gap-3 backdrop-blur-sm">
-              VER FUNCIONES
+            <Link href="#features" className="w-full md:w-auto px-10 py-5 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black text-sm tracking-wide transition-all border border-white/5 flex items-center justify-center gap-3 backdrop-blur-sm">
+              VER CAPACIDADES
             </Link>
           </div>
-        </div>
 
-        {/* Decorative Elements */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-20 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-white/5 rounded-full"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-white/5 rounded-full"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] border border-white/5 rounded-full"></div>
+          {/* Bento Grid Dashboard Preview - Simplified Skeleton until user provides image */}
+          <div className="w-full max-w-6xl mx-auto relative group">
+            <div className="relative z-10 p-2 md:p-4 bg-white/[0.02] border border-white/10 rounded-[2.5rem] shadow-2xl backdrop-blur-sm overflow-hidden transform hover:-translate-y-2 transition-all duration-700">
+              <div className="relative h-[300px] md:h-[600px] w-full rounded-3xl overflow-hidden border border-white/5">
+                <Image
+                  src="/dashboard-hero.png"
+                  alt="DROPAPP Dashboard"
+                  layout="fill"
+                  objectFit="cover"
+                  className="opacity-90 group-hover:opacity-100 transition-opacity"
+                />
+                {/* Overlay gradient for depth */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050608] via-transparent to-transparent opacity-60"></div>
+              </div>
+            </div>
+            {/* Ambient Glows */}
+            <div className="absolute -top-20 -left-20 w-64 h-64 bg-primary-color/20 blur-[100px] rounded-full pointer-events-none group-hover:bg-primary-color/30 transition-all"></div>
+            <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-purple-600/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-purple-600/20 transition-all"></div>
+          </div>
         </div>
       </section>
 
@@ -77,7 +90,7 @@ const PublicLanding: React.FC = () => {
             <p className="text-gray-500 font-medium italic">Diseñado para vender más con menos esfuerzo.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Landing PRO */}
             <div className="premium-card p-8 group hover:border-emerald-500/30 transition-all duration-500 bg-emerald-500/[0.02] hover:bg-emerald-500/[0.05]">
               <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-transform shadow-[0_0_20px_rgba(16,185,129,0.1)]">
@@ -85,25 +98,59 @@ const PublicLanding: React.FC = () => {
               </div>
               <h3 className="text-xl font-black mb-3">Landing PRO</h3>
               <p className="text-gray-400 text-sm leading-relaxed mb-6 font-medium">Genera páginas de aterrizaje optimizadas psicológicamente para la conversión inmediata.</p>
+
+              {/* Preview Container Real Integration */}
+              <div className="h-48 w-full bg-white/5 rounded-xl mb-6 relative overflow-hidden group-hover:border-emerald-500/20 border border-transparent transition-all shadow-inner">
+                <Image
+                  src="/landing-preview.png"
+                  alt="Landing PRO Preview"
+                  layout="fill"
+                  objectFit="cover"
+                  className="opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+                />
+                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent"></div>
+              </div>
+
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-2 text-xs font-bold text-gray-300"><FaCheckCircle className="text-emerald-500" /> Copywriting Persuasivo</li>
                 <li className="flex items-center gap-2 text-xs font-bold text-gray-300"><FaCheckCircle className="text-emerald-500" /> Diseño Responsive IA</li>
                 <li className="flex items-center gap-2 text-xs font-bold text-gray-300"><FaCheckCircle className="text-emerald-500" /> Carga Ultra Rápida</li>
               </ul>
+
+              <Link href="/auth/register" className="inline-flex items-center gap-2 text-sm font-black text-emerald-400 group/link">
+                CREAR LANDING <FaArrowRight className="text-xs group-hover/link:translate-x-1 transition-transform" />
+              </Link>
             </div>
 
-            {/* Agente PRO */}
+            {/* Imagen PRO */}
             <div className="premium-card p-8 group hover:border-blue-500/30 transition-all duration-500 bg-blue-500/[0.02] hover:bg-blue-500/[0.05]">
               <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:-rotate-3 transition-transform shadow-[0_0_20px_rgba(59,130,246,0.1)]">
                 <FaMagic className="text-2xl text-blue-400" />
               </div>
-              <h3 className="text-xl font-black mb-3">Agente PRO</h3>
+              <h3 className="text-xl font-black mb-3">Imagen PRO</h3>
               <p className="text-gray-400 text-sm leading-relaxed mb-6 font-medium">Banners, catálogos y creatividades publicitarias que detienen el scroll.</p>
+
+              {/* Preview Container Real Integration (Yerba Magic Result) */}
+              <div className="h-48 w-full bg-white/5 rounded-xl mb-6 relative overflow-hidden group-hover:border-blue-500/20 border border-transparent transition-all shadow-inner">
+                <Image
+                  src="/imagen-pro-result.png"
+                  alt="Imagen PRO Real Result"
+                  layout="fill"
+                  objectFit="cover"
+                  className="opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+                />
+                <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-black/80 to-transparent"></div>
+              </div>
+
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-2 text-xs font-bold text-gray-300"><FaCheckCircle className="text-blue-500" /> Calidad Studio 2K</li>
                 <li className="flex items-center gap-2 text-xs font-bold text-gray-300"><FaCheckCircle className="text-blue-500" /> Remoción de Fondo IA</li>
                 <li className="flex items-center gap-2 text-xs font-bold text-gray-300"><FaCheckCircle className="text-blue-500" /> Variantes para Ads</li>
               </ul>
+
+              <Link href="/auth/register" className="inline-flex items-center gap-2 text-sm font-black text-blue-400 group/link">
+                CREAR IMÁGENES <FaArrowRight className="text-xs group-hover/link:translate-x-1 transition-transform" />
+              </Link>
             </div>
 
             {/* Video PRO */}
@@ -113,11 +160,67 @@ const PublicLanding: React.FC = () => {
               </div>
               <h3 className="text-xl font-black mb-3">Video PRO</h3>
               <p className="text-gray-400 text-sm leading-relaxed mb-6 font-medium">Videos cortos para redes sociales con ganchos virales generados automáticamente.</p>
+
+              {/* Preview Container Real Integration (Video Panel) */}
+              <div className="h-48 w-full bg-white/5 rounded-xl mb-6 relative overflow-hidden group-hover:border-purple-500/20 border border-transparent transition-all shadow-inner">
+                <Image
+                  src="/video-pro-panel.png"
+                  alt="Video PRO Panel"
+                  layout="fill"
+                  objectFit="cover"
+                  className="opacity-60 group-hover:opacity-100 transition-all duration-700"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <FaPlayCircle className="text-3xl text-white/40 group-hover:text-purple-500/60 transition-colors bg-black/20 rounded-full p-2 backdrop-blur-sm" />
+                </div>
+              </div>
+
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-2 text-xs font-bold text-gray-300"><FaCheckCircle className="text-purple-500" /> Ganchos de Atención</li>
                 <li className="flex items-center gap-2 text-xs font-bold text-gray-300"><FaCheckCircle className="text-purple-500" /> Formato Social Vertical</li>
                 <li className="flex items-center gap-2 text-xs font-bold text-gray-300"><FaCheckCircle className="text-purple-500" /> Edición con un Click</li>
               </ul>
+
+              <Link href="/auth/register" className="inline-flex items-center gap-2 text-sm font-black text-purple-400 group/link">
+                CREAR VIDEO AD <FaArrowRight className="text-xs group-hover/link:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+
+            {/* Agentes Especializados */}
+            <div className="premium-card p-8 group hover:border-blue-400/30 transition-all duration-500 bg-blue-400/[0.02] hover:bg-blue-400/[0.05]">
+              <div className="w-14 h-14 rounded-2xl bg-blue-400/10 border border-blue-400/20 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:-rotate-3 transition-transform shadow-[0_0_20px_rgba(34,211,238,0.1)]">
+                <FaComments className="text-2xl text-blue-300" />
+              </div>
+              <h3 className="text-xl font-black mb-3">Agentes Especializados</h3>
+              <p className="text-gray-400 text-sm leading-relaxed mb-6 font-medium">Chatea con IAs expertas en ventas o crea tus propios agentes personalizados para tu nicho.</p>
+
+              {/* Preview Container Real Integration (Agents Chat) */}
+              <div className="h-48 w-full bg-white/5 rounded-xl mb-6 relative overflow-hidden group-hover:border-blue-400/20 border border-transparent transition-all shadow-inner">
+                <Image
+                  src="/agents-pro.png"
+                  alt="Agentes PRO Chat"
+                  layout="fill"
+                  objectFit="cover"
+                  className="opacity-60 group-hover:opacity-100 transition-all duration-700"
+                />
+                <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-black/80 to-transparent"></div>
+              </div>
+
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-2 text-xs font-bold text-gray-300">
+                  <FaCheckCircle className="text-blue-400" /> Chat con IA de Ventas
+                </li>
+                <li className="flex items-center gap-2 text-xs font-bold text-gray-300">
+                  <FaCheckCircle className="text-blue-400" /> Creación de Agentes Propios
+                </li>
+                <li className="flex items-center gap-2 text-xs font-bold text-gray-300">
+                  <FaCheckCircle className="text-blue-400" /> Entrenamiento con tus Datos
+                </li>
+              </ul>
+
+              <Link href="/auth/register" className="inline-flex items-center gap-2 text-sm font-black text-blue-400 group/link">
+                CONFIGURAR AGENTE <FaArrowRight className="text-xs group-hover/link:translate-x-1 transition-transform" />
+              </Link>
             </div>
           </div>
         </div>
@@ -127,57 +230,64 @@ const PublicLanding: React.FC = () => {
       <section className="py-20 px-6 bg-white/[0.02] border-y border-white/5 relative">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
           <div className="flex-1">
-            <h2 className="text-4xl font-black tracking-tighter mb-6 italic">Control Total y <br /> <span className="text-primary-color not-italic">Rentabilidad Real</span></h2>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-6 italic">Control Total y <br /> <span className="text-primary-color not-italic">Rentabilidad Real</span></h2>
             <p className="text-gray-400 font-medium mb-8 leading-relaxed">
-              No solo creamos contenido, te ayudamos a tomar decisiones. Analiza tu rentabilidad, calcula tus márgenes y optimiza tus flujos de trabajo con agentes inteligentes que saben de negocios.
+              No solo creamos contenido, auditamos tu éxito. Sube tu Excel y deja que la IA te diga exactamente dónde estás perdiendo dinero por fletes y devoluciones.
             </p>
+
+            <div className="space-y-4 mb-8">
+              <div className="flex items-center gap-3 text-sm font-bold text-white/80">
+                <FaCheckCircle className="text-primary-color" /> Auditoría de fletes automática
+              </div>
+              <div className="flex items-center gap-3 text-sm font-bold text-white/80">
+                <FaCheckCircle className="text-primary-color" /> Cálculo de Punto de Equilibrio real
+              </div>
+              <div className="flex items-center gap-3 text-sm font-bold text-white/80">
+                <FaCheckCircle className="text-primary-color" /> Detección de fugas de dinero
+              </div>
+            </div>
 
             <div className="grid grid-cols-2 gap-6">
               <div className="flex flex-col gap-2">
-                <span className="text-2xl font-bold text-white">90%</span>
-                <span className="text-xs font-bold text-gray-500 tracking-widest uppercase">Más Rápido</span>
+                <span className="text-2xl font-bold text-white">10s</span>
+                <span className="text-xs font-bold text-gray-500 tracking-widest uppercase">Análisis Total</span>
               </div>
               <div className="flex flex-col gap-2">
-                <span className="text-2xl font-bold text-white">5x</span>
-                <span className="text-xs font-bold text-gray-500 tracking-widest uppercase">Más Conversión</span>
+                <span className="text-2xl font-bold text-white">ROI</span>
+                <span className="text-xs font-bold text-gray-500 tracking-widest uppercase">Optimizado</span>
               </div>
             </div>
           </div>
 
-          <div className="flex-1 relative">
-            <div className="relative z-10 p-4 bg-[#0A0C10] border border-white/10 rounded-3xl shadow-2xl rotate-3 hover:rotate-0 transition-all duration-500 overflow-hidden group">
-              <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-2">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/50"></div>
-                </div>
-                <span className="text-[10px] text-gray-500 font-mono">DROPAPP_DASHBOARD</span>
-              </div>
-              <div className="space-y-3">
-                <div className="h-20 w-full bg-white/5 rounded-xl flex items-center px-4 gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-primary-color/20 border border-primary-color/30 flex items-center justify-center">
-                    <FaComments className="text-primary-color" />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <div className="h-2 w-24 bg-white/20 rounded"></div>
-                    <div className="h-1.5 w-full bg-white/10 rounded"></div>
-                  </div>
-                </div>
-                <div className="h-20 w-full bg-white/5 rounded-xl flex items-center px-4 gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
-                    <FaChartLine className="text-emerald-500" />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <div className="h-2 w-32 bg-white/20 rounded"></div>
-                    <div className="h-1.5 w-full bg-white/10 rounded"></div>
-                  </div>
-                </div>
+          <div className="flex-1 relative w-full">
+            <div className="relative z-10 p-2 bg-white/[0.02] border border-white/10 rounded-3xl shadow-2xl md:rotate-3 hover:rotate-0 transition-all duration-500 overflow-hidden group">
+              <div className="relative h-[250px] md:h-[400px] w-full rounded-2xl overflow-hidden">
+                <Image
+                  src="/profitability-audit.png"
+                  alt="Control Total Preview"
+                  layout="fill"
+                  objectFit="cover"
+                  className="opacity-80 group-hover:opacity-100 transition-opacity"
+                />
               </div>
             </div>
             {/* Fake Shadow Glow */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary-color/20 blur-[80px] rounded-full pointer-events-none"></div>
           </div>
+        </div>
+      </section>
+
+      {/* Hero Profitability CTA */}
+      <section className="py-20 px-6 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto rounded-[3rem] bg-gradient-to-r from-primary-color/10 to-blue-600/10 border border-white/10 p-12 text-center relative">
+          <div className="absolute top-0 left-0 w-full h-full bg-[url('/grid.svg')] opacity-10 pointer-events-none"></div>
+          <h2 className="text-3xl md:text-5xl font-black tracking-tighter mb-6 italic">"Deja de trabajar para las <span className="text-primary-color not-italic">transportadoras."</span></h2>
+          <p className="text-gray-400 font-medium max-w-3xl mx-auto mb-10 leading-relaxed">
+            Sube tu reporte de ventas y descubre en 10 segundos si tu producto ganador realmente te deja ganancias o si las devoluciones se están llevando tu utilidad.
+          </p>
+          <Link href="/auth/register" className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all">
+            PROBAR AUDITORÍA GRATIS <FaFileExcel />
+          </Link>
         </div>
       </section>
 
@@ -208,7 +318,7 @@ const PublicLanding: React.FC = () => {
               <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 p-1.5 flex items-center justify-center">
                 <Image src="/droplab.png" alt="DROPAPP" width={16} height={16} className="object-cover" />
               </div>
-              <span className="text-sm font-black tracking-tighter">DROPAPP &copy; 2025</span>
+              <span className="text-sm font-black tracking-tighter">DROPAPP &copy; 2026</span>
             </div>
             <div className="flex gap-8">
               <Link href="#" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">Términos</Link>

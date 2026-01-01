@@ -20,33 +20,57 @@ interface DbPlan {
 
 const PLANS_METADATA: Record<string, { tagline: string; highlight: boolean; buttonText: string; features: string[] }> = {
   free: {
-    tagline: 'Personal / Tester',
+    tagline: 'Validación / Free',
     highlight: false,
     buttonText: 'Empezar Gratis',
-    features: ['Agentes de Chat', 'Calculadora', 'Configuración Básica'],
+    features: [
+      'Imagen Pro (Ads y Personas) - 10 cr',
+      'Agentes IA Especializados - 1 cr',
+      'Logística (Análisis Básico) - $0 cr',
+      'Calculadora de Precios - $0 cr',
+      'Landing Fast Incluida'
+    ],
   },
   starter: {
-    tagline: 'Pyme / Starter',
+    tagline: 'Emprendedor / Starter',
     highlight: false,
-    buttonText: 'Seleccionar Plan',
-    features: ['Todo lo de FREE', 'Módulo de Logística', 'Análisis de Datos'],
+    buttonText: 'Seleccionar Starter',
+    features: [
+      'Todo lo de Plan FREE',
+      'Video Pro UGC (Hasta 8s) - 80 cr',
+      'Master Chat de Ventas',
+      'Análisis de Rentabilidad Detallado',
+      'Landing Pro Incluida'
+    ],
   },
   pro: {
     tagline: 'Escalación / PRO',
     highlight: true,
     buttonText: 'Elegir PRO',
-    features: ['Todo lo de Starter', 'Landings PRO Ilimitadas', 'Agente PRO (Imágenes 2K)', 'Master Chat con RAG'],
+    features: [
+      'Todo lo de Plan Starter',
+      'Landing Pro Completas & Secciones',
+      'Auditoría de Rentabilidad Avanzada',
+      'Análisis de Fletes y Devoluciones',
+      'Soporte Prioritario'
+    ],
   },
   business: {
-    tagline: 'Dominación / Business',
+    tagline: 'Operaciones / Business',
     highlight: false,
-    buttonText: 'Seleccionar Plan',
-    features: ['Todo lo de PRO', 'Video PRO Generativo', 'Soporte Prioritario'],
+    buttonText: 'Seleccionar Business',
+    features: [
+      'Todo lo de Plan PRO',
+      'Consultoría Financiera IA',
+      'Análisis de logística, ultimos movimientos',
+      'Soporte VIP por WhatsApp',
+      'Acceso Early Bird a Nuevos Agentes'
+    ],
   }
 };
 
 const HARDCODED_PLANS: DbPlan[] = [
-  { key: 'free', name: 'Gratuito', price_usd: 0, monthly_credits: 20, features: {} },
+  { key: 'free', name: 'Gratuito', price_usd: 0, monthly_credits: 50, features: {} },
   { key: 'starter', name: 'Starter', price_usd: 19, monthly_credits: 500, features: {} },
   { key: 'pro', name: 'Professional', price_usd: 39, monthly_credits: 1200, features: {} },
   { key: 'business', name: 'Business', price_usd: 79, monthly_credits: 3000, features: {} },
