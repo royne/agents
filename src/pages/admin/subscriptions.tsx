@@ -99,8 +99,10 @@ export default function SubscriptionsManagement() {
                 <thead>
                   <tr className="border-b border-white/5">
                     <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Usuario</th>
+                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Registro</th>
                     <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Plan Actual</th>
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Créditos Disponibles</th>
+                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Iniciado</th>
+                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Créditos</th>
                     <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Expiración</th>
                     <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Ilimitado</th>
                     <th className="px-6 py-4 text-right text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Acciones</th>
@@ -122,6 +124,11 @@ export default function SubscriptionsManagement() {
                           <span className="text-xs text-theme-tertiary opacity-60">{item.profiles?.email}</span>
                         </div>
                       </td>
+                      <td className="px-6 py-4">
+                        <span className="text-xs text-theme-secondary">
+                          {item.profiles?.created_at ? new Date(item.profiles.created_at).toLocaleDateString() : 'N/A'}
+                        </span>
+                      </td>
                       <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                         <select
                           className="bg-theme-component border border-white/10 rounded-lg px-2 py-1 text-sm focus:ring-1 focus:ring-primary-color outline-none"
@@ -134,11 +141,16 @@ export default function SubscriptionsManagement() {
                           ))}
                         </select>
                       </td>
+                      <td className="px-6 py-4">
+                        <span className="text-xs text-theme-secondary">
+                          {item.updated_at ? new Date(item.updated_at).toLocaleDateString() : 'N/A'}
+                        </span>
+                      </td>
                       <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-2">
                           <input
                             type="number"
-                            className="w-24 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-sm font-bold text-primary-color"
+                            className="w-20 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-sm font-bold text-primary-color"
                             defaultValue={item.balance}
                             onBlur={(e) => {
                               const val = parseInt(e.target.value);

@@ -283,8 +283,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     if (data.user) {
+      // Notificar nuevo registro
+      try {
+        fetch('/api/notifications/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'new_user',
+            email: email,
+            name: name
+          })
+        });
+      } catch (e) {
+        console.warn('Error al enviar notificación de registro:', e);
+      }
+
       // El perfil y los créditos se crean automáticamente vía Trigger SQL
-      // gracias a los metadatos pasados en el signUp.
       return { success: true };
     }
 

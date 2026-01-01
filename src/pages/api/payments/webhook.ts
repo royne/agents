@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { BoldService } from '../../../lib/boldService';
 import { supabaseAdmin } from '../../../lib/supabaseAdmin';
 import { Plan, PLAN_CREDITS } from '../../../constants/plans';
+import { NotificationService } from '../../../lib/notificationService';
 
 // Bold envía el cuerpo en crudo para la validación de la firma
 export const config = {
@@ -76,6 +77,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (profileError) {
             console.error('Error al actualizar perfil con supabaseAdmin:', profileError);
           }
+          
+          // Notificar venta aprobada
+          await NotificationService.notifyNewSale(userId, planKey);
           
           console.log(`✅ Plan ${planKey} activado correctamente para ${userId}`);
         }

@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { createPagesServerClient } from '@supabase/auth-helpers-nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../../../types/database';
+import { NotificationService } from '../../../lib/notificationService';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Solo permitir método POST
@@ -223,6 +224,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // El perfil y créditos se crean automáticamente vía Trigger SQL
     // No es necesario insertar manualmente aquí
+
+    // Notificar creación (opcional, pero consistente con registro público)
+    await NotificationService.notifyNewUser(email, name);
 
     // Éxito
     return res.status(200).json({ 

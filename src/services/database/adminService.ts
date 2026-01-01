@@ -331,7 +331,8 @@ export const adminService = {
         *,
         profiles (
           email,
-          name
+          name,
+          created_at
         )
       `)
       .order('updated_at', { ascending: false });
