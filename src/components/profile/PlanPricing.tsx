@@ -105,9 +105,17 @@ const PlanPricing: React.FC<PlanPricingProps> = ({ isPublic = false }) => {
 
     try {
       setLoadingPlan(planKey);
+
+      // Obtener el token de sesión actual
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
       const response = await fetch('/api/payments/create-link', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({ planKey }),
       });
 
