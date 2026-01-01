@@ -23,6 +23,7 @@ type AppContextType = {
     modulesOverride?: Partial<Record<ModuleKey, boolean>>;
     activeModules?: ModuleKey[];
     credits?: number;
+    expiresAt?: string;
   } | null;
   themeConfig: ThemeConfig;
   setApiKey: (key: string | null) => void;
@@ -86,7 +87,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             const [profileRes, creditsRes] = await Promise.race([
               Promise.all([
                 supabase.from('profiles').select('company_id, role, name, plan, modules_override').eq('user_id', session.user.id).single(),
-                supabase.from('user_credits').select('plan_key, balance').eq('user_id', session.user.id).single()
+                supabase.from('user_credits').select('plan_key, balance, expires_at').eq('user_id', session.user.id).single()
               ]),
               dbTimeout(5000) as Promise<[any, any]>
             ]);
@@ -116,6 +117,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               name: profile?.name,
               plan: planKey,
               credits: creditsData?.balance || 0,
+              expiresAt: creditsData?.expires_at,
               modulesOverride: (profile as any)?.modules_override || undefined,
               activeModules: activeModules,
             };
@@ -231,7 +233,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const { data: creditsData } = await supabase
         .from('user_credits')
-        .select('plan_key, balance')
+        .select('plan_key, balance, expires_at')
         .eq('user_id', data.user.id)
         .single();
 
@@ -255,6 +257,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         name: profile?.name,
         plan: planKey,
         credits: creditsData?.balance || 0,
+        expiresAt: creditsData?.expires_at,
         modulesOverride: (profile as any)?.modules_override || undefined,
         activeModules: activeModules,
       };

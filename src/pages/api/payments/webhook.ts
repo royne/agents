@@ -58,6 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             balance: credits,
             unlimited_credits: planKey === 'tester',
             expires_at: expiresAt.toISOString(),
+            is_active: true,
             updated_at: new Date().toISOString()
           })
           .eq('user_id', userId);

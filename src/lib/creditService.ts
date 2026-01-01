@@ -12,7 +12,7 @@ export class CreditService {
 
     const { data: credits, error } = await supabaseClient
       .from('user_credits')
-      .select('balance, unlimited_credits')
+      .select('balance, unlimited_credits, expires_at, plan_key')
       .eq('user_id', userId)
       .single();
 
@@ -20,6 +20,27 @@ export class CreditService {
       console.error('Error fetching credits:', error);
       return { can: false, balance: 0, isUnlimited: false };
     }
+
+    // --- Lógica de Expiración ---
+    const now = new Date();
+    const expiresAt = credits.expires_at ? new Date(credits.expires_at) : null;
+
+    if (expiresAt && now > expiresAt && credits.plan_key !== 'free') {
+      console.log(`Plan expirado para ${userId}. Degradando a free.`);
+      // Degradación perezosa
+      await supabaseClient
+        .from('user_credits')
+        .update({
+          plan_key: 'free',
+          balance: 0,
+          is_active: false,
+          updated_at: now.toISOString()
+        })
+        .eq('user_id', userId);
+        
+      return { can: false, balance: 0, isUnlimited: false };
+    }
+    // ----------------------------
 
     if (credits.unlimited_credits) {
       return { can: true, balance: credits.balance, isUnlimited: true };
@@ -43,11 +64,30 @@ export class CreditService {
     // 1. Obtener estado actual
     const { data: credits } = await supabaseClient
       .from('user_credits')
-      .select('balance, unlimited_credits, total_consumed')
+      .select('balance, unlimited_credits, total_consumed, expires_at, plan_key')
       .eq('user_id', userId)
       .single();
 
     if (!credits) return { success: false, error: 'No se encontró billetera de créditos' };
+
+    // --- Lógica de Expiración ---
+    const now = new Date();
+    const expiresAt = credits.expires_at ? new Date(credits.expires_at) : null;
+
+    if (expiresAt && now > expiresAt && credits.plan_key !== 'free') {
+      console.log(`Plan expirado para ${userId} durante consumo. Degradando a free.`);
+      await supabaseClient
+        .from('user_credits')
+        .update({
+          plan_key: 'free',
+          balance: 0,
+          is_active: false,
+          updated_at: now.toISOString()
+        })
+        .eq('user_id', userId);
+      return { success: false, error: 'Tu suscripción ha expirado. Por favor, renueva tu plan.' };
+    }
+    // ----------------------------
 
     // 2. Si es ilimitado, solo logueamos pero no restamos
     if (credits.unlimited_credits) {
@@ -56,7 +96,7 @@ export class CreditService {
     }
 
     if (credits.balance < cost) {
-      return { success: false, error: 'Créditos insuficientes' };
+      return { success: false, error: 'Créditos insuficientes o plan expirado' };
     }
 
     // 3. Restar créditos

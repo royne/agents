@@ -5,6 +5,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import type { ModuleKey } from '../../constants/plans';
 import Link from 'next/link';
 import Image from 'next/image';
+import RenewalBanner from '../common/RenewalBanner';
 
 type MenuItem = { name: string; icon: any; path: string; adminOnly?: boolean; showForAllAdmins?: boolean; moduleKey: ModuleKey };
 
@@ -282,6 +283,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
         className={`flex-1 bg-theme-primary overflow-y-auto h-screen ${(hasHydrated && !navInProgress) ? 'transition-all duration-300' : 'transition-none'}
                    md:ml-16 ${isSidebarOpen ? 'md:ml-64' : 'md:ml-16'} pb-16 md:pb-0 flex flex-col`}
       >
+        <RenewalBanner />
         <div className="flex-grow p-4 md:p-8">
           {children}
         </div>
