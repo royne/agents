@@ -46,6 +46,7 @@ export interface UserWithProfile {
     plan_key: string;
     unlimited_credits: boolean;
     expires_at?: string;
+    is_active?: boolean;
   };
 }
 
@@ -219,7 +220,8 @@ export const adminService = {
             balance: userCredits.balance,
             plan_key: userCredits.plan_key,
             unlimited_credits: userCredits.unlimited_credits,
-            expires_at: userCredits.expires_at
+            expires_at: userCredits.expires_at,
+            is_active: userCredits.is_active
           } : undefined
         };
       });
@@ -345,7 +347,7 @@ export const adminService = {
     return data || [];
   },
 
-  async updateUserCredits(userId: string, updates: { balance?: number, plan_key?: string, unlimited_credits?: boolean }): Promise<boolean> {
+  async updateUserCredits(userId: string, updates: { balance?: number, plan_key?: string, unlimited_credits?: boolean, is_active?: boolean }): Promise<boolean> {
     const { error } = await supabase
       .from('user_credits')
       .update({

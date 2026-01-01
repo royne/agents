@@ -102,6 +102,7 @@ export default function SubscriptionsManagement() {
                     <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Registro</th>
                     <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Plan Actual</th>
                     <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Iniciado</th>
+                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Estado</th>
                     <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Créditos</th>
                     <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Expiración</th>
                     <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Ilimitado</th>
@@ -145,6 +146,14 @@ export default function SubscriptionsManagement() {
                         <span className="text-xs text-theme-secondary">
                           {item.updated_at ? new Date(item.updated_at).toLocaleDateString() : 'N/A'}
                         </span>
+                      </td>
+                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => handleUpdate(item.user_id, { is_active: !item.is_active })}
+                          className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${item.is_active ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}`}
+                        >
+                          {item.is_active ? 'Activo' : 'Vencido'}
+                        </button>
                       </td>
                       <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-2">

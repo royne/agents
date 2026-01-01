@@ -227,6 +227,11 @@ export default function UsersManagement() {
                                   {user.credits?.plan_key || 'free'}
                                 </span>
                                 <span className="font-bold">{user.credits?.balance ?? 0} 🪙</span>
+                                {user.credits && (
+                                  <span className={`px-1 rounded text-[8px] font-black uppercase ${user.credits.is_active ? 'bg-green-500/20 text-green-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                                    {user.credits.is_active ? 'Activo' : 'Vencido'}
+                                  </span>
+                                )}
                               </div>
                               {user.credits?.expires_at && (
                                 <span className="opacity-70">
