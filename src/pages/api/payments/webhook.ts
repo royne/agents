@@ -80,7 +80,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           
           // Notificar venta aprobada
-          await NotificationService.notifyNewSale(userId, planKey);
+          const amount = payload.data.amount ? `$${payload.data.amount.toLocaleString('es-CO')}` : undefined;
+          await NotificationService.notifyNewSale(userId, planKey, amount);
           
           console.log(`✅ Plan ${planKey} activado correctamente para ${userId}`);
         }

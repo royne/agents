@@ -1,7 +1,7 @@
 export class NotificationService {
   private static webhookUrl = process.env.NOTIFICATIONS_WEBHOOK_URL;
 
-  static async send(message: string, title?: string, color: number = 0x3B82F6) {
+  static async send(message: string, title?: string, color: number = 0x3B82F6, fields: { name: string, value: string, inline?: boolean }[] = []) {
     if (!this.webhookUrl) {
       console.warn('NOTIFICATIONS_WEBHOOK_URL no configurada. Saltando notificación.');
       return false;
@@ -14,6 +14,7 @@ export class NotificationService {
             title: title || 'Notificación de DROPAPP',
             description: message,
             color: color,
+            fields: fields,
             timestamp: new Date().toISOString(),
             footer: {
               text: 'Sistema de Alertas DROPAPP',
@@ -39,17 +40,31 @@ export class NotificationService {
 
   static async notifyNewUser(email: string, name: string) {
     return this.send(
-      `👤 **Nuevo Usuario Registrado**\n**Nombre:** ${name}\n**Email:** ${email}`,
-      'Registro de Usuario',
-      0x10B981 // Verde
+      `🚀 **¡Un nuevo usuario se ha unido a la plataforma!**`,
+      'Nuevo Registro de Usuario',
+      0x10B981, // Verde
+      [
+        { name: 'Nombre', value: name, inline: true },
+        { name: 'Email', value: email, inline: true }
+      ]
     );
   }
 
   static async notifyNewSale(userId: string, plan: string, amount?: string) {
+    const fields = [
+      { name: 'Usuario ID', value: userId, inline: false },
+      { name: 'Plan', value: plan.toUpperCase(), inline: true }
+    ];
+
+    if (amount) {
+      fields.push({ name: 'Monto', value: amount, inline: true });
+    }
+
     return this.send(
-      `💰 **Nuevo Plan Adquirido**\n**Usuario ID:** ${userId}\n**Plan:** ${plan.toUpperCase()}${amount ? `\n**Monto:** ${amount}` : ''}`,
+      `💰 **¡Nueva venta procesada con éxito!**`,
       'Venta Aprobada',
-      0xF59E0B // Dorado/Amarillo
+      0xF59E0B, // Dorado/Amarillo
+      fields
     );
   }
 }
