@@ -17,8 +17,16 @@ export class BaseImageProService {
 
     // Si es una URL externa (como Supabase Storage)
     if (url.startsWith('http')) {
+      console.log(`[BaseImageProService] Descargando imagen: ${url.substring(0, 50)}...`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+
       try {
-        const response = await fetch(url);
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
         const blob = await response.blob();
         const buffer = await blob.arrayBuffer();
         const mimeType = blob.type || 'image/png';
@@ -29,8 +37,10 @@ export class BaseImageProService {
         );
         
         return { data: base64, mimeType };
-      } catch (error) {
-        console.error(`[BaseImageProService] Error fetching image URL: ${url}`, error);
+      } catch (error: any) {
+        clearTimeout(timeoutId);
+        console.error(`[BaseImageProService] Error descargando imagen (${url.substring(0, 30)}): ${error.message}`);
+        // Si falla la descarga, devolvemos null para no bloquear el proceso
         return null;
       }
     }
@@ -83,5 +93,28 @@ export class BaseImageProService {
     - TARGET AUDIENCE: ${productData.buyer || 'High-end premium market'}
     - VALUE PROPOSITION: ${productData.angle || 'Exclusivity and superior quality'}
     - VISUAL GOAL: ${productData.details || 'Professional studio lighting, clean background, sharp focus'}`;
+  }
+
+  public static async buildRestPayload(strategicPrompt: string, parts: any[], aspectRatio: string = '1:1') {
+    const instance: any = {
+      prompt: strategicPrompt
+    };
+
+    // Extraer imágenes de las partes para el formato REST
+    const imagePart = parts.find(p => p.inlineData);
+    if (imagePart) {
+      instance.image = {
+        bytesBase64Encoded: imagePart.inlineData.data,
+        mimeType: imagePart.inlineData.mimeType
+      };
+    }
+
+    return {
+      instances: [instance],
+      parameters: {
+        aspectRatio: aspectRatio,
+        negativePrompt: "low quality, blurry, distorted, watermarks"
+      }
+    };
   }
 }

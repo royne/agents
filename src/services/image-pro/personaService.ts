@@ -59,6 +59,13 @@ export class PersonaService extends BaseImageProService {
     const parts = this.buildBasePart(strategicPrompt);
     await this.handleImages(parts, previousImageUrl, referenceImage, 'style');
 
-    return { strategicPrompt, parts };
+    const restPayload = await this.buildRestPayload(strategicPrompt, parts, aspectRatio);
+
+    return { 
+      strategicPrompt, 
+      parts,
+      instances: restPayload.instances,
+      parameters: restPayload.parameters
+    };
   }
 }

@@ -13,9 +13,10 @@ import { ReferenceLibraryModal } from '../../components/ImageGen/ReferenceLibrar
 import UsageCounter from '../../components/ImageGen/UsageCounter';
 import { useImageUsage } from '../../hooks/useImageUsage';
 import Head from 'next/head';
+import { HistoryModal } from '../../components/ImageGen/HistoryModal';
 
 export default function ImageProPage() {
-  const { googleAiKey, canAccessModule, isSuperAdmin } = useAppContext();
+  const { authData, googleAiKey, canAccessModule, isSuperAdmin } = useAppContext();
   const { openApiKeyModal } = useApiKey();
   const { credits, loading: usageLoading, refreshCredits } = useImageUsage();
   const router = useRouter();
@@ -36,6 +37,7 @@ export default function ImageProPage() {
   const [isCorrectionModalOpen, setIsCorrectionModalOpen] = useState(false);
   const [correctionPrompt, setCorrectionPrompt] = useState('');
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   // NUEVOS ESTADOS PARA MODOS
   const [generationMode, setGenerationMode] = useState<'libre' | 'ads' | 'personas'>('libre');
@@ -202,7 +204,9 @@ export default function ImageProPage() {
         setIsGenerating(false);
         return;
       }
-      if (data.success) {
+
+      if (data.success && data.imageUrl) {
+        // Caso éxito inmediato
         if (generationMode === 'ads' && adsSubMode === 'completo') {
           setGenerations(prev => ({ ...prev, [ADS_STEPS[currentAdStep].id]: data.imageUrl }));
           setGeneratedImageUrl(data.imageUrl);
@@ -210,28 +214,93 @@ export default function ImageProPage() {
           setGeneratedImageUrl(data.imageUrl);
         }
         setTimeout(() => refreshCredits(), 500);
+      } else if (data.generationId) {
+        // Iniciar POLLING
+        const startPolling = async (genId: string) => {
+          let attempts = 0;
+          const maxAttempts = 60; // 2 minutos (2s * 60)
+
+          const poll = async () => {
+            if (attempts >= maxAttempts) {
+              alert('La generación está tardando más de lo esperado. Podrás ver el resultado en tu historial en unos minutos.');
+              setIsGenerating(false);
+              return;
+            }
+
+            try {
+              const res = await fetch(`/api/image-pro/status?id=${genId}`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+              });
+              const statusData = await res.json();
+
+              if (statusData.done) {
+                if (statusData.success) {
+                  const finalUrl = statusData.imageUrl;
+                  if (generationMode === 'ads' && adsSubMode === 'completo') {
+                    setGenerations(prev => ({ ...prev, [ADS_STEPS[currentAdStep].id]: finalUrl }));
+                    setGeneratedImageUrl(finalUrl);
+                  } else {
+                    setGeneratedImageUrl(finalUrl);
+                  }
+                  refreshCredits();
+                  setIsGenerating(false);
+                } else {
+                  alert(statusData.error || 'Error en la generación');
+                  setIsGenerating(false);
+                }
+              } else {
+                attempts++;
+                setTimeout(poll, 2000);
+              }
+            } catch (err) {
+              attempts++;
+              setTimeout(poll, 2000);
+            }
+          };
+          poll();
+        };
+
+        startPolling(data.generationId);
+        return; // El finally no debe apagar el loader aún si hay polling
       } else {
-        alert(data.error || 'Error al generar la imagen');
+        alert(data.error || 'Error al iniciar la generación');
+        setIsGenerating(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('Error de conexión');
-    } finally {
+      // Si el fetch falla por timeout o red, el servidor podría seguir trabajando
+      alert('Se ha perdido la conexión temporalmente, pero el servidor sigue procesando tu imagen. Por favor, espera un momento o revisa tu historial en breve.');
       setIsGenerating(false);
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     const url = generatedImageUrl;
     if (!url) return;
 
-    const link = document.createElement('a');
-    link.href = url;
-    const extension = url.split(';')[0].split('/')[1] || 'png';
-    link.download = `imagen-pro-${Date.now()}.${extension}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = blobUrl;
+
+      const extension = url.includes('base64')
+        ? (url.split(';')[0].split('/')[1] || 'png')
+        : (url.split('.').pop()?.split('?')[0] || 'png');
+
+      link.download = `imagen-ecomlab-${Date.now()}.${extension}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Download error:', err);
+      // Fallback
+      window.open(url, '_blank');
+    }
   };
 
   return (
@@ -254,7 +323,10 @@ export default function ImageProPage() {
           </div>
 
           <div className="flex gap-4">
-            <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-theme-component border border-white/10 hover:border-primary-color/50 transition-all text-theme-secondary btn-modern">
+            <button
+              onClick={() => setIsHistoryModalOpen(true)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-theme-component border border-white/10 hover:border-primary-color/50 transition-all text-theme-secondary btn-modern"
+            >
               <FaHistory /> Historial
             </button>
             <button
@@ -703,6 +775,12 @@ export default function ImageProPage() {
         onClose={() => setIsLibraryOpen(false)}
         category="ads"
         onSelect={(url) => setStyleImageBase64(url)}
+      />
+
+      <HistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        userId={authData?.userId || ''}
       />
     </DashboardLayout>
   );

@@ -1,168 +1,151 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { CreditService } from '../../../lib/creditService';
-import { ImageProRequest } from '../../../services/image-pro/types';
+import { ImageProRequest, StrategicPromptResponse } from '../../../services/image-pro/types';
 import { AdsService } from '../../../services/image-pro/adsService';
 import { PersonaService } from '../../../services/image-pro/personaService';
 import { LandingService } from '../../../services/image-pro/landingService';
 import { BaseImageProService } from '../../../services/image-pro/baseService';
+import crypto from 'crypto';
 
 export const config = {
-  runtime: 'edge',
+  api: {
+    bodyParser: { sizeLimit: '50mb' },
+  },
 };
 
-export default async function handler(req: NextRequest) {
-  if (req.method !== 'POST') {
-    return NextResponse.json({ error: 'Método no permitido' }, { status: 405 });
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') return res.status(405).send('Method not allowed');
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  const googleKey = process.env.GOOGLE_AI_KEY || '';
+
+  // 1. Extraer el usuario REAL del token (crítico para créditos)
+  const userId = get_user_id_from_auth(req);
+  if (!userId) {
+    return res.status(401).json({ error: 'No autorizado o token inválido' });
   }
 
-  // Inicializar Supabase con Service Role para bypass de RLS tras validación manual
-  // Necesitamos el service role porque en Edge Runtime el cliente anon no hereda la sesión automáticamente para RLS
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-  );
+  const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
-  // Obtener usuario mediante el token Bearer (el frontend ya lo envía)
-  const authHeader = req.headers.get('authorization');
-  const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
-  
-  if (!token) {
-    return NextResponse.json({ error: 'No autorizado. Falta token de acceso.' }, { status: 401 });
-  }
+  // 2. Generar ID y responder AL INSTANTE
+  const generationId = crypto.randomUUID();
+  res.status(200).json({ 
+    success: true, 
+    generationId,
+    message: 'Generación iniciada'
+  });
 
-  // Validar el token con el cliente normal
-  const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+  // 3. Proceso de fondo
+  setImmediate(async () => {
+    const body = req.body as ImageProRequest;
+    const { mode, subMode, prompt } = body;
 
-  if (authError || !user) {
-    console.error('[api/image-pro] Auth error:', authError);
-    return NextResponse.json({ error: 'Sesión inválida o expirada.' }, { status: 401 });
-  }
+    try {
+      console.log(`[BG] Iniciando generación ${generationId} para usuario ${userId}`);
 
-  // Obtener perfil usando el cliente admin para asegurar que RLS no bloquee la lectura administrativa
-  const { data: profile, error: profileError } = await supabaseAdmin
-    .from('profiles')
-    .select('role, plan, image_gen_count') // Ya no seleccionamos google_api_key
-    .eq('user_id', user.id)
-    .single();
-
-  if (profileError || !profile) {
-    console.error('[api/image-pro] Profile error:', profileError);
-    return NextResponse.json({ error: 'Perfil no encontrado.' }, { status: 403 });
-  }
-
-  const role = profile?.role?.toLowerCase();
-  
-  // BYPASS: Super Admin y Owner no necesitan validación de créditos (unlimited_credits se maneja en el service)
-  const isSuperAdmin = role === 'owner' || role === 'superadmin' || role === 'super_admin';
-
-  // Validar créditos ANTES de la generación
-  const { can, balance } = await CreditService.canPerformAction(user.id, 'IMAGE_GEN', supabaseAdmin);
-  
-  if (!can && !isSuperAdmin) {
-    return NextResponse.json({ 
-      error: 'Créditos insuficientes.', 
-      balance,
-      required: 10
-    }, { status: 402 });
-  }
-
-  const apiKey = process.env.GOOGLE_AI_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: 'Configuración de servidor incompleta: Falta Google AI Key.' }, { status: 500 });
-  }
-
-  // Parsear el body
-  const body = await req.json() as ImageProRequest;
-  const { 
-    mode,
-    subMode,
-    prompt, 
-    referenceImage, 
-    referenceType,  
-    productData, 
-    aspectRatio, 
-    isCorrection, 
-    previousImageUrl 
-  } = body;
-
-  try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-image-preview' });
-
-    // DISPATCHER DE SERVICIOS
-    let promptConfig;
-    
-    switch (mode) {
-      case 'ads':
-        promptConfig = await AdsService.buildPrompt(body);
-        break;
-      case 'personas':
-        promptConfig = await PersonaService.buildPrompt(body);
-        break;
-      case 'landing':
-        promptConfig = await LandingService.buildPrompt(body);
-        break;
-      default:
-        // Lógica "Libre" o default
-        const strategicPrompt = `PROFESSIONAL PHOTOGRAPHY (2K resolution): ${prompt} | Aspect Ratio: ${aspectRatio}`;
-        const parts: any[] = [{ text: strategicPrompt }];
-        // Usar lógica base para imágenes
-        if (previousImageUrl) {
-           const imageData = await BaseImageProService.imageUrlToBase64(previousImageUrl);
-           if (imageData) {
-             parts.push({ text: "REFERENCE IMAGE:" });
-             parts.push({ inlineData: { data: imageData.data, mimeType: imageData.mimeType } });
-           }
-        }
-        promptConfig = { strategicPrompt, parts };
-    }
-
-    // MODO DEBUG: Retornar configuración sin generar imagen
-    if (body.debug) {
-      return NextResponse.json({
-        success: true,
-        debug: true,
-        strategicPrompt: promptConfig.strategicPrompt,
-        partsCount: promptConfig.parts.length,
-        partsPreview: promptConfig.parts.map((p: any) => ({ 
-          type: p.inlineData ? 'image' : 'text', 
-          content: p.text || `Reference Image (${p.inlineData?.mimeType})` 
-        }))
+      // A. Crear registro inicial
+      await supabaseAdmin.from('image_generations').insert({
+        id: generationId,
+        user_id: userId,
+        status: 'pending',
+        prompt: prompt.substring(0, 500),
+        mode,
+        sub_mode: subMode
       });
+
+      // B. Construir Prompt Estratégico
+      let promptConfig: StrategicPromptResponse;
+      switch (mode) {
+        case 'ads': promptConfig = await AdsService.buildPrompt(body); break;
+        case 'personas': promptConfig = await PersonaService.buildPrompt(body); break;
+        case 'landing': promptConfig = await LandingService.buildPrompt(body); break;
+        default:
+          const parts: any[] = [{ text: `PROFESSIONAL PHOTOGRAPHY: ${prompt}` }];
+          if (body.previousImageUrl) {
+            const imageData = await BaseImageProService.imageUrlToBase64(body.previousImageUrl);
+            if (imageData) parts.push({ inlineData: { data: imageData.data, mimeType: imageData.mimeType } });
+          }
+          promptConfig = { strategicPrompt: prompt, parts };
+      }
+
+      // C. Generación con Google AI
+      const modelId = "gemini-3-pro-image-preview";
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${googleKey}`;
+      
+      const geminiRes = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ role: 'user', parts: promptConfig.parts }] })
+      });
+
+      const result = await geminiRes.json();
+      const imagePart = result.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
+
+      if (!imagePart) {
+        throw new Error(result.error?.message || 'Google AI no entregó imagen');
+      }
+
+      // D. Subida a Storage
+      const fileName = `${generationId}.png`;
+      const binaryData = Buffer.from(imagePart.inlineData.data, 'base64');
+
+      const { error: uploadError } = await supabaseAdmin.storage
+        .from('visual-references')
+        .upload(`generations/${fileName}`, binaryData, { contentType: 'image/png', upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabaseAdmin.storage
+        .from('visual-references')
+        .getPublicUrl(`generations/${fileName}`);
+
+      // E. CONSUMO DE CRÉDITOS (Paso crítico)
+      const creditRes = await CreditService.consumeCredits(userId, 'IMAGE_GEN', { 
+        prompt: prompt.substring(0, 200), 
+        generation_id: generationId, 
+        image_url: publicUrl 
+      }, supabaseAdmin);
+
+      if (!creditRes.success) {
+        console.warn(`[BG] Créditos no deducidos para ${userId}: ${creditRes.error}`);
+      }
+
+      // F. Finalizar registro
+      await supabaseAdmin.from('image_generations').update({ 
+        status: 'completed', 
+        image_url: publicUrl 
+      }).eq('id', generationId);
+      
+      console.log(`[BG] ¡Generación exitosa! ${generationId}`);
+
+    } catch (err: any) {
+      console.error(`[BG] Error fatal en generación ${generationId}:`, err.message);
+      await supabaseAdmin.from('image_generations').update({ 
+        status: 'failed', 
+        error_message: err.message 
+      }).eq('id', generationId);
     }
+  });
+}
 
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: promptConfig.parts }]
-    });
-
-    const response = await result.response;
-    const candidates = (response as any).candidates;
-    let imageUrl = null;
-    const candidate = candidates?.[0];
-    const imagePart = candidate?.content?.parts?.find((p: any) => p.inlineData);
-
-    if (imagePart?.inlineData) {
-      const imageData = imagePart.inlineData;
-      imageUrl = `data:${imageData.mimeType};base64,${imageData.data}`;
-    } else {
-      // Loggear para debug si falla
-      console.error('[api/image-pro] Estructura de respuesta inesperada:', JSON.stringify(candidate));
-      throw new Error('No se recibió una imagen válida del modelo Imagen 3.');
+/**
+ * Extrae de forma segura el UUID del usuario desde el JWT o del body como último recurso (solo si coincide)
+ */
+function get_user_id_from_auth(req: NextApiRequest): string | null {
+  try {
+    const authHeader = req.headers['authorization'];
+    if (authHeader) {
+      const token = authHeader.split(' ')[1];
+      const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+      return payload.sub; // 'sub' es el estándar para user_id en Supabase Auth
     }
     
-    // Actualizar contador y CONSUMIR CRÉDITOS
-    await CreditService.consumeCredits(user.id, 'IMAGE_GEN', { prompt: prompt.substring(0, 100) }, supabaseAdmin);
-
-    return NextResponse.json({ 
-      success: true, 
-      imageUrl: imageUrl,
-      message: 'Imagen generada con éxito'
-    });
-
-  } catch (error: any) {
-    console.error('Error al generar imagen:', error);
-    return NextResponse.json({ error: error.message || 'Error interno al procesar la imagen' }, { status: 500 });
+    // Si no hay header, intentamos del body si viene explícito (menos seguro but fallback)
+    return (req.body as any).userId || null;
+  } catch (err) {
+    console.error("Error decodificando token:", err);
+    return null;
   }
 }

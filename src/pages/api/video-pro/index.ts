@@ -59,6 +59,20 @@ export default async function handler(req: NextRequest) {
     }
 
     // Retornamos el nombre de la operación para que el cliente haga polling
+    // PERSISTENCIA EN DB PARA EL HISTORIAL
+    try {
+      await supabaseAdmin.from('image_generations').insert({
+        id: crypto.randomUUID(),
+        user_id: user.id,
+        status: 'pending',
+        prompt: `Video: ${body.productData?.name || 'UGC'} - ${body.script?.substring(0, 100)}`,
+        mode: 'video',
+        operation_name: operation.name
+      });
+    } catch (dbErr) {
+      console.warn('Error al guardar registro de video inicial:', dbErr);
+    }
+
     return NextResponse.json({ 
       success: true, 
       operationName: operation.name,

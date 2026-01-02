@@ -1,4 +1,4 @@
-import { FaTrash } from 'react-icons/fa';
+import { FaTrash, FaHistory } from 'react-icons/fa';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { ReferenceLibraryModal } from '../../components/ImageGen/ReferenceLibraryModal';
 import ProtectedRoute from '../../components/auth/ProtectedRoute';
@@ -13,10 +13,13 @@ import SectionSelector from '../../components/LandingPro/SectionSelector';
 import IdentityCore from '../../components/LandingPro/IdentityCore';
 import LandingPreview from '../../components/LandingPro/LandingPreview';
 import CorrectionModal from '../../components/LandingPro/CorrectionModal';
+import { HistoryModal } from '../../components/ImageGen/HistoryModal';
+import { useState } from 'react';
 
 export default function LandingProPage() {
   const router = useRouter();
-  const { canAccessModule } = useAppContext();
+  const { authData, canAccessModule } = useAppContext();
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   const { state, actions } = useLandingPro();
 
@@ -46,6 +49,13 @@ export default function LandingProPage() {
             </div>
 
             <div className="flex gap-4">
+              <button
+                onClick={() => setIsHistoryModalOpen(true)}
+                className="flex items-center gap-2 px-5 py-3 rounded-xl bg-theme-component border border-white/10 hover:border-primary-color/50 transition-all text-theme-secondary text-xs font-black uppercase tracking-widest btn-modern"
+              >
+                <FaHistory /> Historial
+              </button>
+
               <button
                 onClick={actions.resetProject}
                 className="flex items-center gap-2 px-5 py-3 rounded-xl bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 text-rose-500 transition-all text-xs font-black uppercase tracking-widest"
@@ -117,6 +127,12 @@ export default function LandingProPage() {
             actions.setStyleImageBase64(url);
             actions.setIsLibraryOpen(false);
           }}
+        />
+
+        <HistoryModal
+          isOpen={isHistoryModalOpen}
+          onClose={() => setIsHistoryModalOpen(false)}
+          userId={authData?.userId || ''}
         />
       </DashboardLayout>
     </ProtectedRoute>

@@ -14,9 +14,10 @@ import { supabase } from '../../lib/supabase';
 import UsageCounter from '../../components/ImageGen/UsageCounter';
 import { useImageUsage } from '../../hooks/useImageUsage';
 import Head from 'next/head';
+import { HistoryModal } from '../../components/ImageGen/HistoryModal';
 
 export default function VideoProPage() {
-  const { googleAiKey, canAccessModule, isSuperAdmin } = useAppContext();
+  const { authData, googleAiKey, canAccessModule, isSuperAdmin } = useAppContext();
   const { openApiKeyModal } = useApiKey();
   const { credits, refreshCredits } = useImageUsage();
   const router = useRouter();
@@ -42,6 +43,7 @@ export default function VideoProPage() {
   const [ugcStep, setUgcStep] = useState(0); // 0: no ugc, 1, 2, 3: steps
   const [pollingStatus, setPollingStatus] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   if (!canAccessModule('video-pro')) {
     if (typeof window !== 'undefined') router.push('/');
@@ -199,6 +201,30 @@ export default function VideoProPage() {
     }, 30000);
   };
 
+  const handleDownload = async () => {
+    const url = generatedVideoUrl;
+    if (!url) return;
+
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `video-ecomlab-${Date.now()}.mp4`;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Download error:', err);
+      window.open(url, '_blank');
+    }
+  };
+
   return (
     <DashboardLayout>
       <Head>
@@ -223,7 +249,10 @@ export default function VideoProPage() {
           </div>
 
           <div className="flex gap-4">
-            <button className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-theme-component border border-white/5 hover:border-primary-color/50 transition-all text-theme-secondary font-bold text-sm btn-modern">
+            <button
+              onClick={() => setIsHistoryModalOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-theme-component border border-white/5 hover:border-primary-color/50 transition-all text-theme-secondary font-bold text-sm btn-modern"
+            >
               <FaHistory /> Historial
             </button>
             <button className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-theme-component border border-white/5 hover:border-primary-color/50 transition-all text-theme-secondary font-bold text-sm btn-modern">
@@ -414,7 +443,10 @@ export default function VideoProPage() {
                   <span className="text-xs font-bold text-theme-secondary uppercase tracking-[0.2em]">Vista Previa del Resultado</span>
                 </div>
                 {generatedVideoUrl && (
-                  <button className="px-4 py-2 bg-primary-color/10 text-primary-color border border-primary-color/20 rounded-xl text-[10px] font-black hover:bg-primary-color/20 transition-all uppercase tracking-widest">
+                  <button
+                    onClick={handleDownload}
+                    className="px-4 py-2 bg-primary-color/10 text-primary-color border border-primary-color/20 rounded-xl text-[10px] font-black hover:bg-primary-color/20 transition-all uppercase tracking-widest"
+                  >
                     Descargar Video
                   </button>
                 )}
@@ -533,6 +565,11 @@ export default function VideoProPage() {
           duration={8000}
         />
       )}
+      <HistoryModal
+        userId={authData?.userId || ''}
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+      />
     </DashboardLayout>
   );
 }
