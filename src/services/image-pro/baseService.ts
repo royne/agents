@@ -17,9 +17,9 @@ export class BaseImageProService {
 
     // Si es una URL externa (como Supabase Storage)
     if (url.startsWith('http')) {
-      console.log(`[BaseImageProService] Descargando imagen: ${url.substring(0, 50)}...`);
+      console.log(`[BaseImageProService] Descargando imagen: ${url.substring(0, 60)}...`);
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout
 
       try {
         const response = await fetch(url, { signal: controller.signal });
@@ -27,25 +27,26 @@ export class BaseImageProService {
 
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-        const blob = await response.blob();
-        const buffer = await blob.arrayBuffer();
-        const mimeType = blob.type || 'image/png';
+        const buffer = await response.arrayBuffer();
+        const mimeType = response.headers.get('content-type') || 'image/png';
         
-        // Convertir ArrayBuffer a Base64 en Edge Runtime
-        const base64 = btoa(
-          new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-        );
+        // Convertir ArrayBuffer a Base64 eficientemente en Edge Runtime
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        const base64 = btoa(binary);
         
         return { data: base64, mimeType };
       } catch (error: any) {
         clearTimeout(timeoutId);
         console.error(`[BaseImageProService] Error descargando imagen (${url.substring(0, 30)}): ${error.message}`);
-        // Si falla la descarga, devolvemos null para no bloquear el proceso
         return null;
       }
     }
 
-    // Default si no es URL ni data: (asumimos que puede ser base64 puro sin prefijo)
+    // Default si no es URL ni data:
     return { data: url, mimeType: 'image/png' };
   }
 

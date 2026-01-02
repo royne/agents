@@ -11,7 +11,7 @@ export const config = {
   runtime: 'edge',
 };
 
-export default async function handler(req: NextRequest) {
+export default async function handler(req: NextRequest, event: any) {
   if (req.method !== 'POST') return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
@@ -64,15 +64,24 @@ export default async function handler(req: NextRequest) {
           promptConfig = { strategicPrompt: prompt, parts };
       }
 
+      console.log(`[BG] Prompt construido para ${generationId}. Llamando a Google AI...`);
+      
       // C. Generación con Google AI
       const modelId = "gemini-3-pro-image-preview";
+      const fetchController = new AbortController();
+      const fetchTimeout = setTimeout(() => fetchController.abort(), 60000); // 60s timeout para IA
+
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${googleKey}`;
       
       const geminiRes = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ role: 'user', parts: promptConfig.parts }] })
+        body: JSON.stringify({ contents: [{ role: 'user', parts: promptConfig.parts }] }),
+        signal: fetchController.signal
       });
+
+      clearTimeout(fetchTimeout);
+      console.log(`[BG] Respuesta de Google AI recibida para ${generationId}. Status: ${geminiRes.status}`);
 
       const result = await geminiRes.json();
       const imagePart = result.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
@@ -83,8 +92,8 @@ export default async function handler(req: NextRequest) {
 
       // D. Subida a Storage
       const fileName = `${generationId}.png`;
-      // Buffer no es estándar en Edge pero Uint8Array sí
-      const binaryData = Uint8Array.from(atob(imagePart.inlineData.data), c => c.charCodeAt(0));
+      // Optimización para convertir base64 a Buffer/Uint8Array en Edge sin CPU intensiva
+      const binaryData = await fetch(`data:image/png;base64,${imagePart.inlineData.data}`).then(r => r.arrayBuffer());
 
       const { error: uploadError } = await supabaseAdmin.storage
         .from('temp-generations')
@@ -124,10 +133,11 @@ export default async function handler(req: NextRequest) {
     }
   })();
 
-  // En Edge Runtime de Next.js Pages API, usamos Response.
-  // IMPORTANTE: Para que el proceso de fondo no muera, deberíamos usar waitUntil si estuviéramos en Middleware/App router.
-  // In Pages API Edge, Next.js mantiene el proceso vivo hasta que se resuelvan todas las promesas del handler 
-  // o hasta el timeout. Sin embargo, para responder rápido, enviamos el JSON y dejamos la promesa corriendo.
+  // En Edge Runtime de Next.js, usamos event.waitUntil para asegurar que el proceso de fondo termine
+  if (event && event.waitUntil) {
+    event.waitUntil(backgroundProcess);
+  }
+
   return NextResponse.json({ 
     success: true, 
     generationId,
