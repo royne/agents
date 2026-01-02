@@ -87,14 +87,14 @@ export default async function handler(req: NextRequest) {
       const binaryData = Uint8Array.from(atob(imagePart.inlineData.data), c => c.charCodeAt(0));
 
       const { error: uploadError } = await supabaseAdmin.storage
-        .from('visual-references')
-        .upload(`generations/${fileName}`, binaryData, { contentType: 'image/png', upsert: true });
+        .from('temp-generations')
+        .upload(`${fileName}`, binaryData, { contentType: 'image/png', upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabaseAdmin.storage
-        .from('visual-references')
-        .getPublicUrl(`generations/${fileName}`);
+        .from('temp-generations')
+        .getPublicUrl(`${fileName}`);
 
       // E. CONSUMO DE CRÉDITOS (Paso crítico)
       const creditRes = await CreditService.consumeCredits(userId, 'IMAGE_GEN', { 
