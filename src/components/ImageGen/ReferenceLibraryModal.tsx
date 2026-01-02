@@ -27,6 +27,8 @@ export const ReferenceLibraryModal: React.FC<ReferenceLibraryModalProps> = ({ is
     }
   }, [isOpen, currentCategory, activeTab]);
 
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
   const fetchReferences = async () => {
     setLoading(true);
     let query = supabase
@@ -140,11 +142,23 @@ export const ReferenceLibraryModal: React.FC<ReferenceLibraryModalProps> = ({ is
                     alt={item.name}
                     className="w-full aspect-video object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+
+                  {/* Overlay con botones */}
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-3 gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewImage(item.url);
+                      }}
+                      className="w-full py-1.5 bg-white/10 hover:bg-white/20 text-white text-[9px] font-bold rounded-lg border border-white/10 flex items-center justify-center gap-2"
+                    >
+                      <FaSearch className="text-[8px]" /> PREVISUALIZAR
+                    </button>
                     <button className="w-full py-2 bg-primary-color text-black text-xs font-black rounded-lg shadow-xl">
                       USAR ESTE
                     </button>
                   </div>
+
                   <div className="p-2">
                     <p className="text-[10px] font-bold text-theme-primary truncate">{item.name}</p>
                   </div>
@@ -166,6 +180,22 @@ export const ReferenceLibraryModal: React.FC<ReferenceLibraryModalProps> = ({ is
           </p>
         </div>
       </div>
+
+      {/* Modal Previsualización de Imagen */}
+      {previewImage && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" onClick={() => setPreviewImage(null)}></div>
+          <div className="relative max-w-5xl w-full h-[90vh] flex items-center justify-center">
+            <img src={previewImage} alt="Fullscreen Preview" className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
+            <button
+              onClick={() => setPreviewImage(null)}
+              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 p-3 rounded-full text-white transition-all backdrop-blur-md"
+            >
+              <FaTimes size={24} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
