@@ -60,6 +60,13 @@ export class LandingService extends BaseImageProService {
     const parts = this.buildBasePart(strategicPrompt);
     await this.handleImages(parts, previousImageUrl, referenceImage, referenceType, req.continuityImage);
     
-    return { strategicPrompt, parts };
+    const restPayload = await this.buildRestPayload(strategicPrompt, parts, aspectRatio);
+
+    return { 
+      strategicPrompt, 
+      parts,
+      instances: restPayload.instances,
+      parameters: restPayload.parameters
+    };
   }
 }

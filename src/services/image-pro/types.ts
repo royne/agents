@@ -26,4 +26,6 @@ export interface ImageProRequest {
 export interface StrategicPromptResponse {
   strategicPrompt: string;
   parts: any[];
+  instances?: any[];
+  parameters?: any;
 }

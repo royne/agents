@@ -236,17 +236,56 @@ export function useLandingPro() {
 
       const data = await response.json();
 
-      if (data.success) {
+      if (data.success && data.imageUrl) {
         setGenerations(prev => ({ ...prev, [section.id]: data.imageUrl }));
         if (isCorrection) setCorrectionPrompt('');
         refreshCredits();
+        setIsGenerating(false);
+      } else if (data.generationId) {
+        // Polling logic
+        const startPolling = async (genId: string) => {
+          let attempts = 0;
+          const maxAttempts = 60;
+          const poll = async () => {
+            if (attempts >= maxAttempts) {
+              alert('La generación está tardando más de lo esperado. Podrás ver el resultado en tu historial en unos minutos.');
+              setIsGenerating(false);
+              return;
+            }
+            try {
+              const res = await fetch(`/api/image-pro/status?id=${genId}`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+              });
+              const statusData = await res.json();
+              if (statusData.done) {
+                if (statusData.success) {
+                  setGenerations(prev => ({ ...prev, [section.id]: statusData.imageUrl }));
+                  if (isCorrection) setCorrectionPrompt('');
+                  refreshCredits();
+                  setIsGenerating(false);
+                } else {
+                  alert(statusData.error || 'Error en la generación');
+                  setIsGenerating(false);
+                }
+              } else {
+                attempts++;
+                setTimeout(poll, 2000);
+              }
+            } catch (err) {
+              attempts++;
+              setTimeout(poll, 3000);
+            }
+          };
+          poll();
+        };
+        startPolling(data.generationId);
       } else {
-        alert(data.error || 'Error al generar la sección');
+        alert(data.error || 'Error al iniciar la generación');
+        setIsGenerating(false);
       }
     } catch (error) {
       console.error(error);
-      alert('Error de conexión');
-    } finally {
+      alert('Se ha perdido la conexión temporalmente, pero el servidor sigue procesando tu sección. Por favor, espera un momento o revisa el avance en breve.');
       setIsGenerating(false);
     }
   };

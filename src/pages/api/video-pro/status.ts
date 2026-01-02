@@ -23,6 +23,12 @@ export default async function handler(req: NextRequest) {
     const operation = await response.json();
 
     if (operation.error) {
+      // REGISTRAR FALLO EN HISTORIAL
+      const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || '');
+      await supabaseAdmin.from('image_generations')
+        .update({ status: 'failed', error_message: operation.error.message })
+        .eq('operation_name', operationName);
+
       return NextResponse.json({ error: operation.error.message }, { status: 500 });
     }
 
@@ -66,6 +72,11 @@ export default async function handler(req: NextRequest) {
           const { data: { user } } = await supabaseAdmin.auth.getUser(token);
           if (user) {
             await CreditService.consumeCredits(user.id, 'VIDEO_GEN', { operation: operationName }, supabaseAdmin);
+            
+            // ACTUALIZAR HISTORIAL
+            await supabaseAdmin.from('image_generations')
+              .update({ status: 'completed', image_url: proxiedUrl })
+              .eq('operation_name', operationName);
           }
         }
 
