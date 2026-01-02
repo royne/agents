@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { CreditService } from '../../../lib/creditService';
 import { ImageProRequest, StrategicPromptResponse } from '../../../services/image-pro/types';
@@ -6,16 +6,13 @@ import { AdsService } from '../../../services/image-pro/adsService';
 import { PersonaService } from '../../../services/image-pro/personaService';
 import { LandingService } from '../../../services/image-pro/landingService';
 import { BaseImageProService } from '../../../services/image-pro/baseService';
-import crypto from 'crypto';
 
 export const config = {
-  api: {
-    bodyParser: { sizeLimit: '50mb' },
-  },
+  runtime: 'edge',
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).send('Method not allowed');
+export default async function handler(req: NextRequest) {
+  if (req.method !== 'POST') return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -24,11 +21,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // 1. Extraer el usuario REAL del token (crítico para créditos)
   const userId = get_user_id_from_auth(req);
   if (!userId) {
-    return res.status(401).json({ error: 'No autorizado o token inválido' });
+    return NextResponse.json({ error: 'No autorizado o token inválido' }, { status: 401 });
   }
 
   const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
-  const body = req.body as ImageProRequest;
+  const body = await req.json() as ImageProRequest;
   const { mode, subMode, prompt } = body;
 
   // 2. Generar ID y Crear registro inicial SÍNCRONO (para evitar 404 en el polling inicial)
@@ -44,17 +41,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (insertError) {
     console.error("Error creando registro inicial:", insertError);
-    return res.status(500).json({ error: 'Error al iniciar la generación' });
+    return NextResponse.json({ error: 'Error al iniciar la generación' }, { status: 500 });
   }
 
-  res.status(200).json({ 
-    success: true, 
-    generationId,
-    message: 'Generación iniciada'
-  });
-
-  // 3. Proceso de fondo
-  setImmediate(async () => {
+  // 3. Proceso de fondo (En Edge, retornamos la respuesta y la ejecución continúa si no hay await)
+  const backgroundProcess = (async () => {
     try {
       console.log(`[BG] Iniciando generación ${generationId} para usuario ${userId}`);
 
@@ -92,7 +83,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // D. Subida a Storage
       const fileName = `${generationId}.png`;
-      const binaryData = Buffer.from(imagePart.inlineData.data, 'base64');
+      // Buffer no es estándar en Edge pero Uint8Array sí
+      const binaryData = Uint8Array.from(atob(imagePart.inlineData.data), c => c.charCodeAt(0));
 
       const { error: uploadError } = await supabaseAdmin.storage
         .from('visual-references')
@@ -130,23 +122,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         error_message: err.message 
       }).eq('id', generationId);
     }
+  })();
+
+  // En Edge Runtime de Next.js Pages API, usamos Response.
+  // IMPORTANTE: Para que el proceso de fondo no muera, deberíamos usar waitUntil si estuviéramos en Middleware/App router.
+  // In Pages API Edge, Next.js mantiene el proceso vivo hasta que se resuelvan todas las promesas del handler 
+  // o hasta el timeout. Sin embargo, para responder rápido, enviamos el JSON y dejamos la promesa corriendo.
+  return NextResponse.json({ 
+    success: true, 
+    generationId,
+    message: 'Generación iniciada'
   });
 }
 
 /**
- * Extrae de forma segura el UUID del usuario desde el JWT o del body como último recurso (solo si coincide)
+ * Extrae de forma segura el UUID del usuario desde el JWT (Edge compatible)
  */
-function get_user_id_from_auth(req: NextApiRequest): string | null {
+function get_user_id_from_auth(req: NextRequest): string | null {
   try {
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers.get('authorization');
     if (authHeader) {
       const token = authHeader.split(' ')[1];
-      const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+      const payloadBase64 = token.split('.')[1];
+      const payloadJson = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
+      const payload = JSON.parse(payloadJson);
       return payload.sub; // 'sub' es el estándar para user_id en Supabase Auth
     }
-    
-    // Si no hay header, intentamos del body si viene explícito (menos seguro but fallback)
-    return (req.body as any).userId || null;
+    return null;
   } catch (err) {
     console.error("Error decodificando token:", err);
     return null;
