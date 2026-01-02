@@ -270,10 +270,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (email: string, password: string, phone: string, name: string): Promise<{ success: boolean; error?: string }> => {
+    const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/` : undefined;
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: redirectTo,
         data: {
           full_name: name,
           phone: phone,
