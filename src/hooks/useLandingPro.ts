@@ -269,11 +269,12 @@ export function useLandingPro() {
                 }
               } else {
                 attempts++;
-                setTimeout(poll, 2000);
+                setTimeout(poll, 15000);
               }
             } catch (err) {
+              // Si falla (ej: 404 temporal), reintentamos en 15s
               attempts++;
-              setTimeout(poll, 3000);
+              setTimeout(poll, 15000);
             }
           };
           poll();

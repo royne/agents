@@ -197,7 +197,7 @@ export default function VideoProPage() {
         } catch (error) {
           console.error('Error in polling:', error);
         }
-      }, 10000); // Intervalo de 10 segundos solicitado por el usuario
+      }, 15000); // Intervalo de 15 segundos solicitado por el usuario
     }, 30000);
   };
 

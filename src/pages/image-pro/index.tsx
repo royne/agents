@@ -250,11 +250,12 @@ export default function ImageProPage() {
                 }
               } else {
                 attempts++;
-                setTimeout(poll, 2000);
+                setTimeout(poll, 15000);
               }
-            } catch (err) {
+            } catch (err: any) {
+              // Si es un 404 al inicio, reintentamos sin morir
               attempts++;
-              setTimeout(poll, 2000);
+              setTimeout(poll, 15000);
             }
           };
           poll();

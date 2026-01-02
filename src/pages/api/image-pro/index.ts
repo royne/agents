@@ -28,9 +28,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
+  const body = req.body as ImageProRequest;
+  const { mode, subMode, prompt } = body;
 
-  // 2. Generar ID y responder AL INSTANTE
+  // 2. Generar ID y Crear registro inicial SÍNCRONO (para evitar 404 en el polling inicial)
   const generationId = crypto.randomUUID();
+  const { error: insertError } = await supabaseAdmin.from('image_generations').insert({
+    id: generationId,
+    user_id: userId,
+    status: 'pending',
+    prompt: prompt.substring(0, 500),
+    mode,
+    sub_mode: subMode
+  });
+
+  if (insertError) {
+    console.error("Error creando registro inicial:", insertError);
+    return res.status(500).json({ error: 'Error al iniciar la generación' });
+  }
+
   res.status(200).json({ 
     success: true, 
     generationId,
@@ -39,21 +55,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // 3. Proceso de fondo
   setImmediate(async () => {
-    const body = req.body as ImageProRequest;
-    const { mode, subMode, prompt } = body;
-
     try {
       console.log(`[BG] Iniciando generación ${generationId} para usuario ${userId}`);
-
-      // A. Crear registro inicial
-      await supabaseAdmin.from('image_generations').insert({
-        id: generationId,
-        user_id: userId,
-        status: 'pending',
-        prompt: prompt.substring(0, 500),
-        mode,
-        sub_mode: subMode
-      });
 
       // B. Construir Prompt Estratégico
       let promptConfig: StrategicPromptResponse;
