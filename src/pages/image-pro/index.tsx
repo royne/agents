@@ -701,7 +701,7 @@ export default function ImageProPage() {
       <ReferenceLibraryModal
         isOpen={isLibraryOpen}
         onClose={() => setIsLibraryOpen(false)}
-        category="ads-mockup"
+        category="ads"
         onSelect={(url) => setStyleImageBase64(url)}
       />
     </DashboardLayout>

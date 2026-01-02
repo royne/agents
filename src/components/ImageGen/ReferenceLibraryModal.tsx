@@ -35,7 +35,13 @@ export const ReferenceLibraryModal: React.FC<ReferenceLibraryModalProps> = ({ is
       .eq('type', activeTab);
 
     if (currentCategory) {
-      query = query.eq('base_category', currentCategory);
+      if (currentCategory === 'landing') {
+        query = query.ilike('base_category', 'landing-%');
+      } else if (currentCategory === 'ads') {
+        query = query.ilike('base_category', 'ads-%');
+      } else {
+        query = query.eq('base_category', currentCategory);
+      }
     }
 
     const { data, error } = await query.order('created_at', { ascending: false });

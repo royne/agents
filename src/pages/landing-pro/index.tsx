@@ -112,7 +112,7 @@ export default function LandingProPage() {
         <ReferenceLibraryModal
           isOpen={state.isLibraryOpen}
           onClose={() => actions.setIsLibraryOpen(false)}
-          category="ads-mockup"
+          category="landing"
           onSelect={(url) => {
             actions.setStyleImageBase64(url);
             actions.setIsLibraryOpen(false);
