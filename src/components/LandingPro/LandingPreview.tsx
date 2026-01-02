@@ -27,14 +27,26 @@ const LandingPreview: React.FC<LandingPreviewProps> = ({
 }) => {
   const imageUrl = generations[currentSection.id];
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!imageUrl) return;
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = `landing-${currentSection.id}-${Date.now()}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `landing-${currentSection.id}-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Download error:', err);
+      // Fallback
+      window.open(imageUrl, '_blank');
+    }
   };
 
   return (
