@@ -14,6 +14,7 @@ import ModuleCard from '../components/dashboard/ModuleCard';
 import Head from 'next/head';
 import PublicLanding from '../components/public/PublicLanding';
 import { useRouter } from 'next/router';
+import WhatsAppButton from '../components/common/WhatsAppButton';
 
 export default function Dashboard() {
   const { authData, isAdmin, canAccessModule, isSyncing } = useAppContext();
@@ -196,6 +197,7 @@ export default function Dashboard() {
           />
         </DashboardSection>
       </div>
+      <WhatsAppButton />
     </DashboardLayout>
   );
 }
