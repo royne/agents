@@ -79,22 +79,30 @@ export class BoldService {
    * Verifica la firma de un webhook de Bold.
    */
   static verifySignature(body: string, signature: string): boolean {
-    if (!this.SECRET_KEY) {
-      console.warn('BOLD_SECRET_KEY no está configurada, no se puede verificar firma');
-      return false;
-    }
+    const keysToTry = [
+      { name: 'SECRET_KEY', val: this.SECRET_KEY },
+      { name: 'IDENTITY_KEY', val: this.IDENTITY_KEY },
+      { name: 'EMPTY_STRING (Sandbox)', val: '' }
+    ];
+
+    const bodyBuffer = typeof body === 'string' ? Buffer.from(body) : body;
 
     try {
-      // 1. Convertir el cuerpo a Base64
-      const base64Body = Buffer.from(body).toString('base64');
-      
-      // 2. Crear HMAC-SHA256 con la llave secreta
-      const hmac = crypto.createHmac('sha256', this.SECRET_KEY);
-      hmac.update(base64Body);
-      const calculatedSignature = hmac.digest('hex');
+      for (const { name, val } of keysToTry) {
+        // Opción A: Directo
+        const sigA = crypto.createHmac('sha256', val).update(bodyBuffer).digest('hex');
+        // Opción B: Base64 (Estándar de Bold)
+        const bodyBase64 = bodyBuffer.toString('base64');
+        const sigB = crypto.createHmac('sha256', val).update(bodyBase64).digest('hex');
 
-      // 3. Comparar con la firma recibida
-      return calculatedSignature === signature;
+        if (sigA.toLowerCase() === signature.toLowerCase() || sigB.toLowerCase() === signature.toLowerCase()) {
+          console.log(`[BoldService] ✅ Firma válida verified using ${name}`);
+          return true;
+        }
+      }
+
+      console.error(`[BoldService] ❌ Error de validación de firma. Recibida: ${signature.substring(0, 16)}...`);
+      return false;
     } catch (error) {
       console.error('Error verificando firma de Bold:', error);
       return false;

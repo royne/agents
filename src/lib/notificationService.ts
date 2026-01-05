@@ -1,3 +1,5 @@
+import { supabaseAdmin } from './supabaseAdmin';
+
 export class NotificationService {
   private static webhookUrl = process.env.NOTIFICATIONS_WEBHOOK_URL;
 
@@ -51,14 +53,31 @@ export class NotificationService {
   }
 
   static async notifyNewSale(userId: string, plan: string, amount?: string) {
+    let name = 'Desconocido';
+    let email = 'N/A';
+
+    try {
+      const { data: profile } = await supabaseAdmin
+        .from('profiles')
+        .select('name, email')
+        .eq('user_id', userId)
+        .single();
+      
+      if (profile) {
+        name = profile.name || name;
+        email = profile.email || email;
+      }
+    } catch (err) {
+      console.warn('[NotificationService] Error al obtener perfil:', err);
+    }
+
     const fields = [
-      { name: 'Usuario ID', value: userId, inline: false },
+      { name: 'Nombre', value: name, inline: true },
+      { name: 'Email', value: email, inline: true },
       { name: 'Plan', value: plan.toUpperCase(), inline: true }
     ];
 
-    if (amount) {
-      fields.push({ name: 'Monto', value: amount, inline: true });
-    }
+    fields.push({ name: 'Usuario ID', value: userId, inline: false });
 
     return this.send(
       `💰 **¡Nueva venta procesada con éxito!**`,

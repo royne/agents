@@ -12,10 +12,10 @@ envContent.split('\n').forEach(line => {
   if (key && value) env[key.trim()] = value.trim();
 });
 
-const BOLD_SECRET_KEY = env.BOLD_SECRET_KEY;
+const BOLD_IDENTITY_KEY = env.BOLD_IDENTITY_KEY;
 
-if (!BOLD_SECRET_KEY) {
-  console.error('❌ BOLD_SECRET_KEY no encontrada en .env.local');
+if (!BOLD_IDENTITY_KEY) {
+  console.error('❌ BOLD_IDENTITY_KEY no encontrada en .env.local');
   process.exit(1);
 }
 
@@ -36,20 +36,31 @@ async function simulateWebhook(userId, planKey) {
   };
 
   const body = JSON.stringify(payload);
-  const signature = generateSignature(body, BOLD_SECRET_KEY);
+
+  // Opción 1: Con Base64 intermedio
+  const base64Body = Buffer.from(body).toString('base64');
+  const hmac1 = crypto.createHmac('sha256', BOLD_IDENTITY_KEY);
+  hmac1.update(base64Body);
+  const sig1 = hmac1.digest('hex');
+
+  // Opción 2: Sin Base64 (Directo)
+  const hmac2 = crypto.createHmac('sha256', BOLD_IDENTITY_KEY);
+  hmac2.update(body);
+  const sig2 = hmac2.digest('hex');
 
   console.log('\n🚀 Simulando Webhook de Bold...');
   console.log('-----------------------------------');
   console.log(`👤 Usuario ID: ${userId}`);
   console.log(`📦 Plan: ${planKey}`);
-  console.log(`🔑 Firma: ${signature}`);
+  console.log(`🔑 Firma (con Base64): ${sig1}`);
+  console.log(`🔑 Firma (Directa):    ${sig2}`);
   console.log('-----------------------------------\n');
 
-  console.log('Copia y pega este comando en tu terminal para activar el plan:\n');
+  console.log('Copia y pega este comando en tu terminal para probar la firma DIRECTA (recomendado):\n');
 
   const curlCommand = `curl -X POST http://localhost:3000/api/payments/webhook \\
   -H "Content-Type: application/json" \\
-  -H "x-bold-signature: ${signature}" \\
+  -H "x-bold-signature: ${sig2}" \\
   -d '${body}'`;
 
   console.log(curlCommand);

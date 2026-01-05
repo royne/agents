@@ -11,12 +11,12 @@ export const config = {
   },
 };
 
-async function getRawBody(req: NextApiRequest) {
-  const chunks = [];
+async function getRawBody(req: NextApiRequest): Promise<Buffer> {
+  const chunks: Buffer[] = [];
   for await (const chunk of req) {
     chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
   }
-  return Buffer.concat(chunks).toString('utf-8');
+  return Buffer.concat(chunks);
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -24,33 +24,58 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Método no permitido' });
   }
 
-  try {
-    const rawBody = await getRawBody(req);
-    const signature = req.headers['x-bold-signature'] as string;
+  const boldSignature = req.headers['x-bold-signature'] as string;
+  console.log(`[Webhook Bold] Petición recibida. Firma presente: ${!!boldSignature}`);
 
-    if (!BoldService.verifySignature(rawBody, signature)) {
-      console.error('Firma de Bold no válida');
+  try {
+    const rawBuffer = await getRawBody(req);
+    const rawBody = rawBuffer.toString('utf-8');
+    
+    console.log(`[Webhook Bold] Body recibido (len: ${rawBuffer.length} bytes).`);
+    console.log(`[Webhook Bold] Inicio (hex): ${rawBuffer.slice(0, 10).toString('hex')}`);
+    
+    if (!boldSignature) {
+      console.error('[Webhook Bold] Error: x-bold-signature ausente');
+      return res.status(401).json({ error: 'Firma ausente' });
+    }
+
+    if (!BoldService.verifySignature(rawBuffer.toString('utf8'), boldSignature)) {
+      console.error('[Webhook Bold] Error: Firma no válida');
       return res.status(401).json({ error: 'Firma no válida' });
     }
 
     const payload = JSON.parse(rawBody);
-    console.log('Webhook de Bold recibido:', payload.event);
+    const eventType = payload.event || payload.type;
+    const eventData = payload.data || payload;
+    
+    const isApproved = eventType === 'SALE_APPROVED' || eventType === 'sale.approved';
 
-    // Solo procesamos ventas aprobadas
-    if (payload.event === 'SALE_APPROVED') {
-      const { reference } = payload.data;
+    if (isApproved) {
+      // Bold puede enviar la referencia en diferentes lugares según la versión
+      const reference = eventData.metadata?.reference || eventData.reference || payload.reference;
       
+      if (!reference) {
+        console.error('[Webhook Bold] Error: No se encontró referencia en el payload:', JSON.stringify(payload).substring(0, 300));
+        return res.status(400).json({ error: 'Referencia ausente' });
+      }
+
       // La referencia tiene el formato userId_planKey_timestamp
-      const [userId, planKey] = reference.split('_');
+      const referenceParts = reference.split('_');
+      if (referenceParts.length < 2) {
+        console.warn('[Webhook Bold] Referencia no estándar, intentando parseo alternativo...');
+        // Aquí podrías añadir lógica si Bold Sandbox envía referencias diferentes
+      }
+
+      const [userId, planKey] = referenceParts;
 
       if (userId && planKey) {
-        console.log(`Pago aprobado para usuario ${userId}, plan ${planKey}`);
+        console.log(`[Webhook Bold] Procesando activación: User=${userId}, Plan=${planKey}`);
         
         const credits = PLAN_CREDITS[planKey as Plan] || 0;
         const expiresAt = new Date();
         expiresAt.setMonth(expiresAt.getMonth() + 1);
 
-        // 1. Actualizar créditos fuente de verdad (user_credits) con supabaseAdmin
+        // 1. Actualizar créditos fuente de verdad (user_credits)
         const { error: creditError } = await supabaseAdmin
           .from('user_credits')
           .update({
@@ -64,33 +89,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .eq('user_id', userId);
 
         if (creditError) {
-          console.error('Error al actualizar créditos con supabaseAdmin:', creditError);
-        } else {
-          // 2. Actualizar perfil para redundancia/UI heredada
-          const { error: profileError } = await supabaseAdmin
-            .from('profiles')
-            .update({ 
-              plan: planKey,
-              updated_at: new Date().toISOString()
-            })
-            .eq('user_id', userId);
-
-          if (profileError) {
-            console.error('Error al actualizar perfil con supabaseAdmin:', profileError);
-          }
-          
-          // Notificar venta aprobada
-          const amount = payload.data.amount ? `$${payload.data.amount.toLocaleString('es-CO')}` : undefined;
-          await NotificationService.notifyNewSale(userId, planKey, amount);
-          
-          console.log(`✅ Plan ${planKey} activado correctamente para ${userId}`);
+          console.error('[Webhook Bold] Error DB user_credits:', creditError);
+          throw creditError;
         }
+
+        // 2. Actualizar perfil para redundancia/UI heredada
+        const { error: profileError } = await supabaseAdmin
+          .from('profiles')
+          .update({ 
+            plan: planKey,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId);
+
+        if (profileError) {
+          console.error('[Webhook Bold] Error DB profiles:', profileError);
+        }
+        
+        // Notificar venta aprobada
+        try {
+          const rawAmount = eventData.amount?.total_amount || eventData.amount;
+          const amount = rawAmount ? `$${rawAmount.toLocaleString('es-CO')}` : undefined;
+          await NotificationService.notifyNewSale(userId, planKey, amount);
+        } catch (notifErr) {
+          console.warn('[Webhook Bold] Error enviando notificación:', notifErr);
+        }
+        
+        console.log(`[Webhook Bold] ✅ ÉXITO: Plan ${planKey} activado para ${userId}`);
       }
+    } else {
+      console.log(`[Webhook Bold] Evento ignorado: ${eventType}`);
     }
 
-    return res.status(200).json({ received: true });
+    return res.status(200).json({ success: true, received: true });
   } catch (error: any) {
-    console.error('Error en Webhook de Bold:', error);
-    return res.status(500).json({ error: 'Error interno' });
+    console.error('[Webhook Bold] Error FATAL:', error.message);
+    return res.status(500).json({ error: 'Error interno del servidor' });
   }
 }
