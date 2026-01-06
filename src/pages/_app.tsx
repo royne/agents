@@ -5,10 +5,16 @@ import { useRouter, type NextRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import BrandLoader from '../components/common/BrandLoader';
 
+import MetaPixel from '../components/common/MetaPixel';
+
 export default function App({ Component, pageProps }: AppProps) {
+  const router = useRouter();
+  const isPublicPath = router.pathname === '/' || router.pathname === '/auth/register';
+
   return (
     <AppProvider>
-      <AuthWrapper {...{ Component, pageProps }} router={useRouter()} />
+      {isPublicPath && <MetaPixel />}
+      <AuthWrapper {...{ Component, pageProps }} router={router} />
     </AppProvider>
   );
 }

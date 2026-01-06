@@ -4,6 +4,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { FaEnvelope, FaLock, FaUser, FaPhone, FaArrowRight, FaCheckCircle } from 'react-icons/fa';
 import Image from 'next/image';
 import Link from 'next/link';
+import { trackPixelEvent } from '../../utils/pixelEvents';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -25,6 +26,11 @@ export default function RegisterPage() {
       const result = await register(email.trim(), password, phone.trim(), name.trim());
       if (result.success) {
         setIsSuccess(true);
+        // Rastrear evento de registro como "Purchase" (Compra)
+        trackPixelEvent('Purchase', {
+          content_name: 'Registro de Usuario',
+          status: 'success'
+        });
       } else {
         setError(result.error || 'Error al crear la cuenta');
       }
