@@ -24,6 +24,8 @@ type AppContextType = {
     activeModules?: ModuleKey[];
     credits?: number;
     expiresAt?: string;
+    is_mentor?: boolean;
+    community_name?: string;
   } | null;
   themeConfig: ThemeConfig;
   setApiKey: (key: string | null) => void;
@@ -37,7 +39,7 @@ type AppContextType = {
   canAccessModule: (module: ModuleKey) => boolean;
   hasFeature: (feature: FeatureKey) => boolean;
   updateTheme: (config: Partial<ThemeConfig>) => void;
-  register: (email: string, password: string, phone: string, name: string) => Promise<{ success: boolean; error?: string }>;
+  register: (email: string, password: string, phone: string, name: string, referralCode?: string) => Promise<{ success: boolean; error?: string }>;
   isSyncing: boolean;
 };
 
@@ -68,93 +70,128 @@ export function AppProvider({ children }: { children: ReactNode }) {
   });
   const router = useRouter();
 
-  useEffect(() => {
-    const dbTimeout = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), ms));
+  const checkSession = async (providedSession?: any) => {
+    setIsSyncing(true);
+    try {
+      let session = providedSession;
+      if (!session) {
+        const { data: { session: s }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) throw sessionError;
+        session = s;
+      }
 
-    const checkSession = async (providedSession?: any) => {
-      setIsSyncing(true);
-      try {
-        let session = providedSession;
-        if (!session) {
-          const { data: { session: s }, error: sessionError } = await supabase.auth.getSession();
-          if (sessionError) throw sessionError;
-          session = s;
-        }
+      if (session) {
+        try {
+          const dbTimeout = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), ms));
 
-        if (session) {
-          try {
-            // Consultas con timeout para evitar bloqueos
-            const [profileRes, creditsRes] = await Promise.race([
-              Promise.all([
-                supabase.from('profiles').select('company_id, role, name, plan, modules_override').eq('user_id', session.user.id).single(),
-                supabase.from('user_credits').select('plan_key, balance, expires_at').eq('user_id', session.user.id).single()
-              ]),
-              dbTimeout(5000) as Promise<[any, any]>
-            ]);
+          // Consultas con timeout para evitar bloqueos
+          const [profileRes, creditsRes] = await Promise.race([
+            Promise.all([
+              supabase.from('profiles').select('company_id, role, name, plan, modules_override, is_mentor').eq('user_id', session.user.id).single(),
+              supabase.from('user_credits').select('plan_key, balance, expires_at').eq('user_id', session.user.id).single()
+            ]),
+            dbTimeout(5000) as Promise<[any, any]>
+          ]);
 
-            const profile = profileRes.data;
-            const creditsData = creditsRes.data;
-            const planKey = (creditsData?.plan_key || profile?.plan || 'free') as Plan;
+          const profile = profileRes.data;
+          const creditsData = creditsRes.data;
+          const planKey = (creditsData?.plan_key || profile?.plan || 'free') as Plan;
 
-            const planRes = await Promise.race([
-              supabase.from('subscription_plans').select('features').eq('key', planKey).single(),
-              dbTimeout(4000) as Promise<any>
-            ]);
+          const planRes = await Promise.race([
+            supabase.from('subscription_plans').select('features').eq('key', planKey).single(),
+            dbTimeout(4000) as Promise<any>
+          ]);
 
-            const planData = planRes.data;
-            if (planRes.error) console.warn('Error plan features:', planRes.error);
+          const planData = planRes.data;
+          if (planRes.error) console.warn('Error plan features:', planRes.error);
 
-            let activeModules: ModuleKey[] = [];
-            if (planData?.features?.active_modules) {
-              activeModules = planData.features.active_modules;
+          let activeModules: ModuleKey[] = [];
+          if (planData?.features?.active_modules) {
+            activeModules = planData.features.active_modules;
+          }
+
+          // C) Obtener nombre de comunidad (si es alumno o mentor)
+          let communityName = '';
+          if (profile?.is_mentor) {
+            const { data: mentorConf } = await supabase
+              .from('referral_configs')
+              .select('referral_code')
+              .eq('user_id', session.user.id)
+              .single();
+            if (mentorConf) communityName = mentorConf.referral_code;
+          } else {
+            const { data: refData } = await supabase
+              .from('referrals')
+              .select('mentor_id')
+              .eq('referred_id', session.user.id)
+              .single();
+
+            if (refData) {
+              const { data: mentorConf } = await supabase
+                .from('referral_configs')
+                .select('referral_code')
+                .eq('user_id', refData.mentor_id)
+                .single();
+              if (mentorConf) communityName = mentorConf.referral_code;
             }
+          }
 
-            const newAuthData = {
-              isAuthenticated: true,
-              userId: session.user.id,
-              company_id: profile?.company_id,
-              role: profile?.role,
-              name: profile?.name,
-              plan: planKey,
-              credits: creditsData?.balance || 0,
-              expiresAt: creditsData?.expires_at,
-              modulesOverride: (profile as any)?.modules_override || undefined,
-              activeModules: activeModules,
-            };
+          const newAuthData = {
+            isAuthenticated: true,
+            userId: session.user.id,
+            company_id: profile?.company_id,
+            role: profile?.role,
+            name: profile?.name,
+            plan: planKey,
+            credits: creditsData?.balance || 0,
+            expiresAt: creditsData?.expires_at,
+            is_mentor: profile?.is_mentor,
+            community_name: communityName,
+            modulesOverride: (profile as any)?.modules_override || undefined,
+            activeModules: activeModules,
+          };
 
+          const currentSaved = localStorage.getItem('auth_data');
+          if (currentSaved !== JSON.stringify(newAuthData)) {
             localStorage.setItem('auth_data', JSON.stringify(newAuthData));
             setAuthData(newAuthData);
-          } catch (innerError) {
-            console.warn('Fallo temporal en DB, manteniendo sesión actual:', innerError);
-            // Si ya tenemos datos (de localStorage), no los sobrescribimos con fallbacks vacíos
-            setAuthData(prev => prev || {
-              isAuthenticated: true,
-              userId: session.user.id,
-              plan: 'free',
-              credits: 0,
-              activeModules: []
-            });
           }
-        } else {
-          localStorage.removeItem('auth_data');
-          setAuthData({ isAuthenticated: false });
+        } catch (innerError) {
+          console.warn('Fallo temporal en DB, manteniendo sesión actual:', innerError);
+          setAuthData(prev => prev || {
+            isAuthenticated: true,
+            userId: session.user.id,
+            plan: 'free',
+            credits: 0,
+            is_mentor: false,
+            activeModules: []
+          });
         }
-      } catch (error) {
-        console.error('FALLO CRÍTICO de sesión:', error);
+      } else {
+        localStorage.removeItem('auth_data');
         setAuthData({ isAuthenticated: false });
-      } finally {
-        setIsSyncing(false);
       }
-    };
+    } catch (error) {
+      console.error('FALLO CRÍTICO de sesión:', error);
+      setAuthData({ isAuthenticated: false });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
-    // Listener para cambios de autenticación - FUENTE DE VERDAD ÚNICA
+  useEffect(() => {
+    // 1. Verificación en cada navegación (Simplicidad y consistencia)
+    if (authData?.isAuthenticated) {
+      checkSession();
+    }
+  }, [router.pathname]);
+
+  useEffect(() => {
+    // Listener para cambios de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-
       if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
         localStorage.removeItem('auth_data');
         setAuthData({ isAuthenticated: false });
-
-        // Solo redirigir si no estamos ya en una ruta pública permitida
         if (event === 'SIGNED_OUT' && !router.pathname.startsWith('/auth') && router.pathname !== '/') {
           router.push('/');
         }
@@ -165,12 +202,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    // Verificación inicial forzada si no se ha resuelto en 2 segundos
     const backupTimeout = setTimeout(() => {
-      if (authData === null) {
-        console.warn('Backup session check triggered');
-        checkSession();
-      }
+      if (authData === null) checkSession();
     }, 2000);
 
     return () => {
@@ -269,7 +302,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return false;
   };
 
-  const register = async (email: string, password: string, phone: string, name: string): Promise<{ success: boolean; error?: string }> => {
+  const register = async (email: string, password: string, phone: string, name: string, referralCode?: string): Promise<{ success: boolean; error?: string }> => {
     const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/` : undefined;
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -279,6 +312,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         data: {
           full_name: name,
           phone: phone,
+          referral_code: referralCode || null,
         }
       }
     });

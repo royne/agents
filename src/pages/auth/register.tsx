@@ -17,13 +17,24 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const { register } = useAppContext();
 
+  // Capturar código de referido de la URL
+  const referralCode = router.query.ref as string || '';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Validación estricta de teléfono (10 dígitos)
+    const phoneDigits = phone.replace(/\D/g, '');
+    if (phoneDigits.length !== 10) {
+      setError('El número de celular debe tener exactamente 10 dígitos.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const result = await register(email.trim(), password, phone.trim(), name.trim());
+      const result = await register(email.trim(), password, phoneDigits, name.trim(), referralCode);
       if (result.success) {
         setIsSuccess(true);
         // Rastrear evento de registro como "Purchase" (Compra)

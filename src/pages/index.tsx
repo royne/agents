@@ -61,6 +61,13 @@ export default function Dashboard() {
             <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.4em] mt-1 -ml-0.5">
               Portal de gestión inteligente
             </p>
+            {authData.community_name && (
+              <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-color/10 border border-primary-color/20 translate-in-bottom">
+                <span className="text-[10px] font-black text-primary-color uppercase tracking-widest leading-none">
+                  Miembro de <span className="text-white ml-1">{authData.community_name}</span>
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col md:items-end gap-3 min-w-[280px]">

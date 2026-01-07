@@ -28,6 +28,16 @@ export default async function handler(req: NextRequest, event: any) {
   const body = await req.json() as ImageProRequest;
   const { mode, subMode, prompt } = body;
 
+  // 1.5 Validación PREVIA de créditos (Evita gastos en Google AI sin saldo)
+  const { can, balance } = await CreditService.canPerformAction(userId, 'IMAGE_GEN', supabaseAdmin);
+  if (!can) {
+    return NextResponse.json({ 
+      error: 'Créditos insuficientes para generar esta imagen.', 
+      balance,
+      required: 20 // Costo estándar de Image Gen
+    }, { status: 402 });
+  }
+
   // 2. Generar ID y Crear registro inicial SÍNCRONO (para evitar 404 en el polling inicial)
   const generationId = crypto.randomUUID();
   const { error: insertError } = await supabaseAdmin.from('image_generations').insert({

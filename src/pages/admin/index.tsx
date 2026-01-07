@@ -63,6 +63,13 @@ const adminModules = [
     description: 'Análisis de rendimiento por campaña y anuncio',
     path: '/data-analysis/daily-orders',
     superAdminOnly: false
+  },
+  {
+    name: 'Gestión de Referidos',
+    icon: FaChartLine,
+    description: 'Control de mentores y liquidación de comisiones',
+    path: '/admin/referrals',
+    superAdminOnly: false
   }
 ];
 

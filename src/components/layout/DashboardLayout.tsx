@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain, FaUsersCog, FaAd, FaChevronLeft, FaChevronRight, FaMagic, FaFilm, FaRocket } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain, FaUsersCog, FaAd, FaChevronLeft, FaChevronRight, FaMagic, FaFilm, FaRocket, FaUsers } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
 import type { ModuleKey } from '../../constants/plans';
@@ -41,6 +41,7 @@ const menuSections: MenuSection[] = [
   {
     title: 'SISTEMA',
     items: [
+      { name: 'Referidos', icon: FaUsers, path: '/referrals', moduleKey: 'settings' }, // Usamos settings como key base accesible
       { name: 'Configuración', icon: FaCog, path: '/settings', moduleKey: 'settings' },
       { name: 'Administración', icon: FaUsersCog, path: '/admin', adminOnly: true, showForAllAdmins: true, moduleKey: 'admin' },
     ]
@@ -163,6 +164,10 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 const visibleItems = section.items.filter(item => {
                   if (item.adminOnly && !isAdmin() && !item.showForAllAdmins) return false;
                   if (!canAccessModule(item.moduleKey)) return false;
+
+                  // REGLA: Si es el link de referidos, ocultar si no es mentor
+                  if (item.path === '/referrals' && !authData?.is_mentor) return false;
+
                   return true;
                 });
 

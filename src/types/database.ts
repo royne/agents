@@ -1,6 +1,7 @@
 export interface User {
   id: string;
   email: string;
+  is_mentor?: boolean;
   created_at: Date;
   updated_at: Date;
 }
@@ -160,6 +161,32 @@ export interface CalendarEvent {
   updated_at: Date;
 }
 
+export interface ReferralConfig {
+  user_id: string;
+  referral_code: string;
+  tier: 'silver' | 'gold';
+  balance_paid: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface Referral {
+  id: string;
+  mentor_id: string;
+  referred_id: string;
+  status: 'registered' | 'active' | 'inactive';
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ReferralCommission {
+  id: string;
+  referral_id: string;
+  sale_amount: number;
+  status: 'pending' | 'paid';
+  created_at: Date;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -242,6 +269,21 @@ export interface Database {
         Row: CalendarEvent;
         Insert: Omit<CalendarEvent, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<CalendarEvent, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      referral_configs: {
+        Row: ReferralConfig;
+        Insert: Omit<ReferralConfig, 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<ReferralConfig, 'user_id' | 'created_at' | 'updated_at'>>;
+      };
+      referrals: {
+        Row: Referral;
+        Insert: Omit<Referral, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Referral, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      referral_commissions: {
+        Row: ReferralCommission;
+        Insert: Omit<ReferralCommission, 'id' | 'created_at'>;
+        Update: Partial<Omit<ReferralCommission, 'id' | 'created_at'>>;
       };
     };
     Functions: {

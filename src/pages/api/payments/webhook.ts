@@ -106,6 +106,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           console.error('[Webhook Bold] Error DB profiles:', profileError);
         }
         
+        // 3. Sistema de Referidos: Registrar Venta Bruta
+        try {
+          const { data: referral } = await supabaseAdmin
+            .from('referrals')
+            .select('id')
+            .eq('referred_id', userId)
+            .single();
+
+          if (referral) {
+            console.log(`[Referidos] Registrando venta para el referido ${userId}`);
+            
+            const rawAmount = eventData.amount?.total_amount || eventData.amount || 0;
+
+            // Solo registrar la venta. La comisión se calcula al liquidar.
+            await supabaseAdmin.from('referral_commissions').insert({
+              referral_id: referral.id,
+              sale_amount: rawAmount,
+              status: 'pending'
+            });
+
+            // Actualizar estado del alumno a activo si no lo estaba
+            await supabaseAdmin
+              .from('referrals')
+              .update({ 
+                status: 'active',
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', referral.id);
+          }
+        } catch (refErr) {
+          console.error('[Referidos] Error registrando venta bruta:', refErr);
+        }
+
         // Notificar venta aprobada
         try {
           const rawAmount = eventData.amount?.total_amount || eventData.amount;
