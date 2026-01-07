@@ -34,7 +34,7 @@ export default async function handler(req: NextRequest, event: any) {
     return NextResponse.json({ 
       error: 'Créditos insuficientes para generar esta imagen.', 
       balance,
-      required: 20 // Costo estándar de Image Gen
+      required: 10 // Costo estándar de Image Gen
     }, { status: 402 });
   }
 
