@@ -31,6 +31,15 @@ export default function RegisterPage() {
       return;
     }
 
+    // Validación de dominio de correo (solo los más comunes)
+    const allowedDomains = ['gmail.com', 'hotmail.com', 'yahoo.com', 'outlook.com', 'live.com', 'icloud.com'];
+    const emailDomain = email.split('@')[1]?.toLowerCase();
+
+    if (!emailDomain || !allowedDomains.some(domain => emailDomain.includes(domain))) {
+      setError('Por favor usa un correo válido (Gmail, Hotmail, Yahoo o Outlook). No se permiten correos corporativos o temporales.');
+      return;
+    }
+
     setLoading(true);
 
     try {
