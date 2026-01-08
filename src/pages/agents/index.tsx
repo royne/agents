@@ -74,6 +74,7 @@ export default function AgentsPage() {
           <PageHeader
             title="Agentes"
             description="Gestiona y chatea con tus agentes de IA personalizados."
+            creditInfo="Gasto: 1 crédito"
             actions={
               <div className="flex gap-3">
                 <button

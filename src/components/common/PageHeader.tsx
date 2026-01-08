@@ -4,6 +4,7 @@ import Link from 'next/link';
 interface PageHeaderProps {
   title: ReactNode;
   description: string;
+  creditInfo?: string;
   backLink?: string;
   actions?: ReactNode;
 }
@@ -11,6 +12,7 @@ interface PageHeaderProps {
 const PageHeader: React.FC<PageHeaderProps> = ({
   title,
   description,
+  creditInfo,
   backLink,
   actions
 }) => {
@@ -18,9 +20,16 @@ const PageHeader: React.FC<PageHeaderProps> = ({
     <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-10 gap-4">
       <div className="relative">
         <h1 className="text-3xl font-bold mb-2 border-l-4 border-primary-color pl-4 tracking-tight text-theme-primary">{title}</h1>
-        <p className="text-theme-secondary text-sm md:text-base opacity-80">
-          {description}
-        </p>
+        <div className="flex flex-col gap-1">
+          <p className="text-theme-secondary text-sm md:text-base opacity-80">
+            {description}
+          </p>
+          {creditInfo && (
+            <p className="text-primary-color text-xs font-black uppercase tracking-widest opacity-90">
+              {creditInfo}
+            </p>
+          )}
+        </div>
       </div>
       <div className="flex gap-3">
         {backLink && (

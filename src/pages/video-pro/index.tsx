@@ -244,6 +244,7 @@ export default function VideoProPage() {
                   Video <span className="text-primary-color drop-shadow-[0_0_10px_rgba(18,216,250,0.5)]">Pro</span>
                 </h1>
                 <p className="text-theme-secondary opacity-70 text-sm font-medium">Generación de videos UGC con Veo 3.1 Fast</p>
+                <p className="text-primary-color text-[10px] font-black uppercase tracking-widest mt-1 opacity-90">Gasto: 80 créditos por video (8 segundos)</p>
               </div>
             </div>
           </div>

@@ -11,6 +11,7 @@ export default function Calculator() {
           <PageHeader
             title="Calculadora de Precios"
             description="Optimiza tus márgenes y proyecta tus beneficios con precisión estratégica"
+            creditInfo="Gasto: 0 créditos"
           />
           <PriceCalculator />
         </div>

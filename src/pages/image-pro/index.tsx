@@ -321,6 +321,7 @@ export default function ImageProPage() {
               <h1 className="text-3xl font-bold text-theme-primary tracking-tight">Agente <span className="text-primary-color drop-shadow-[0_0_10px_rgba(18,216,250,0.5)]">Pro</span></h1>
             </div>
             <p className="text-theme-secondary opacity-80">Generación estratégica de imágenes con IA avanzada</p>
+            <p className="text-primary-color text-[10px] font-black uppercase tracking-widest mt-1 opacity-90">Gasto: 10 créditos por imagen</p>
           </div>
 
           <div className="flex gap-4">

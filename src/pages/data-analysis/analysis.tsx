@@ -36,6 +36,7 @@ const Analysis = () => {
             <PageHeader
               title={<><FaBrain className="inline-block mr-2" /> Análisis de Rentabilidad</>}
               description="Analiza datos de órdenes y productos desde archivos Excel"
+              creditInfo="Gasto: 0 créditos"
               backLink="/"
             />
 

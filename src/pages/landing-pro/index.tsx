@@ -46,6 +46,7 @@ export default function LandingProPage() {
                 <h1 className="text-3xl font-black text-theme-primary tracking-tighter">Landing <span className="text-primary-color drop-shadow-[0_0_15px_rgba(18,216,250,0.4)]">PRO</span></h1>
               </div>
               <p className="text-theme-tertiary font-medium opacity-60">Diseña secciones de alta conversión impulsadas por IA estratégica.</p>
+              <p className="text-primary-color text-[10px] font-black uppercase tracking-widest mt-1 opacity-90">Gasto: 10 créditos por sección (imagen)</p>
             </div>
 
             <div className="flex gap-4">

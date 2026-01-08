@@ -21,6 +21,7 @@ const Logistics = () => {
           <PageHeader
             title={<><FaTruckMoving className="inline-block mr-2" /> Gestión Logística</>}
             description="Analiza y rastrea el estado de órdenes en proceso de entrega"
+            creditInfo="Gasto: 0 créditos"
             backLink="/"
           />
 
