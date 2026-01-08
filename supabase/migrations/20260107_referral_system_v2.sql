@@ -3,10 +3,15 @@
 -- 1. Modificar profiles para flag de mentor
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_mentor BOOLEAN NOT NULL DEFAULT false;
 
--- 2. Limpiar tablas previas si existen (Para asegurar consistencia con el nuevo diseño)
+-- 2. Limpiar tablas y funciones previas si existen (Para asegurar consistencia)
 DROP TABLE IF EXISTS public.referral_commissions CASCADE;
 DROP TABLE IF EXISTS public.referral_configs CASCADE;
 DROP TABLE IF EXISTS public.referrals CASCADE;
+
+DROP FUNCTION IF EXISTS public.generate_referral_code();
+DROP FUNCTION IF EXISTS public.handle_new_profile_referral();
+DROP FUNCTION IF EXISTS public.increment_mentor_balance(UUID, NUMERIC);
+DROP FUNCTION IF EXISTS public.liquidate_mentor_commissions(UUID);
 
 -- 3. Tabla de Configuración de Mentores
 CREATE TABLE public.referral_configs (
@@ -76,12 +81,6 @@ DROP TRIGGER IF EXISTS tr_zz_referral_on_auth_user_created ON auth.users;
 CREATE TRIGGER tr_zz_referral_on_auth_user_created
 AFTER INSERT ON auth.users
 FOR EACH ROW EXECUTE FUNCTION public.handle_new_profile_referral();
-
--- 6. Eliminar funciones antiguas si existen
-DROP FUNCTION IF EXISTS public.generate_referral_code();
-DROP FUNCTION IF EXISTS public.handle_new_profile_referral();
-DROP FUNCTION IF EXISTS public.increment_mentor_balance(UUID, NUMERIC);
-DROP FUNCTION IF EXISTS public.liquidate_mentor_commissions(UUID);
 
 -- 7. Nueva función de liquidación dinámica
 CREATE OR REPLACE FUNCTION public.liquidate_mentor_period(p_mentor_id UUID)
