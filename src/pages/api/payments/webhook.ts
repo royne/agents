@@ -20,13 +20,16 @@ async function getRawBody(req: NextApiRequest): Promise<Buffer> {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // LOG DE ENTRADA CRITICO
+  console.log(`[Webhook Bold] Solicitud recibida: ${req.method} ${req.url}`);
+  
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido' });
   }
 
   const boldSignature = req.headers['x-bold-signature'] as string;
   console.log(`[Webhook Bold] Petición recibida. Firma presente: ${!!boldSignature}`);
-
+  
   try {
     const rawBuffer = await getRawBody(req);
     const rawBody = rawBuffer.toString('utf-8');
