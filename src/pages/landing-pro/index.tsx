@@ -32,7 +32,7 @@ export default function LandingProPage() {
     <ProtectedRoute moduleKey={'landing-pro'}>
       <DashboardLayout>
         <Head>
-          <title>Landing PRO - Ecomlab</title>
+          <title>Landing PRO - Dropapp</title>
         </Head>
 
         <div className="max-w-6xl mx-auto pb-20">

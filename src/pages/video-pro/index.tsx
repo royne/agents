@@ -212,7 +212,7 @@ export default function VideoProPage() {
 
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = `video-ecomlab-${Date.now()}.mp4`;
+      link.download = `video-dropapp-${Date.now()}.mp4`;
 
       document.body.appendChild(link);
       link.click();

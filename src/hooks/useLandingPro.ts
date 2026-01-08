@@ -44,7 +44,7 @@ export function useLandingPro() {
 
   // Cargar desde LocalStorage y Plantillas al iniciar
   useEffect(() => {
-    const saved = localStorage.getItem('ecomlab_landing_pro');
+    const saved = localStorage.getItem('dropapp_landing_pro');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -82,12 +82,12 @@ export function useLandingPro() {
     };
 
     try {
-      localStorage.setItem('ecomlab_landing_pro', JSON.stringify(dataToSave));
+      localStorage.setItem('dropapp_landing_pro', JSON.stringify(dataToSave));
     } catch (e) {
       if (e instanceof DOMException && e.name === 'QuotaExceededError') {
         const currentSectionId = currentSection?.id || 'error';
         const optimizedGenerations = { [currentSectionId]: generations[currentSectionId] };
-        localStorage.setItem('ecomlab_landing_pro', JSON.stringify({ ...dataToSave, generations: optimizedGenerations }));
+        localStorage.setItem('dropapp_landing_pro', JSON.stringify({ ...dataToSave, generations: optimizedGenerations }));
       }
     }
   }, [productData, currentStep, generations, baseImageBase64, styleImageBase64, selectedTemplate, selectedLayout, landingMode, currentSection]);
@@ -300,7 +300,7 @@ export function useLandingPro() {
       setStyleImageBase64(null);
       setSelectedLayout(null);
       setLandingMode('full');
-      localStorage.removeItem('ecomlab_landing_pro');
+      localStorage.removeItem('dropapp_landing_pro');
       window.location.reload();
     }
   };

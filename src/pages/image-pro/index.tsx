@@ -291,7 +291,7 @@ export default function ImageProPage() {
         ? (url.split(';')[0].split('/')[1] || 'png')
         : (url.split('.').pop()?.split('?')[0] || 'png');
 
-      link.download = `imagen-ecomlab-${Date.now()}.${extension}`;
+      link.download = `imagen-dropapp-${Date.now()}.${extension}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -307,7 +307,7 @@ export default function ImageProPage() {
   return (
     <DashboardLayout>
       <Head>
-        <title>Agente Pro - Ecomlab</title>
+        <title>Agente Pro - Dropapp</title>
       </Head>
 
       <div className="max-w-6xl mx-auto">
