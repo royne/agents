@@ -46,7 +46,9 @@ function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
     const isPublicPath = router.pathname === '/' || router.pathname === '/mentores';
 
     if (authData.isAuthenticated) {
-      if (isAuthPath) {
+      // Si está autenticado y en una ruta de auth, redirigir a dashboard
+      // EXCEPCIÓN: Si está en registro, dejamos que el componente maneje el mensaje de éxito
+      if (isAuthPath && router.pathname !== '/auth/register') {
         router.push('/');
       }
     } else {

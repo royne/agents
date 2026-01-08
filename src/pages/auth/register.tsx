@@ -60,14 +60,28 @@ export default function RegisterPage() {
           <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-8 border border-emerald-500/30">
             <FaCheckCircle className="text-4xl text-emerald-400" />
           </div>
-          <h2 className="text-3xl font-black text-white mb-4 tracking-tighter">¡Casi listo!</h2>
-          <p className="text-gray-400 font-medium mb-8">
-            Hemos enviado un enlace de confirmación a <span className="text-white font-bold">{email}</span>.
-            Por favor verifica tu bandeja de entrada para activar tus 50 créditos iniciales.
-          </p>
-          <Link href="/auth/login" className="w-full inline-block bg-primary-color text-white py-4 rounded-2xl font-black text-lg hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary-color/20">
-            IR AL LOGIN
-          </Link>
+          <h2 className="text-3xl font-black text-white mb-4 tracking-tighter">¡Revisa tu correo!</h2>
+          <div className="space-y-4 text-gray-400 font-medium mb-8">
+            <p>
+              Hemos enviado un enlace de confirmación a:
+              <br />
+              <span className="text-white font-bold text-lg">{email}</span>
+            </p>
+            <div className="bg-primary-color/10 border border-primary-color/20 p-4 rounded-2xl">
+              <p className="text-sm text-primary-color font-bold uppercase tracking-wider mb-2">Paso Importante</p>
+              <p className="text-white text-sm">
+                Debes hacer clic en el botón del correo para <span className="text-primary-color font-black">ACTIVAR TU CUENTA</span> y recibir tus <span className="text-primary-color font-black">50 CRÉDITOS</span> iniciales.
+              </p>
+            </div>
+            <p className="text-xs italic">
+              ¿No lo ves? Revisa tu carpeta de correo no deseado (Spam).
+            </p>
+          </div>
+          <div className="pt-4 border-t border-white/5">
+            <p className="text-gray-500 text-xs mb-4">
+              Una vez confirmado, podrás iniciar sesión normalmente.
+            </p>
+          </div>
         </div>
       </div>
     );
