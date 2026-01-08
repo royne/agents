@@ -101,11 +101,10 @@ export class VideoProService extends BaseImageProService {
       };
     }
 
-    // 2. Manejo de Interpolacion e Imagen Inicial
-    if (previousImageUrl) {
+    // 2. Manejo de Imagen Inicial (Normal e Interpolación)
+    if (previousImageUrl && generationMode !== 'extend') {
       const imageData = await this.imageUrlToBase64(previousImageUrl);
       if (imageData) {
-        // Segun documentacion oficial: el campo se llama 'image' para el primer frame
         instance.image = {
           bytesBase64Encoded: imageData.data,
           mimeType: imageData.mimeType
@@ -113,31 +112,26 @@ export class VideoProService extends BaseImageProService {
       }
     }
 
-    if (lastFrameBase64) {
-      // Si ya viene en base64 (del frontend), lo usamos directo. Si es URL, limpiamos.
-      const base64Data = lastFrameBase64.includes('base64,') 
-        ? lastFrameBase64.split('base64,')[1] 
-        : lastFrameBase64;
-      
-      // Segun investigacion REST: lastFrame va en 'instances' junto a prompt e image
-      instance.lastFrame = {
-        bytesBase64Encoded: base64Data,
-        mimeType: 'image/png' 
-      };
+    // 3. Manejo de Imagen Final (SOLO Interpolación)
+    if (lastFrameBase64 && generationMode === 'interpolation') {
+      const imageData = await this.imageUrlToBase64(lastFrameBase64);
+      if (imageData) {
+        instance.lastFrame = {
+          bytesBase64Encoded: imageData.data,
+          mimeType: imageData.mimeType
+        };
+      }
     }
 
     const parameters: any = {
       aspectRatio: aspectRatio,
-      // Agregamos negative prompt por defecto para calidad (soportado segun tabla)
       negativePrompt: "low quality, blurry, distorted, watermarks",
-      // Para extension e interpolacion, la doc dice 8 (como numero)
       durationSeconds: 8, 
-      // Permitir personas (necesario para interpolacion y generacion real)
       personGeneration: (generationMode === 'extend') ? "allow_all" : "allow_adult"
     };
 
     if (generationMode === 'extend') {
-      parameters.resolution = "720p"; // Solo para extension
+      parameters.resolution = "720p"; 
     }
 
     return {
