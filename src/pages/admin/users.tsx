@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { FaUsers, FaEdit, FaTrash, FaUserPlus, FaUserShield, FaUser, FaSync, FaSlidersH } from 'react-icons/fa';
+import { FaUsers, FaEdit, FaTrash, FaUserPlus, FaUserShield, FaUser, FaSync, FaSlidersH, FaBolt, FaMagic } from 'react-icons/fa';
 import Head from 'next/head';
 import ProtectedRoute from '../../components/auth/ProtectedRoute';
 import { useAppContext } from '../../contexts/AppContext';
 import UserFormModal from '../../components/admin/UserFormModal';
 import { adminService, UserWithProfile } from '../../services/database/adminService';
 import PageHeader from '../../components/common/PageHeader';
-import { ModuleKey } from '../../constants/plans';
+import { ModuleKey, Plan } from '../../constants/plans';
 
 
 
@@ -21,6 +21,12 @@ export default function UsersManagement() {
   const [selectedUser, setSelectedUser] = useState<UserWithProfile | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [moduleSelections, setModuleSelections] = useState<Record<ModuleKey, 'default' | 'on' | 'off'>>({} as any);
+
+  // Estados para activación manual
+  const [isActivationModalOpen, setIsActivationModalOpen] = useState(false);
+  const [activationPlan, setActivationPlan] = useState<Plan>('starter');
+  const [activationAmount, setActivationAmount] = useState<number>(0);
+  const [isActivating, setIsActivating] = useState(false);
 
   const ALL_MODULES: { key: ModuleKey; label: string }[] = [
     { key: 'agents', label: 'Agentes' },
@@ -74,6 +80,22 @@ export default function UsersManagement() {
     setIsModulesModalOpen(false);
     setSelectedUser(null);
     fetchUsers();
+  };
+
+  const handleActivatePlan = async () => {
+    if (!selectedUser) return;
+    setIsActivating(true);
+    const result = await adminService.activateUserPlanManually(selectedUser.id, activationPlan, activationAmount || undefined);
+    setIsActivating(false);
+
+    if (result.success) {
+      alert(result.message);
+      setIsActivationModalOpen(false);
+      setSelectedUser(null);
+      fetchUsers();
+    } else {
+      alert('Error: ' + result.message);
+    }
   };
 
   const fetchUsers = async () => {
@@ -262,6 +284,17 @@ export default function UsersManagement() {
                               <FaSlidersH className="inline" /> Módulos
                             </button>
                           )}
+                          {/* Botón de Activación Manual */}
+                          <button
+                            className="text-amber-500 hover:text-amber-400 mr-3"
+                            title="Activación Manual (con créditos y comisiones)"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setIsActivationModalOpen(true);
+                            }}
+                          >
+                            <FaBolt className="inline" /> Activar
+                          </button>
                           {/* Botón de eliminación, con restricciones */}
                           {(isSuperAdmin() || (user.role !== 'admin' && user.role !== 'superadmin')) && (
                             <button
@@ -366,7 +399,93 @@ export default function UsersManagement() {
             </div>
           </div>
         )}
+
+        {/* Modal para Activación Manual de Plan */}
+        {isActivationModalOpen && selectedUser && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+            <div className="bg-[#0D1117] border border-white/10 p-8 rounded-3xl w-full max-w-md shadow-[0_20px_60px_rgba(0,0,0,0.8)] relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+                <FaBolt className="text-8xl text-amber-500" />
+              </div>
+
+              <div className="flex justify-between items-center mb-8 relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+                    <FaBolt />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-white uppercase tracking-tight">Activar Plan Manual</h2>
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Sin pasarela de pago</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsActivationModalOpen(false);
+                    setSelectedUser(null);
+                    setActivationAmount(0);
+                  }}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/5 transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="space-y-6 relative z-10">
+                <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">Usuario Destino</span>
+                  <p className="text-white font-black text-sm uppercase">{selectedUser.name || 'Sin Nombre'}</p>
+                  <p className="text-gray-500 text-[10px] font-bold lowercase">{selectedUser.email}</p>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-3">Seleccionar Plan</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {['starter', 'pro', 'business', 'tester'].map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => setActivationPlan(p as Plan)}
+                        className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${activationPlan === p ? 'bg-amber-500 border-amber-500 text-black shadow-lg shadow-amber-500/20' : 'bg-white/5 border-white/5 text-gray-400 hover:border-white/10'}`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1">Monto de Venta (Opcional)</label>
+                  <p className="text-[8px] text-gray-600 font-bold uppercase mb-3">Se usará para calcular la comisión si el usuario es referido</p>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
+                    <input
+                      type="number"
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-8 pr-4 py-4 text-white font-black outline-none focus:border-amber-500/50 transition-all"
+                      placeholder="Ej: 49000"
+                      value={activationAmount || ''}
+                      onChange={(e) => setActivationAmount(Number(e.target.value))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 mt-10 relative z-10">
+                <button
+                  className="w-full py-4 rounded-2xl bg-amber-500 text-black font-black text-[11px] tracking-[0.2em] uppercase hover:scale-[1.02] active:scale-95 disabled:opacity-20 transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)]"
+                  onClick={handleActivatePlan}
+                  disabled={isActivating}
+                >
+                  {isActivating ? 'Procesando...' : 'Confirmar Activación'}
+                </button>
+                <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-xl">
+                  <p className="text-[9px] text-amber-500/70 font-bold italic leading-relaxed text-center">
+                    Esta acción otorgará créditos completos al usuario y generará comisiones para su mentor si aplica.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </DashboardLayout>
-    </ProtectedRoute>
+    </ProtectedRoute >
   );
 }

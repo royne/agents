@@ -52,7 +52,7 @@ export class NotificationService {
     );
   }
 
-  static async notifyNewSale(userId: string, plan: string, amount?: string) {
+  static async notifyNewSale(userId: string, plan: string, amount?: string, isManual: boolean = false) {
     let name = 'Desconocido';
     let email = 'N/A';
 
@@ -77,7 +77,16 @@ export class NotificationService {
       { name: 'Plan', value: plan.toUpperCase(), inline: true }
     ];
 
+    if (isManual) {
+      fields.push({ name: 'Tipo', value: 'Activación Manual (Admin)', inline: true });
+    }
+
     fields.push({ name: 'Usuario ID', value: userId, inline: false });
+
+    if (isManual) {
+       console.log(`[NotificationService] Salteando notificación de Discord por ser activación manual para ${email}`);
+       return true;
+    }
 
     return this.send(
       `💰 **¡Nueva venta procesada con éxito!**`,

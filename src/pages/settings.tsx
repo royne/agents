@@ -8,7 +8,6 @@ import UserProfile from '../components/profile/UserProfile';
 import PageHeader from '../components/common/PageHeader';
 
 export default function Settings() {
-  const { apiKey, saveApiKey, clearApiKey, openaiApiKey, saveOpenaiApiKey, clearOpenaiApiKey, googleAiKey, saveGoogleAiKey, clearGoogleAiKey } = useApiKey();
   const { isAdmin } = useAppContext();
 
   return (
@@ -18,18 +17,6 @@ export default function Settings() {
           title="Configuración"
           description="Administra tu perfil de usuario y preferencias del sistema. Las API Keys son gestionadas globalmente por el sistema."
         />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Las API keys ya no se configuran aquí - Centralizadas en .env */}
-          <div className="soft-card p-8 md:col-span-2 bg-primary-color/5 border border-primary-color/20">
-            <h2 className="text-xl font-bold text-theme-primary mb-2 flex items-center gap-2">
-              <FaMagic className="text-primary-color" /> Servicios Activos
-            </h2>
-            <p className="text-theme-secondary text-sm">
-              El sistema ha sido configurado para utilizar credenciales centralizadas. No necesitas proporcionar tus propias llaves de Groq, OpenAI o Google AI. Todas las funcionalidades están disponibles automáticamente.
-            </p>
-          </div>
-        </div>
 
         {/* Sección de personalización */}
         <h2 className="text-2xl font-bold mt-8 mb-4">Personalización</h2>

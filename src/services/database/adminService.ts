@@ -327,39 +327,95 @@ export const adminService = {
 
   // Gestión de Créditos y Suscripciones
   async getAllUserCredits(): Promise<any[]> {
+    // Refactorizamos para obtener todos los perfiles y unir sus créditos (Left Join)
     const { data, error } = await supabase
-      .from('user_credits')
+      .from('profiles')
       .select(`
-        *,
-        profiles (
-          email,
-          name,
-          created_at
+        user_id,
+        email,
+        name,
+        created_at,
+        plan,
+        user_credits (
+          plan_key,
+          balance,
+          total_consumed,
+          unlimited_credits,
+          updated_at,
+          expires_at,
+          is_active
         )
       `)
-      .order('updated_at', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error al obtener créditos:', error);
+      console.error('Error al obtener créditos (via profiles):', error);
       return [];
     }
 
-    return data || [];
+    // Aplanar la estructura para que sea compatible con la UI anterior
+    const flattened = (data || []).map(p => {
+      const credits = Array.isArray(p.user_credits) ? p.user_credits[0] : p.user_credits;
+      return {
+        user_id: p.user_id,
+        profiles: {
+          email: p.email,
+          name: p.name,
+          created_at: p.created_at
+        },
+        // Mapear campos de créditos o valores por defecto
+        plan_key: credits?.plan_key || p.plan || 'free',
+        balance: credits?.balance || 0,
+        total_consumed: credits?.total_consumed || 0,
+        unlimited_credits: credits?.unlimited_credits || false,
+        updated_at: credits?.updated_at || p.created_at,
+        expires_at: credits?.expires_at,
+        is_active: credits ? credits.is_active : true
+      };
+    });
+
+    return flattened;
   },
 
   async updateUserCredits(userId: string, updates: { balance?: number, plan_key?: string, unlimited_credits?: boolean, is_active?: boolean }): Promise<boolean> {
     const { error } = await supabase
       .from('user_credits')
-      .update({
+      .upsert({
+        user_id: userId,
         ...updates,
         updated_at: new Date().toISOString()
-      })
-      .eq('user_id', userId);
+      }, { onConflict: 'user_id' });
 
     if (error) {
       console.error('Error al actualizar créditos:', error);
       return false;
     }
     return true;
+  },
+
+  async activateUserPlanManually(userId: string, planKey: Plan, amount?: number): Promise<{ success: boolean; message: string }> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || '';
+
+      const response = await fetch('/api/admin/activate-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ userId, planKey, amount })
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        return { success: false, message: result.error || 'Error al activar plan' };
+      }
+
+      return { success: true, message: result.message };
+    } catch (err: any) {
+      console.error('Error enviando activación manual:', err);
+      return { success: false, message: 'Fallo de conexión con el servidor' };
+    }
   }
 };
