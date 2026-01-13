@@ -15,6 +15,10 @@ export default function SubscriptionsManagement() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' }>({
+    field: 'profiles.created_at',
+    direction: 'desc'
+  });
 
   const fetchCredits = async () => {
     try {
@@ -44,12 +48,56 @@ export default function SubscriptionsManagement() {
   };
 
   const PLANS = [
-    { key: 'free', label: 'Gratis (20)' },
-    { key: 'starter', label: 'Starter (500)' },
-    { key: 'pro', label: 'Pro (1200)' },
-    { key: 'business', label: 'Business (3000)' },
-    { key: 'tester', label: 'Tester (Unlimited)' },
+    { key: 'free', label: 'Gratis (20)', color: 'text-gray-400' },
+    { key: 'starter', label: 'Starter (500)', color: 'text-blue-400' },
+    { key: 'pro', label: 'Pro (1200)', color: 'text-amber-400' },
+    { key: 'business', label: 'Business (3000)', color: 'text-purple-400' },
+    { key: 'tester', label: 'Tester (Unlimited)', color: 'text-pink-400' },
   ];
+
+  const handleSort = (field: string) => {
+    setSortConfig(prev => ({
+      field,
+      direction: prev.field === field && prev.direction === 'desc' ? 'asc' : 'desc'
+    }));
+  };
+
+  const getSortedData = () => {
+    return [...userCredits]
+      .filter(item =>
+        (item.profiles?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.profiles?.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+
+        switch (sortConfig.field) {
+          case 'profiles.created_at':
+            aValue = a.profiles?.created_at || '';
+            bValue = b.profiles?.created_at || '';
+            break;
+          case 'balance':
+            aValue = a.balance || 0;
+            bValue = b.balance || 0;
+            break;
+          case 'plan_key':
+            aValue = a.plan_key || '';
+            bValue = b.plan_key || '';
+            break;
+          case 'expires_at':
+            aValue = a.expires_at || '';
+            bValue = b.expires_at || '';
+            break;
+          default:
+            return 0;
+        }
+
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+  };
 
   return (
     <ProtectedRoute adminOnly={true}>
@@ -87,33 +135,50 @@ export default function SubscriptionsManagement() {
               <input
                 type="text"
                 placeholder="Buscar por nombre o email..."
-                className="w-full bg-theme-component-hover border border-theme-border rounded-lg px-4 py-2 text-theme-primary focus:ring-1 focus:ring-primary-color outline-none pl-10 transition-all hover:border-primary-color/50"
+                className="w-full bg-[#0D1117] border border-theme-border rounded-xl px-4 py-3 text-theme-primary focus:ring-1 focus:ring-primary-color outline-none pl-12 transition-all hover:border-primary-color/50 placeholder:text-theme-tertiary/50"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <FaWallet className="absolute left-3 top-3 text-theme-tertiary opacity-40" />
+              <FaWallet className="absolute left-4 top-4 text-theme-tertiary opacity-40" />
             </div>
 
             <div className="overflow-x-auto">
               <table className="min-w-full">
                 <thead>
                   <tr className="border-b border-white/5">
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Usuario</th>
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Registro</th>
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Plan Actual</th>
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Iniciado</th>
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Estado</th>
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Créditos</th>
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Expiración</th>
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Ilimitado</th>
-                    <th className="px-6 py-4 text-right text-xs font-black uppercase tracking-widest text-theme-tertiary opacity-50">Acciones</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-theme-tertiary opacity-40">Usuario</th>
+                    <th
+                      className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-theme-tertiary opacity-40 cursor-pointer hover:text-primary-color transition-colors"
+                      onClick={() => handleSort('profiles.created_at')}
+                    >
+                      Registro {sortConfig.field === 'profiles.created_at' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th
+                      className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-theme-tertiary opacity-40 cursor-pointer hover:text-primary-color transition-colors"
+                      onClick={() => handleSort('plan_key')}
+                    >
+                      Plan Actual {sortConfig.field === 'plan_key' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-theme-tertiary opacity-40">Iniciado</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-theme-tertiary opacity-40">Estado</th>
+                    <th
+                      className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-theme-tertiary opacity-40 cursor-pointer hover:text-primary-color transition-colors"
+                      onClick={() => handleSort('balance')}
+                    >
+                      Créditos {sortConfig.field === 'balance' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th
+                      className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-theme-tertiary opacity-40 cursor-pointer hover:text-primary-color transition-colors"
+                      onClick={() => handleSort('expires_at')}
+                    >
+                      Expiración {sortConfig.field === 'expires_at' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-theme-tertiary opacity-40 text-center">Ilimitado</th>
+                    <th className="px-6 py-4 text-right text-[10px] font-black uppercase tracking-widest text-theme-tertiary opacity-40">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {userCredits.filter(item =>
-                    (item.profiles?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    (item.profiles?.email || '').toLowerCase().includes(searchTerm.toLowerCase())
-                  ).map((item) => (
+                  {getSortedData().map((item) => (
                     <tr
                       key={item.user_id}
                       className="hover:bg-primary-color/[0.03] transition-colors group cursor-pointer"
@@ -131,16 +196,21 @@ export default function SubscriptionsManagement() {
                         </span>
                       </td>
                       <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                        <select
-                          className="bg-theme-component border border-white/10 rounded-lg px-2 py-1 text-sm focus:ring-1 focus:ring-primary-color outline-none"
-                          value={item.plan_key}
-                          disabled={updatingId === item.user_id}
-                          onChange={(e) => handleUpdate(item.user_id, { plan_key: e.target.value })}
-                        >
-                          {PLANS.map(p => (
-                            <option key={p.key} value={p.key}>{p.label}</option>
-                          ))}
-                        </select>
+                        <div className="flex items-center gap-2">
+                          <select
+                            className={`bg-theme-component border border-white/10 rounded-lg px-2 py-1 text-xs font-black uppercase tracking-wider outline-none focus:ring-1 focus:ring-primary-color transition-all ${PLANS.find(p => p.key === item.plan_key)?.color || 'text-white'}`}
+                            value={item.plan_key}
+                            disabled={updatingId === item.user_id}
+                            onChange={(e) => handleUpdate(item.user_id, { plan_key: e.target.value })}
+                          >
+                            {PLANS.map(p => (
+                              <option key={p.key} value={p.key} className="bg-[#0A0C10] text-white">{p.label}</option>
+                            ))}
+                          </select>
+                          {item.plan_key !== 'free' && (
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary-color animate-pulse shadow-[0_0_8px_#3B82F6]" title="Plan Activo" />
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-xs text-theme-secondary">
