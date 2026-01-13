@@ -136,6 +136,12 @@ export function HistoryModal({ isOpen, onClose, userId }: HistoryModalProps) {
                           </button>
                         </div>
                       </>
+                    ) : gen.status === 'completed' && !gen.image_url ? (
+                      <div className="flex flex-col items-center gap-2 p-4 text-center bg-white/5 w-full h-full justify-center">
+                        <FaClock className="text-theme-tertiary text-2xl opacity-50" />
+                        <span className="text-[9px] text-theme-tertiary font-bold uppercase tracking-tighter">Imagen expirada</span>
+                        <span className="text-[8px] text-theme-tertiary/50">(Plan Free)</span>
+                      </div>
                     ) : gen.status === 'pending' ? (
                       <div className="flex flex-col items-center gap-2">
                         <FaClock className="text-yellow-500 text-3xl animate-pulse" />
