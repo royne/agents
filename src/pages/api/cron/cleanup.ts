@@ -25,12 +25,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const result = await ImageCleanupService.cleanupExpiredFreeImages(supabase);
 
     if (!result.success) {
+      console.error(`[Cron API] Error en la limpieza:`, result.error);
       return res.status(500).json({ error: result.error });
     }
 
+    console.log(`[Cron API] Limpieza finalizada: ${result.cleaned}/${result.processed} procesados.`);
     return res.status(200).json(result);
 
   } catch (error: any) {
+    console.error(`[Cron API] Error fatal:`, error.message);
     return res.status(500).json({ error: error.message });
   }
 }

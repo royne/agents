@@ -10,17 +10,20 @@ export interface CleanupResult {
 export class ImageCleanupService {
   private static readonly BUCKET = 'temp-generations';
   private static readonly EXPIRATION_HOURS = 48;
+  private static readonly BATCH_LIMIT = 100; // Límite para evitar timeouts en Vercel (10s)
 
   /**
    * Ejecuta la limpieza de imágenes de usuarios FREE con más de 48 horas.
+   * Optimizado para usar operaciones masivas y evitar timeouts.
    */
   static async cleanupExpiredFreeImages(supabase: SupabaseClient): Promise<CleanupResult> {
     try {
+      console.log(`[CleanupService] Iniciando chequeo de imágenes expiradas...`);
       const expirationDate = new Date();
       expirationDate.setHours(expirationDate.getHours() - this.EXPIRATION_HOURS);
       const expirationIso = expirationDate.toISOString();
 
-      // 1. Obtener registros de usuarios FREE que tienen imagen y son antiguos
+      // 1. Obtener registros limitados por el BATCH_LIMIT
       const { data: expiredRecords, error: fetchError } = await supabase
         .from('image_generations')
         .select(`
@@ -32,51 +35,63 @@ export class ImageCleanupService {
         `)
         .eq('profiles.plan', 'free')
         .not('image_url', 'is', null)
-        .lt('created_at', expirationIso);
+        .lt('created_at', expirationIso)
+        .limit(this.BATCH_LIMIT);
 
       if (fetchError) throw fetchError;
 
       if (!expiredRecords || expiredRecords.length === 0) {
+        console.log(`[CleanupService] No se encontraron imágenes para limpiar.`);
         return { success: true, processed: 0, cleaned: 0 };
       }
 
-      let cleanedCount = 0;
+      console.log(`[CleanupService] Procesando lote de ${expiredRecords.length} registros expirados.`);
+
+      // 2. Extraer paths para borrado masivo en Storage
+      const filePaths: string[] = [];
+      const recordIds: string[] = [];
 
       for (const record of expiredRecords) {
+        recordIds.push(record.id);
         const imageUrl = record.image_url;
         
-        // Intentar borrar del storage si existe el path
         if (imageUrl && imageUrl.includes(`/${this.BUCKET}/`)) {
           const parts = imageUrl.split(`/${this.BUCKET}/`);
           if (parts.length > 1) {
-            const filePath = parts[1];
-            const { error: storageError } = await supabase.storage
-              .from(this.BUCKET)
-              .remove([filePath]);
-            
-            if (storageError) {
-              console.error(`[CleanupService] Error borrando ${filePath}:`, storageError.message);
-            }
+            filePaths.push(parts[1]);
           }
         }
+      }
 
-        // Actualizar registro en DB
-        const { error: dbError } = await supabase
-          .from('image_generations')
-          .update({ image_url: null })
-          .eq('id', record.id);
-
-        if (!dbError) {
-          cleanedCount++;
-        } else {
-          console.error(`[CleanupService] Error actualizando DB para ${record.id}:`, dbError.message);
+      // 3. Borrado masivo en Storage (Una sola petición HTTP)
+      if (filePaths.length > 0) {
+        console.log(`[CleanupService] Borrando ${filePaths.length} archivos de storage...`);
+        const { error: storageError } = await supabase.storage
+          .from(this.BUCKET)
+          .remove(filePaths);
+        
+        if (storageError) {
+          console.error(`[CleanupService] Error en borrado masivo storage:`, storageError.message);
         }
       }
+
+      // 4. Actualización masiva en DB (Una sola petición SQL)
+      console.log(`[CleanupService] Actualizando ${recordIds.length} registros en DB (image_url -> null)...`);
+      const { error: dbError } = await supabase
+        .from('image_generations')
+        .update({ image_url: null })
+        .in('id', recordIds);
+
+      if (dbError) {
+        throw dbError;
+      }
+
+      console.log(`[CleanupService] ¡Limpieza completada con éxito! Registros procesados: ${expiredRecords.length}`);
 
       return {
         success: true,
         processed: expiredRecords.length,
-        cleaned: cleanedCount
+        cleaned: expiredRecords.length
       };
 
     } catch (error: any) {
