@@ -24,16 +24,17 @@ export class ImageCleanupService {
       const expirationIso = expirationDate.toISOString();
 
       // 1. Obtener registros limitados por el BATCH_LIMIT
+      // Usamos user_credits como fuente de verdad para el plan
       const { data: expiredRecords, error: fetchError } = await supabase
         .from('image_generations')
         .select(`
           id, 
           image_url, 
-          profiles!inner (
-            plan
+          user_credits!inner (
+            plan_key
           )
         `)
-        .eq('profiles.plan', 'free')
+        .eq('user_credits.plan_key', 'free')
         .not('image_url', 'is', null)
         .lt('created_at', expirationIso)
         .limit(this.BATCH_LIMIT);

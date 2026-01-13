@@ -27,8 +27,8 @@ async function cleanup() {
 
   const { data: expiredRecords, error: fetchError } = await supabase
     .from('image_generations')
-    .select(`id, image_url, profiles!inner (plan)`)
-    .eq('profiles.plan', 'free')
+    .select(`id, image_url, user_credits!inner (plan_key)`)
+    .eq('user_credits.plan_key', 'free')
     .not('image_url', 'is', null)
     .lt('created_at', expirationIso);
 
