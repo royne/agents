@@ -43,6 +43,7 @@ const menuSections: MenuSection[] = [
     items: [
       { name: 'Referidos', icon: FaUsers, path: '/referrals', moduleKey: 'settings' }, // Usamos settings como key base accesible
       { name: 'Configuración', icon: FaCog, path: '/settings', moduleKey: 'settings' },
+      { name: 'Pagos', icon: FaDollarSign, path: '/admin/payments', adminOnly: true, showForAllAdmins: true, moduleKey: 'admin' },
       { name: 'Administración', icon: FaUsersCog, path: '/admin', adminOnly: true, showForAllAdmins: true, moduleKey: 'admin' },
     ]
   }

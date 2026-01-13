@@ -67,8 +67,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .eq('user_id', userId);
 
     if (profileError) throw profileError;
+
+    // 3. Registrar en Historial de Pagos (Para Dashboards futuros)
+    const { error: historyError } = await supabaseAdmin
+      .from('payment_history')
+      .insert({
+        user_id: userId,
+        plan_key: planKey,
+        amount: amount || 0,
+        currency: 'COP',
+        external_reference: `MANUAL_BY_${requester?.email}`,
+        payment_method: 'admin_manual',
+        status: 'success'
+      });
+
+    if (historyError) {
+      console.error('[Admin] Error registrando historial:', historyError);
+    }
     
-    // 3. Sistema de Referidos: Registrar Venta (Opcional)
+    // 4. Sistema de Referidos: Registrar Venta (Opcional)
     let referralStatus = 'No es referido / Omitido';
     if (!skipCommission) {
       try {

@@ -108,8 +108,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (profileError) {
           console.error('[Webhook Bold] Error DB profiles:', profileError);
         }
+
+        // 3. Registrar en Historial de Pagos (Para Dashboards futuros)
+        const rawAmount = eventData.amount?.total_amount || eventData.amount || 0;
+        const { error: historyError } = await supabaseAdmin
+          .from('payment_history')
+          .insert({
+            user_id: userId,
+            plan_key: planKey,
+            amount: rawAmount,
+            currency: eventData.amount?.currency || 'COP',
+            external_reference: eventData.id || payload.id,
+            payment_method: eventData.payment_method?.type || 'bold',
+            status: 'success'
+          });
+
+        if (historyError) {
+          console.error('[Webhook Bold] Error registrando historial:', historyError);
+        }
         
-        // 3. Sistema de Referidos: Registrar Venta Bruta
+        // 4. Sistema de Referidos: Registrar Venta Bruta
         try {
           const { data: referral } = await supabaseAdmin
             .from('referrals')

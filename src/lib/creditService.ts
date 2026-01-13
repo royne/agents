@@ -28,12 +28,22 @@ export class CreditService {
     if (expiresAt && now > expiresAt && credits.plan_key !== 'free') {
       console.log(`Plan expirado para ${userId}. Degradando a free.`);
       // Degradación perezosa
+      // 1. Actualizar créditos
       await supabaseClient
         .from('user_credits')
         .update({
           plan_key: 'free',
           balance: 0,
           is_active: false,
+          updated_at: now.toISOString()
+        })
+        .eq('user_id', userId);
+
+      // 2. Sincronizar con profiles
+      await supabaseClient
+        .from('profiles')
+        .update({
+          plan: 'free',
           updated_at: now.toISOString()
         })
         .eq('user_id', userId);
@@ -76,6 +86,7 @@ export class CreditService {
 
     if (expiresAt && now > expiresAt && credits.plan_key !== 'free') {
       console.log(`Plan expirado para ${userId} durante consumo. Degradando a free.`);
+      // 1. Actualizar créditos
       await supabaseClient
         .from('user_credits')
         .update({
@@ -85,6 +96,16 @@ export class CreditService {
           updated_at: now.toISOString()
         })
         .eq('user_id', userId);
+
+      // 2. Sincronizar con profiles
+      await supabaseClient
+        .from('profiles')
+        .update({
+          plan: 'free',
+          updated_at: now.toISOString()
+        })
+        .eq('user_id', userId);
+
       return { success: false, error: 'Tu suscripción ha expirado. Por favor, renueva tu plan.' };
     }
     // ----------------------------

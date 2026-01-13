@@ -417,5 +417,93 @@ export const adminService = {
       console.error('Error enviando activación manual:', err);
       return { success: false, message: 'Fallo de conexión con el servidor' };
     }
+  },
+
+  // --- ANALÍTICA DE PAGOS (Fase 3) ---
+  async getPaymentAnalytics(): Promise<{
+    totalRevenue: number;
+    revenueByPlan: Record<string, number>;
+    recentPayments: any[];
+    dailyRevenue: { date: string, amount: number }[];
+    userStats: { total: number, active: number, free: number };
+    generationStats: { total: number };
+  }> {
+    try {
+      // 1. Ingresos Totales y por Plan
+      const { data: totals, error: totalsError } = await supabase
+        .from('payment_history')
+        .select('plan_key, amount, created_at');
+
+      if (totalsError) throw totalsError;
+
+      const revenueByPlan: Record<string, number> = {};
+      let totalRevenue = 0;
+      const dailyMap: Record<string, number> = {};
+
+      totals?.forEach(p => {
+        const amount = Number(p.amount) || 0;
+        totalRevenue += amount;
+        revenueByPlan[p.plan_key] = (revenueByPlan[p.plan_key] || 0) + amount;
+
+        const date = new Date(p.created_at).toISOString().split('T')[0];
+        dailyMap[date] = (dailyMap[date] || 0) + amount;
+      });
+
+      // 2. Pagos Recientes (con info de perfil)
+      const { data: recent, error: recentError } = await supabase
+        .from('payment_history')
+        .select(`
+          *,
+          profiles (name, email)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (recentError) throw recentError;
+
+      // 3. Estadísticas de Usuarios
+      const { data: users, error: usersError } = await supabase
+        .from('user_credits')
+        .select('plan_key, is_active');
+      
+      if (usersError) throw usersError;
+
+      const userStats = {
+        total: users.length,
+        active: users.filter(u => u.is_active && u.plan_key !== 'free').length,
+        free: users.filter(u => !u.is_active || u.plan_key === 'free').length
+      };
+
+      // 4. Estadísticas de Generaciones
+      const { count: genCount, error: genError } = await supabase
+        .from('image_generations')
+        .select('*', { count: 'exact', head: true });
+
+      if (genError) throw genError;
+
+      // 5. Formatear Daily Revenue
+      const dailyRevenue = Object.entries(dailyMap)
+        .map(([date, amount]) => ({ date, amount }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      return {
+        totalRevenue,
+        revenueByPlan,
+        recentPayments: recent || [],
+        dailyRevenue,
+        userStats,
+        generationStats: { total: genCount || 0 }
+      };
+    } catch (err) {
+      console.error('Error al obtener analíticas de pagos:', err);
+      return {
+        totalRevenue: 0,
+        revenueByPlan: {},
+        recentPayments: [],
+        dailyRevenue: [],
+        userStats: { total: 0, active: 0, free: 0 },
+        generationStats: { total: 0 }
+      };
+    }
   }
 };
