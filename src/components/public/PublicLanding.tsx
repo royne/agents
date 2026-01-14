@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaRocket, FaMagic, FaFilm, FaComments, FaArrowRight, FaCheckCircle, FaChartLine, FaRobot, FaPlayCircle, FaFileExcel } from 'react-icons/fa';
+import { FaRocket, FaMagic, FaFilm, FaComments, FaArrowRight, FaCheckCircle, FaChartLine, FaRobot, FaPlayCircle, FaFileExcel, FaFacebook, FaInstagram, FaYoutube, FaDiscord, FaEnvelope } from 'react-icons/fa';
 import PlanPricing from '../profile/PlanPricing';
 
 const PublicLanding: React.FC = () => {
@@ -314,15 +314,33 @@ const PublicLanding: React.FC = () => {
           </Link>
 
           <div className="mt-24 pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 p-1.5 flex items-center justify-center">
-                <Image src="/droplab.png" alt="DROPAPP" width={16} height={16} className="object-cover" />
+            <div className="flex flex-col items-center md:items-start gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 p-1.5 flex items-center justify-center">
+                  <Image src="/droplab.png" alt="DROPAPP" width={16} height={16} className="object-cover" />
+                </div>
+                <span className="text-sm font-black tracking-tighter">DROPAPP &copy; 2026</span>
               </div>
-              <span className="text-sm font-black tracking-tighter">DROPAPP &copy; 2026</span>
             </div>
+
+            <div className="flex items-center gap-6">
+              <a href="https://facebook.com/profile.php?id=61585562057390" target="_blank" rel="noopener noreferrer" className="text-xl text-gray-500 hover:text-white transition-all transform hover:scale-110">
+                <FaFacebook />
+              </a>
+              <a href="https://instagram.com/dropapp.lat" target="_blank" rel="noopener noreferrer" className="text-xl text-gray-500 hover:text-white transition-all transform hover:scale-110">
+                <FaInstagram />
+              </a>
+              <a href="https://youtube.com/@Dropapp-lat" target="_blank" rel="noopener noreferrer" className="text-xl text-gray-500 hover:text-white transition-all transform hover:scale-110">
+                <FaYoutube />
+              </a>
+              <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="text-xl text-gray-500 hover:text-white transition-all transform hover:scale-110">
+                <FaDiscord />
+              </a>
+            </div>
+
             <div className="flex gap-8">
-              <Link href="#" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">Términos</Link>
-              <Link href="#" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">Privacidad</Link>
+              <Link href="/terms" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">Términos</Link>
+              <Link href="/privacy" className="text-xs font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest">Privacidad</Link>
             </div>
           </div>
         </div>

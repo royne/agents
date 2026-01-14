@@ -9,7 +9,7 @@ import MetaPixel from '../components/common/MetaPixel';
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  const isPublicPath = router.pathname === '/' || router.pathname === '/auth/register' || router.pathname === '/mentores';
+  const isPublicPath = ['/', '/auth/register', '/mentores', '/terms', '/privacy'].includes(router.pathname);
 
   return (
     <AppProvider>
@@ -43,7 +43,7 @@ function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
     };
 
     const isAuthPath = router.pathname.startsWith('/auth');
-    const isPublicPath = router.pathname === '/' || router.pathname === '/mentores';
+    const isPublicPath = ['/', '/mentores', '/terms', '/privacy'].includes(router.pathname);
 
     if (authData.isAuthenticated) {
       // Si está autenticado y en una ruta de auth, redirigir a dashboard
