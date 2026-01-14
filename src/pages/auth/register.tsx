@@ -46,8 +46,8 @@ export default function RegisterPage() {
       const result = await register(email.trim(), password, phoneDigits, name.trim(), referralCode);
       if (result.success) {
         setIsSuccess(true);
-        // Rastrear evento de registro como "Purchase" (Compra)
-        trackPixelEvent('Purchase', {
+        // Rastrear evento de registro como "CompleteRegistration" (Registro completado)
+        trackPixelEvent('CompleteRegistration', {
           content_name: 'Registro de Usuario',
           status: 'success'
         });
