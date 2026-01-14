@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain, FaUsersCog, FaAd, FaChevronLeft, FaChevronRight, FaMagic, FaFilm, FaRocket, FaUsers } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain, FaUsersCog, FaAd, FaChevronLeft, FaChevronRight, FaMagic, FaFilm, FaRocket, FaUsers, FaCrown } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
 import type { ModuleKey } from '../../constants/plans';
@@ -216,20 +216,17 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 href="/pricing"
                 className={`
                   w-full flex items-center p-3 rounded-xl transition-all duration-300 group/upgrade
-                  ${authData?.plan !== 'free' && authData?.plan !== 'tester'
-                    ? 'bg-white/[0.03] hover:bg-white/10 text-primary-color border border-primary-color/20'
-                    : 'bg-gradient-to-br from-[#12D8FA]/80 to-[#0066FF]/80 text-white shadow-[0_0_15px_rgba(18,216,250,0.1)] hover:shadow-[0_0_25px_rgba(18,216,250,0.3)] hover:scale-[1.02] active:scale-95'
-                  }
+                  bg-gradient-to-br from-[#12D8FA] to-[#0066FF] text-white shadow-[0_4px_15px_rgba(18,216,250,0.2)] hover:shadow-[0_8px_25px_rgba(18,216,250,0.4)] hover:scale-[1.02] active:scale-95 border border-white/10
                   ${isSidebarOpen ? 'justify-start' : 'justify-center'}
                 `}
-                title="Mejorar Plan"
+                title="Planes y Créditos"
               >
                 <div className="flex items-center justify-center w-6 h-6 shrink-0">
-                  <FaRocket className={`text-lg transition-transform duration-500 ${isSidebarOpen ? 'group-hover/upgrade:rotate-12 group-hover/upgrade:-translate-y-0.5' : ''}`} />
+                  <FaCrown className={`text-lg transition-transform duration-500 ${isSidebarOpen ? 'group-hover/upgrade:rotate-12 group-hover/upgrade:-translate-y-0.5' : ''}`} />
                 </div>
                 {isSidebarOpen && (
                   <span className="ml-3 text-[10px] font-black uppercase tracking-widest whitespace-nowrap overflow-hidden">
-                    {authData?.plan !== 'free' && authData?.plan !== 'tester' ? 'Subir Nivel' : 'Mejorar Plan'}
+                    Planes y Créditos
                   </span>
                 )}
               </Link>
