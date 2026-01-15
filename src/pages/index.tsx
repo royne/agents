@@ -1,9 +1,7 @@
 import React from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import {
-  FaComments, FaChartLine, FaTruck, FaCog, FaRobot,
-  FaDatabase, FaLock, FaDollarSign, FaBrain, FaCalendarAlt,
-  FaAd, FaMagic, FaRocket, FaFilm, FaPlayCircle, FaFileExcel,
+  FaMagic, FaRocket, FaFilm, FaPlayCircle, FaFileExcel,
   FaPercentage, FaBoxOpen, FaLightbulb, FaChartArea
 } from 'react-icons/fa';
 import { useAppContext } from '../contexts/AppContext';
@@ -15,6 +13,7 @@ import Head from 'next/head';
 import PublicLanding from '../components/public/PublicLanding';
 import { useRouter } from 'next/router';
 import WhatsAppButton from '../components/common/WhatsAppButton';
+import DashboardTour from '../components/tours/DashboardTour';
 
 export default function Dashboard() {
   const { authData, isAdmin, canAccessModule, isSyncing } = useAppContext();
@@ -55,7 +54,7 @@ export default function Dashboard() {
         {/* Sección de Perfil Minimalista */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/5 mx-2">
           <div className="flex flex-col">
-            <h2 className="text-4xl font-black text-white tracking-tighter">
+            <h2 id="tour-welcome" className="text-4xl font-black text-white tracking-tighter">
               ¡Hola, <span className="text-primary-color">{authData.name?.split(' ')[0] || 'Usuario'}</span>!
             </h2>
             <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.4em] mt-1 -ml-0.5">
@@ -70,7 +69,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          <div className="flex flex-col md:items-end gap-3 min-w-[280px]">
+          <div id="tour-credits" className="flex flex-col md:items-end gap-3 min-w-[280px]">
             <div className="flex items-center justify-between w-full text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">
               <span className="flex items-center gap-2">
                 <div className={`w-1.5 h-1.5 rounded-full ${isSyncing ? 'bg-amber-500 animate-pulse' : 'bg-primary-color'} shadow-[0_0_8px_rgba(18,216,250,0.5)]`}></div>
@@ -110,6 +109,7 @@ export default function Dashboard() {
             badge="Estrategia"
             disabled={!getModuleStatus('landing-pro')}
             isLarge={true}
+            containerId="tour-landing-card"
           />
           <ModuleCard
             name="Imagen PRO"
@@ -201,9 +201,13 @@ export default function Dashboard() {
             buttonText="Ver Tutoriales"
             buttonClass="btn-premium-gray"
             disabled={false}
+            containerId="tour-tutorials"
           />
         </DashboardSection>
       </div>
+
+      <DashboardTour />
+
       <WhatsAppButton />
     </DashboardLayout>
   );

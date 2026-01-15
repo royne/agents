@@ -1,5 +1,6 @@
 import type { AppProps } from 'next/app'
 import '../styles/globals.css'
+import '../styles/tours.css'
 import { AppProvider, useAppContext } from '../contexts/AppContext';
 import { useRouter, type NextRouter } from 'next/router';
 import { useEffect, useState } from 'react';

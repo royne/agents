@@ -14,6 +14,7 @@ interface ModuleCardProps {
   badge?: string;
   imageNode?: React.ReactNode;
   isLarge?: boolean;
+  containerId?: string;
 }
 
 const ModuleCard: React.FC<ModuleCardProps> = ({
@@ -27,10 +28,11 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
   disabled = false,
   badge,
   imageNode,
-  isLarge = false
+  isLarge = false,
+  containerId
 }) => {
   const CardContent = (
-    <div className={`premium-card h-full ${isLarge ? 'p-5' : 'p-3.5'} flex flex-col justify-between ${gradientClass} ${disabled ? 'disabled' : ''}`}>
+    <div id={containerId} className={`premium-card h-full ${isLarge ? 'p-5' : 'p-3.5'} flex flex-col justify-between ${gradientClass} ${disabled ? 'disabled' : ''}`}>
       {disabled && (
         <div className="premium-card-disabled-overlay rounded-2xl">
           <FaLock className={`${isLarge ? 'w-12 h-12' : 'w-8 h-8'} text-white/40`} />

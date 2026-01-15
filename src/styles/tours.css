@@ -1,0 +1,66 @@
+/* Custom styles for driver.js popover in DROPAPP */
+
+.driver-popover {
+  background-color: #0d1117 !important;
+  border: 1px solid rgba(18, 216, 250, 0.3) !important;
+  color: white !important;
+  border-radius: 12px !important;
+  padding: 15px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+.driver-popover-title {
+  color: #12D8FA !important;
+  font-weight: 800 !important;
+  font-size: 16px !important;
+  margin-bottom: 8px !important;
+  font-family: inherit !important;
+}
+
+.driver-popover-description {
+  color: #9CA3AF !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  font-family: inherit !important;
+}
+
+.driver-popover-btn {
+  background: #1f2937 !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  text-shadow: none !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  transition: all 0.2s !important;
+}
+
+.driver-popover-btn:hover {
+  background: #12D8FA !important;
+  color: black !important;
+}
+
+.driver-popover-next-btn {
+  background: #12D8FA !important;
+  color: black !important;
+  border: none !important;
+}
+
+.driver-popover-next-btn:hover {
+  background: #3B82F6 !important;
+  color: white !important;
+}
+
+.driver-popover-close-btn {
+  color: #9CA3AF !important;
+}
+
+.driver-popover-arrow {
+  border-color: #0d1117 !important;
+}
+
+.driver-popover-progress-text {
+  color: #4B5563 !important;
+  font-size: 11px !important;
+}
