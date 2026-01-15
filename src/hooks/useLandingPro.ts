@@ -32,7 +32,7 @@ export function useLandingPro() {
   const [correctionPrompt, setCorrectionPrompt] = useState('');
   const [globalTemplates, setGlobalTemplates] = useState<any[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
-  const [isContextOpen, setIsContextOpen] = useState(false);
+  const [isContextOpen, setIsContextOpen] = useState(true);
   const [isSectionSelectorOpen, setIsSectionSelectorOpen] = useState(false);
 
   // Secciones activas según el modo

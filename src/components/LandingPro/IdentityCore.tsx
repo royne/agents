@@ -49,7 +49,7 @@ const IdentityCore: React.FC<IdentityCoreProps> = ({
         <div className="space-y-5">
           <div className="space-y-2">
             <label className="text-[10px] font-black text-theme-secondary uppercase tracking-[0.15em] flex justify-between">
-              <span>1. Foto Producto Real</span>
+              <span id="tour-product-photo">1. Foto Producto Real</span>
               <span className="text-primary-color font-bold">Obligatorio</span>
             </label>
             <ImageUploader onImageSelect={onImageSelect} />
@@ -57,7 +57,7 @@ const IdentityCore: React.FC<IdentityCoreProps> = ({
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-theme-secondary uppercase tracking-[0.15em] flex justify-between">
-              <span>2. Referencia de Estilo / Branding</span>
+              <span id="tour-branding-style">2. Referencia de Estilo / Branding</span>
               <span className="text-theme-tertiary opacity-40 italic">Opcional</span>
             </label>
             <div className="relative group">
@@ -92,8 +92,8 @@ const IdentityCore: React.FC<IdentityCoreProps> = ({
                   key={layout.id}
                   onClick={() => onLayoutSelect(selectedLayout === layout.id ? null : layout.id)}
                   className={`p-2 rounded-xl border text-left transition-all ${selectedLayout === layout.id
-                      ? 'border-primary-color bg-primary-color/10 shadow-lg'
-                      : 'border-white/5 bg-white/5 hover:border-white/10'
+                    ? 'border-primary-color bg-primary-color/10 shadow-lg'
+                    : 'border-white/5 bg-white/5 hover:border-white/10'
                     }`}
                 >
                   <p className={`text-[9px] font-black uppercase tracking-tighter ${selectedLayout === layout.id ? 'text-primary-color' : 'text-theme-tertiary'}`}>
@@ -107,14 +107,15 @@ const IdentityCore: React.FC<IdentityCoreProps> = ({
 
           <div className="space-y-4 pt-4 border-t border-white/5">
             <button
+              id="tour-context-trigger"
               onClick={() => setIsContextOpen(!isContextOpen)}
               className={`w-full py-3 px-4 rounded-xl border flex items-center justify-between transition-all ${isContextOpen || productData.name
-                  ? 'border-primary-color/30 bg-primary-color/5 text-primary-color'
-                  : 'border-white/5 bg-white/5 text-theme-tertiary'
+                ? 'border-primary-color/30 bg-primary-color/5 text-primary-color'
+                : 'border-white/5 bg-white/5 text-theme-tertiary'
                 }`}
             >
               <span className="text-[10px] font-black uppercase tracking-widest">
-                {isContextOpen ? 'Cerrar Contexto' : 'Información del Producto'}
+                {isContextOpen ? 'Información del Producto' : 'Abrir Contexto'}
               </span>
               <FaChevronRight className={`transition-transform duration-300 ${isContextOpen ? 'rotate-90' : ''}`} />
             </button>
@@ -156,7 +157,7 @@ const IdentityCore: React.FC<IdentityCoreProps> = ({
               </div>
             )}
 
-            <div className="space-y-2">
+            <div id="tour-instructions" className="space-y-2">
               <label className="text-[10px] font-black text-theme-secondary uppercase tracking-[0.15em]">Instrucciones / Detalles</label>
               <textarea
                 placeholder="Ej: Estilo minimalista, fondo oscuro..."

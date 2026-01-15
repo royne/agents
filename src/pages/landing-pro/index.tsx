@@ -14,6 +14,7 @@ import IdentityCore from '../../components/LandingPro/IdentityCore';
 import LandingPreview from '../../components/LandingPro/LandingPreview';
 import CorrectionModal from '../../components/LandingPro/CorrectionModal';
 import { HistoryModal } from '../../components/ImageGen/HistoryModal';
+import LandingProTour from '../../components/tours/LandingProTour';
 import { useState } from 'react';
 
 export default function LandingProPage() {
@@ -135,6 +136,8 @@ export default function LandingProPage() {
           onClose={() => setIsHistoryModalOpen(false)}
           userId={authData?.userId || ''}
         />
+
+        <LandingProTour />
       </DashboardLayout>
     </ProtectedRoute>
   );

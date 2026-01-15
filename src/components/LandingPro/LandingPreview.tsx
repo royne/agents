@@ -105,6 +105,7 @@ const LandingPreview: React.FC<LandingPreviewProps> = ({
 
         <div className="p-6 border-t border-white/5 bg-gray-900/50 flex flex-col items-center gap-6">
           <button
+            id="tour-generate-button"
             onClick={onGenerate}
             disabled={isGenerating}
             className="w-full max-w-md py-5 bg-primary-color text-black font-black uppercase tracking-[0.2em] rounded-2xl hover:shadow-[0_0_40px_rgba(18,216,250,0.3)] transition-all hover:scale-[1.02] disabled:opacity-50 flex items-center justify-center gap-3 group"
