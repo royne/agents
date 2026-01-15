@@ -15,6 +15,7 @@ import UsageCounter from '../../components/ImageGen/UsageCounter';
 import { useImageUsage } from '../../hooks/useImageUsage';
 import Head from 'next/head';
 import { HistoryModal } from '../../components/ImageGen/HistoryModal';
+import VideoProTour from '../../components/tours/VideoProTour';
 
 export default function VideoProPage() {
   const { authData, googleAiKey, canAccessModule, isSuperAdmin } = useAppContext();
@@ -278,7 +279,7 @@ export default function VideoProPage() {
               <div className="space-y-6 relative z-10">
                 {/* Product Meta */}
                 <div className="grid grid-cols-1 gap-4">
-                  <div className="space-y-2">
+                  <div id="tour-video-context" className="space-y-2">
                     <label className="text-[10px] font-black text-theme-tertiary uppercase tracking-[0.2em] ml-1">Contexto del Producto</label>
                     <input
                       type="text"
@@ -298,14 +299,14 @@ export default function VideoProPage() {
                 </div>
 
                 {/* Mode Selector */}
-                <div className="space-y-3">
+                <div id="tour-video-modes" className="space-y-3">
                   <label className="text-[10px] font-black text-theme-tertiary uppercase tracking-[0.2em] ml-1">Modo de Generación</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => setGenerationMode('normal')}
                       className={`p-3 rounded-xl border text-[10px] font-black transition-all ${generationMode === 'normal' ? 'bg-primary-color/20 border-primary-color text-primary-color' : 'bg-theme-component border-white/5 text-theme-tertiary hover:border-white/20'}`}
                     >
-                      RÁPIDO (7s)
+                      RÁPIDO (8s)
                     </button>
                     <button
                       onClick={() => setGenerationMode('interpolation')}
@@ -326,7 +327,7 @@ export default function VideoProPage() {
 
                 {/* Frames Uploaders */}
                 <div className="grid grid-cols-1 gap-4">
-                  <div className="space-y-3">
+                  <div id="tour-video-reference" className="space-y-3">
                     <label className="text-[10px] font-black text-theme-tertiary uppercase tracking-[0.2em] ml-1 flex justify-between items-center">
                       <span>1. Imagen Inicial</span>
                       <span className="text-primary-color font-black animate-pulse">Requerido</span>
@@ -354,8 +355,8 @@ export default function VideoProPage() {
                 </div>
 
                 {/* Script Area */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-theme-tertiary uppercase tracking-[0.2em] ml-1">2. Guion del Video (UGC)</label>
+                <div id="tour-video-script" className="space-y-2">
+                  <label className="text-[10px] font-black text-theme-tertiary uppercase tracking-[0.2em] ml-1">2. Guion del Video (Obligatorio)</label>
                   <textarea
                     placeholder="Describe lo que sucede en el video o escribe el guion literal..."
                     rows={4}
@@ -366,7 +367,7 @@ export default function VideoProPage() {
                 </div>
 
                 {/* Detailed Specs */}
-                <div className="space-y-4 pt-4 border-t border-white/5">
+                <div id="tour-video-specs" className="space-y-4 pt-4 border-t border-white/5">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div className="space-y-2">
                       <label className="text-[9px] font-black text-theme-tertiary uppercase tracking-widest flex items-center gap-1">
@@ -418,6 +419,7 @@ export default function VideoProPage() {
 
                 {/* Generate Button */}
                 <button
+                  id="tour-video-generate"
                   onClick={() => handleGenerate()}
                   disabled={isGenerating || !firstFrameBase64 || !productData.name || !script}
                   className={`w-full py-5 mt-6 text-black font-black rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_20px_rgba(18,216,250,0.2)] disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed uppercase tracking-widest text-xs btn-modern bg-primary-color`}
@@ -473,7 +475,7 @@ export default function VideoProPage() {
                         disabled={isGenerating}
                         className="flex-1 py-4 bg-primary-color text-black border border-primary-color/20 rounded-2xl text-[11px] font-black hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest shadow-xl"
                       >
-                        {isGenerating ? 'Extendiendo...' : '+ Extender 7s (+80 Cred)'}
+                        {isGenerating ? 'Extendiendo...' : '+ Extender 8s (+80 Cred)'}
                       </button>
                     </div>
                   </div>
@@ -571,6 +573,8 @@ export default function VideoProPage() {
         isOpen={isHistoryModalOpen}
         onClose={() => setIsHistoryModalOpen(false)}
       />
+
+      <VideoProTour />
     </DashboardLayout>
   );
 }
