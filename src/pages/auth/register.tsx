@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
-import { FaEnvelope, FaLock, FaUser, FaPhone, FaArrowRight, FaCheckCircle } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaUser, FaPhone, FaArrowRight, FaCheckCircle, FaCrown } from 'react-icons/fa';
 import Image from 'next/image';
 import Link from 'next/link';
 import { trackPixelEvent } from '../../utils/pixelEvents';
@@ -134,6 +134,20 @@ export default function RegisterPage() {
           <h1 className="text-3xl font-black text-white tracking-tighter">Crear Cuenta</h1>
           <p className="text-gray-500 font-medium mt-1 text-xs uppercase tracking-widest text-center">Únete a la élite del e-commerce</p>
         </div>
+
+        {referralCode && (
+          <div className="mb-6 bg-primary-color/10 border border-primary-color/20 p-4 rounded-xl flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="w-10 h-10 bg-primary-color/20 rounded-lg flex items-center justify-center border border-primary-color/30 flex-shrink-0">
+              <FaCrown className="text-primary-color" />
+            </div>
+            <div>
+              <p className="text-[10px] text-primary-color font-black uppercase tracking-wider mb-0.5">Invitación Especial</p>
+              <p className="text-white text-[13px] font-medium leading-tight">
+                Te vas a registrar con el enlace de referido de la comunidad de <span className="text-primary-color font-bold uppercase">{referralCode}</span>
+              </p>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="w-full space-y-4">
           <div className="space-y-4">

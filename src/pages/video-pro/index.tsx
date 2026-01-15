@@ -539,7 +539,7 @@ export default function VideoProPage() {
                   <div>
                     <h4 className="text-[10px] font-black text-theme-primary uppercase tracking-widest mb-1">Veo 3.1 Fast</h4>
                     <p className="text-[10px] text-theme-tertiary leading-relaxed">
-                      Modelo optimizado para velocidad y rendimiento en videos cortos de hasta 7 segundos.
+                      Modelo optimizado para velocidad y rendimiento en videos cortos de hasta 8 segundos.
                     </p>
                   </div>
                 </div>
