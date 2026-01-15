@@ -14,6 +14,7 @@ import UsageCounter from '../../components/ImageGen/UsageCounter';
 import { useImageUsage } from '../../hooks/useImageUsage';
 import Head from 'next/head';
 import { HistoryModal } from '../../components/ImageGen/HistoryModal';
+import ImageProTour from '../../components/tours/ImageProTour';
 
 export default function ImageProPage() {
   const { authData, googleAiKey, canAccessModule, isSuperAdmin } = useAppContext();
@@ -341,7 +342,7 @@ export default function ImageProPage() {
         </div>
 
         {/* SELECTOR DE MODO PRINCIPAL */}
-        <div className="flex bg-theme-component border border-white/10 rounded-2xl p-1.5 mb-8 w-fit mx-auto shadow-xl">
+        <div id="tour-image-modes" className="flex bg-theme-component border border-white/10 rounded-2xl p-1.5 mb-8 w-fit mx-auto shadow-xl">
           <button
             onClick={() => setGenerationMode('libre')}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${generationMode === 'libre' ? 'bg-primary-color text-black shadow-lg shadow-primary-color/20' : 'text-theme-tertiary hover:text-white'}`}
@@ -449,7 +450,7 @@ export default function ImageProPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-theme-secondary uppercase tracking-widest flex justify-between">
+                    <label id="tour-image-product" className="text-[10px] font-black text-theme-secondary uppercase tracking-widest flex justify-between">
                       <span>1. {generationMode === 'personas' ? 'Persona / Modelo Principal' : 'Foto Producto Real'}</span>
                       <span className="text-primary-color animate-pulse font-bold">Obligatorio</span>
                     </label>
@@ -458,7 +459,7 @@ export default function ImageProPage() {
 
                   <div className="space-y-2">
                     <div className="flex justify-between items-center mb-1">
-                      <label className="text-[10px] font-black text-theme-secondary uppercase tracking-widest">
+                      <label id="tour-image-style" className="text-[10px] font-black text-theme-secondary uppercase tracking-widest">
                         2. {generationMode === 'personas' ? 'Referencia de Rostro / Pose' : 'Referencia de Estilo'}
                       </label>
                       <button
@@ -533,7 +534,7 @@ export default function ImageProPage() {
                       )}
                     </div>
                   ) : (
-                    <>
+                    <div id="tour-image-context" className="space-y-4">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-theme-secondary uppercase tracking-widest">Nombre del Producto</label>
                         <input
@@ -566,10 +567,10 @@ export default function ImageProPage() {
                           onChange={(e) => setProductData({ ...productData, buyer: e.target.value })}
                         />
                       </div>
-                    </>
+                    </div>
                   )}
 
-                  <div className="space-y-2">
+                  <div id="tour-image-instructions" className="space-y-2">
                     <label className="text-[10px] font-black text-theme-secondary uppercase tracking-widest">
                       {generationMode === 'personas' ? 'Instrucciones del Cambio' : 'Instrucciones / Detalles'}
                     </label>
@@ -584,6 +585,7 @@ export default function ImageProPage() {
                 </div>
 
                 <button
+                  id="tour-image-generate"
                   onClick={() => handleGenerate(false)}
                   disabled={isGenerating || (generationMode !== 'personas' && !productData.name) || !baseImageBase64}
                   className={`w-full py-4 mt-4 text-black font-bold rounded-xl flex items-center justify-center gap-2 hover:shadow-lg transition-all btn-modern disabled:opacity-30 disabled:cursor-not-allowed ${generationMode === 'libre' ? 'bg-primary-color' : generationMode === 'ads' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-purple-500 text-white shadow-lg shadow-purple-500/20'}`}
@@ -784,6 +786,8 @@ export default function ImageProPage() {
         onClose={() => setIsHistoryModalOpen(false)}
         userId={authData?.userId || ''}
       />
+
+      <ImageProTour />
     </DashboardLayout>
   );
 }
