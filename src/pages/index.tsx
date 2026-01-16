@@ -99,6 +99,18 @@ export default function Dashboard() {
         {/* Sección 1: ¿Qué quieres hacer hoy? */}
         <DashboardSection title="¿Qué quieres hacer hoy?">
           <ModuleCard
+            name="Imagen PRO"
+            description="Imágenes, Banners & Catálogos publicitarios en segundos"
+            icon={FaMagic}
+            path="/image-pro"
+            gradientClass="gradient-strategy"
+            buttonText="Crear Creatividades"
+            buttonClass="btn-premium-blue"
+            badge="Creativos"
+            disabled={!getModuleStatus('image-pro')}
+            isLarge={true}
+          />
+          <ModuleCard
             name="Landing PRO"
             description="Crea una landing optimizada para vender hoy con IA de alto impacto"
             icon={FaRocket}
@@ -110,18 +122,6 @@ export default function Dashboard() {
             disabled={!getModuleStatus('landing-pro')}
             isLarge={true}
             containerId="tour-landing-card"
-          />
-          <ModuleCard
-            name="Imagen PRO"
-            description="Imágenes, Banners & Catálogos publicitarios en segundos"
-            icon={FaMagic}
-            path="/image-pro"
-            gradientClass="gradient-strategy"
-            buttonText="Crear Creatividades"
-            buttonClass="btn-premium-blue"
-            badge="Creativos"
-            disabled={!getModuleStatus('image-pro')}
-            isLarge={true}
           />
           <ModuleCard
             name="Video Generator"

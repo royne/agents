@@ -18,8 +18,8 @@ const menuSections: MenuSection[] = [
   {
     title: 'CREACIÓN',
     items: [
-      { name: 'Landing PRO', icon: FaAd, path: '/landing-pro', moduleKey: 'landing-pro' },
       { name: 'Imagen Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
+      { name: 'Landing PRO', icon: FaAd, path: '/landing-pro', moduleKey: 'landing-pro' },
       { name: 'Video PRO', icon: FaFilm, path: '/video-pro', moduleKey: 'video-pro' },
     ]
   },
@@ -59,8 +59,8 @@ const mobileMenuItems: MobileMenuItem[] = [
       </div>
     ), path: '/'
   },
-  { name: 'Agentes', icon: FaComments, path: '/agents', moduleKey: 'agents' },
   { name: 'Imagen Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
+  { name: 'Agentes', icon: FaComments, path: '/agents', moduleKey: 'agents' },
   { name: 'Rentabilidad', icon: FaBrain, path: '/data-analysis/analysis', moduleKey: 'data-analysis' },
   { name: 'Admin', icon: FaUsersCog, path: '/admin', moduleKey: 'admin' },
 ];
