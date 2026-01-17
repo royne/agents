@@ -10,13 +10,19 @@ const V2PrototypePage: React.FC = () => {
   const {
     productData,
     creativePaths,
+    landingState,
     isDiscovering,
     isRecommending,
+    isDesigning,
     error,
     discover,
     getCreativeRecommendations,
+    generateLandingProposal,
+    selectSection,
+    selectReference,
     resetDiscovery,
-    setProductData
+    setProductData,
+    generateSection
   } = useDiscovery();
 
   return (
@@ -30,21 +36,28 @@ const V2PrototypePage: React.FC = () => {
           chatPanel={
             <ChatOrchestrator
               onDiscover={discover}
-              isDiscovering={isDiscovering || isRecommending}
+              isDiscovering={isDiscovering || isRecommending || isDesigning}
               onReset={resetDiscovery}
               productData={productData}
               setProductData={setProductData}
               creativePaths={creativePaths}
+              landingState={landingState}
             />
           }
           canvasPanel={
             <ArtifactViewer
               data={productData}
               creativePaths={creativePaths}
+              landingState={landingState}
               isLoading={isDiscovering || isRecommending}
               isRecommending={isRecommending}
+              isDesigning={isDesigning}
               error={error}
               onConfirmDiscovery={getCreativeRecommendations}
+              onSelectPath={generateLandingProposal}
+              onSelectSection={selectSection}
+              onSelectReference={selectReference}
+              onGenerateSection={generateSection}
             />
           }
         />

@@ -30,3 +30,37 @@ export interface CreativePath {
   package: CreativePackage;
   justification: string;
 }
+
+export interface LandingLayoutProposal {
+  sections: {
+    sectionId: string;
+    title: string;
+    reasoning: string;
+  }[];
+}
+
+export interface SectionGeneration {
+  copy: {
+    headline: string;
+    body: string;
+    cta?: string;
+  };
+  imageUrl: string;
+  status: 'pending' | 'completed' | 'failed';
+}
+
+export interface LandingGenerationState {
+  proposedStructure: LandingLayoutProposal | null;
+  selectedSectionId: string | null;
+  selectedReferenceUrl: string | null;
+  generations: Record<string, SectionGeneration>; // sectionId -> result
+  baseImageUrl?: string;
+}
+
+export interface LandingSection {
+  id: string;
+  title: string;
+  description: string;
+  icon: any;
+  prompt: string;
+}

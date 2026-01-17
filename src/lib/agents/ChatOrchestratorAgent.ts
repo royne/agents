@@ -1,10 +1,11 @@
-import { CreativePath, ProductData } from '../../types/image-pro';
+import { CreativePath, ProductData, LandingGenerationState } from '../../types/image-pro';
 
 export class ChatOrchestratorAgent {
   static async chat(
     messages: { role: 'user' | 'assistant'; content: string }[], 
     productData?: ProductData | null,
-    creativePaths?: CreativePath[] | null
+    creativePaths?: CreativePath[] | null,
+    landingState?: LandingGenerationState | null
   ): Promise<string> {
     console.log('[ChatOrchestratorAgent] Generating response...');
 
@@ -19,30 +20,36 @@ export class ChatOrchestratorAgent {
          - Detalles: ${productData.details}`
       : 'Aún no hemos detectado un producto. Pide al usuario una URL o imagen para extraer el ADN.';
 
-    if (creativePaths && creativePaths.length > 0) {
+    if (creativePaths && creativePaths.length > 0 && !landingState?.proposedStructure) {
       contextPrompt += `\n\nESTADO ACTUAL: Estamos en la fase de SELECCIÓN CREATIVA. El usuario tiene estas 3 opciones en el Canvas:
       ${creativePaths.map((cp, i) => `${i+1}. ${cp.package.name}: ${cp.package.description}`).join('\n')}`;
+    } else if (landingState?.proposedStructure) {
+      contextPrompt += `\n\nESTADO ACTUAL: Estamos en la fase de DISEÑO DE ESTRUCTURA. He diseñado esta landing de ${landingState.proposedStructure.sections.length} secciones:
+      ${landingState.proposedStructure.sections.map((s, i) => `${i+1}. ${s.title}`).join(', ')}.
+      El usuario debe hacer clic en una sección en el Canvas para elegir su referencia visual.`;
+      
+      if (landingState.selectedSectionId) {
+        contextPrompt += `\n\nDETALLE: El usuario ha seleccionado la sección "${landingState.selectedSectionId}". Ahora debe elegir una de las 6 referencias visuales que aparecen en el Canvas.`;
+      }
     } else if (productData) {
       contextPrompt += `\n\nESTADO ACTUAL: ADN Detectado. El usuario está revisando los datos antes de pasar a ver los Caminos Creativos.`;
     }
 
     const systemPrompt = `
       Eres un Estratega Senior de Marketing y Growth en DropApp. Tu tono es directo, experto, inspirador y humano. 
-      NUNCA saludes como "Soy el orquestador" o de forma robótica. Habla como un colega experto que está ayudando a lanzar un negocio exitoso.
+      NUNCA saludes de forma robótica. Habla como un colega experto.
       
       TU MISIÓN:
-      Guía al usuario para refinar el ADN de su producto y elegir la mejor estrategia visual.
+      Guía al usuario para refinar el ADN, elegir un camino creativo y ahora, ESTRUCTURAR su landing modularmente.
       
       CONTEXTO DEL CANVAS:
       ${contextPrompt}
       
       REGLAS DE ORO:
-      1. Si el usuario te pide cambiar algo del ADN (ej: "cambia el ángulo", "ponle este nombre", "busca otro buyer"), DEBES responder con el texto normal Y AL FINAL incluir un tag de actualización EXACTAMENTE así:
-         [UPDATE_DNA] { "name": "...", "angle": "...", "buyer": "...", "details": "..." }
-         Asegúrate de que el JSON del tag tenga los 4 campos actualizados basándote en lo que ya tenemos y lo que el usuario pidió.
-      2. No uses negritas excesivas ni emojis infantiles. Usa un lenguaje de negocios premium (español de España/Latam neutro).
-      3. Si te preguntan por más ángulos, dales 3 opciones potentes y pregunta si quieren aplicar alguna al Canvas.
-      4. Sé conciso. Ve al grano.
+      1. Si el usuario te pide cambiar algo del ADN, usa el tag [UPDATE_DNA].
+      2. Si estamos en fase de SELECCIÓN CREATIVA, anímale a elegir uno de los 3 caminos para ver la estructura.
+      3. Si ya tenemos una ESTRUCTURA (proposedStructure), felicítale por el avance, explica brevemente por qué esa estructura es ganadora y dile que ahora debe elegir el estilo visual (referencia) para cada sección haciendo clic en ellas en el Canvas.
+      4. No uses negritas excesivas. Sé conciso.
     `;
 
     try {

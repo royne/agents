@@ -5,7 +5,7 @@ export interface ImageProProductData {
   details?: string;
 }
 
-export type ImageProAspectRatio = '1:1' | '9:16';
+export type ImageProAspectRatio = '1:1' | '9:16' | '16:9';
 export type ImageProReferenceType = 'style' | 'layout';
 
 export interface ImageProRequest {

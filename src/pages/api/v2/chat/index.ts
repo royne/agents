@@ -7,13 +7,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { messages, productData, creativePaths } = req.body;
+    const { messages, productData, creativePaths, landingState } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: 'Messages are required and must be an array.' });
     }
 
-    const response = await ChatOrchestratorAgent.chat(messages, productData, creativePaths);
+    const response = await ChatOrchestratorAgent.chat(messages, productData, creativePaths, landingState);
 
     return res.status(200).json({
       success: true,
