@@ -15,7 +15,8 @@ const V2PrototypePage: React.FC = () => {
     error,
     discover,
     getCreativeRecommendations,
-    resetDiscovery
+    resetDiscovery,
+    setProductData
   } = useDiscovery();
 
   return (
@@ -31,6 +32,9 @@ const V2PrototypePage: React.FC = () => {
               onDiscover={discover}
               isDiscovering={isDiscovering || isRecommending}
               onReset={resetDiscovery}
+              productData={productData}
+              setProductData={setProductData}
+              creativePaths={creativePaths}
             />
           }
           canvasPanel={

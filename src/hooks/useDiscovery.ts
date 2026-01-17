@@ -73,6 +73,7 @@ export function useDiscovery() {
     error,
     discover,
     getCreativeRecommendations,
-    resetDiscovery
+    resetDiscovery,
+    setProductData
   };
 }

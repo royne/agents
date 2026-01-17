@@ -63,7 +63,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-bold tracking-tight text-white">
-                {isRecommending ? 'Orquestando Caminos Creativos' : 'Extrayendo ADN del Producto'}
+                {isRecommending ? 'Analizando Caminos Creativos' : 'Extrayendo ADN del Producto'}
               </h3>
               <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
                 {isRecommending ? 'El Director Creativo está seleccionando las mejores referencias...' : 'Identificando identidad, audiencia y estrategia...'}
