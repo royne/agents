@@ -1,0 +1,31 @@
+/* DropApp V2 specific styles */
+
+.v2-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.v2-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.v2-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(18, 216, 250, 0.2);
+  border-radius: 10px;
+}
+
+.v2-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(18, 216, 250, 0.4);
+}
+
+/* Ensure full height for the split layout when nested */
+.v2-layout-container {
+  height: calc(100vh - 4rem); /* Adjust based on DashboardLayout padding/header if necessary */
+  display: flex;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .v2-layout-container {
+    height: calc(100vh - 8rem); /* 2 * p-8 from DashboardLayout */
+  }
+}
