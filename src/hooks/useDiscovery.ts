@@ -107,6 +107,21 @@ export function useDiscovery() {
     setLandingState(prev => ({ ...prev, selectedReferenceUrl: url }));
   };
 
+  const updateSectionInstructions = (sectionId: string, extraInstructions: string) => {
+    setLandingState(prev => {
+      if (!prev.proposedStructure) return prev;
+      return {
+        ...prev,
+        proposedStructure: {
+          ...prev.proposedStructure,
+          sections: prev.proposedStructure.sections.map(s => 
+            s.sectionId === sectionId ? { ...s, extraInstructions } : s
+          )
+        }
+      };
+    });
+  };
+
   const generateSection = async (sectionId: string, sectionTitle: string) => {
     if (!productData || !landingState.proposedStructure || !landingState.selectedReferenceUrl) return;
 
@@ -118,6 +133,8 @@ export function useDiscovery() {
         [sectionId]: { copy: { headline: '', body: '' }, imageUrl: '', status: 'pending' }
       }
     }));
+
+    const extraInstructions = landingState.proposedStructure.sections.find(s => s.sectionId === sectionId)?.extraInstructions;
 
     try {
       const creativePath = creativePaths?.[0]; // Defaulting to first for now, ideally pass selected
@@ -148,8 +165,9 @@ export function useDiscovery() {
           creativePath,
           sectionId,
           sectionTitle,
+          extraInstructions, // New: Pass extra instructions to API
           referenceUrl: landingState.selectedReferenceUrl,
-          previousImageUrl: landingState.baseImageUrl, // Identity
+          previousImageUrl, // Identity
           continuityImage: previousImageUrl // Last generated section for style consistency
         }),
       });
@@ -218,6 +236,7 @@ export function useDiscovery() {
     generateLandingProposal,
     selectSection,
     selectReference,
+    updateSectionInstructions,
     generateSection,
     resetDiscovery,
     setProductData

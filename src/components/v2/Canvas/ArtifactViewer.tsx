@@ -205,9 +205,14 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     setPreviewSectionId(null);
                     onSelectSection?.(previewSectionId);
                   }}
-                  className="w-full py-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold text-[10px] uppercase tracking-widest rounded-2xl transition-all"
+                  className={`w-full py-4 font-bold text-[10px] uppercase tracking-widest rounded-2xl transition-all border ${landingState.proposedStructure?.sections.find(s => s.sectionId === previewSectionId)?.extraInstructions
+                    ? 'bg-primary-color text-black border-primary-color shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)] animate-pulse'
+                    : 'bg-white/5 hover:bg-white/10 text-white border-white/10'
+                    }`}
                 >
-                  Regenerar con otro estilo
+                  {landingState.proposedStructure?.sections.find(s => s.sectionId === previewSectionId)?.extraInstructions
+                    ? 'Aplicar Cambios del Chat'
+                    : 'Regenerar con otro estilo'}
                 </button>
               </div>
             </div>
@@ -238,6 +243,14 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     {isCompleted && generation.imageUrl ? (
                       <div className="h-64 w-full relative overflow-hidden">
                         <img src={generation.imageUrl} className="w-full h-full object-cover object-top" />
+
+                        {/* Edit Indicator Badge */}
+                        {section.extraInstructions && (
+                          <div className="absolute top-4 right-4 px-3 py-1 bg-primary-color text-black text-[8px] font-black uppercase tracking-tighter rounded-full shadow-2xl animate-bounce">
+                            Instrucción Pendiente
+                          </div>
+                        )}
+
                         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent flex flex-col justify-end p-6">
                           <h3 className="text-sm font-bold text-white mb-1">{generation.copy.headline}</h3>
                           <p className="text-[9px] text-gray-400 line-clamp-2 leading-tight uppercase tracking-wider font-bold">{section.title}</p>

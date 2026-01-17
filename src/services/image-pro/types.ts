@@ -19,6 +19,7 @@ export interface ImageProRequest {
   isCorrection: boolean;
   previousImageUrl?: string;
   continuityImage?: string;
+  extraInstructions?: string;
   currentStep?: number;
   debug?: boolean;
 }

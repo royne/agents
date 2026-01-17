@@ -11,10 +11,16 @@ export class LandingService extends BaseImageProService {
       referenceImage, 
       referenceType, 
       previousImageUrl,
+      extraInstructions,
       subMode 
     } = req;
     
     let strategicPrompt = "";
+    
+    // Combine base prompt with chat instructions if any
+    const finalPrompt = extraInstructions 
+      ? `${prompt}. ADDITIONAL USER REQUIREMENTS: ${extraInstructions}` 
+      : prompt;
     
     if (isCorrection) {
       strategicPrompt = `IMAGE REFINEMENT & CORE ALIGNMENT:
@@ -23,7 +29,7 @@ export class LandingService extends BaseImageProService {
       - TARGET: ${productData.buyer || 'High-end premium customers'}
       - ANGLE: ${productData.angle || 'Exclusivity and superior quality'}
       
-      NEW MODIFICATION REQUEST: ${prompt}
+      NEW MODIFICATION REQUEST: ${finalPrompt}
       
       INSTRUCTION: Apply the modification while keeping the product in ITEM 1 identical. Do not change the layout or background drastically unless requested.`;
     } else {
@@ -48,8 +54,9 @@ export class LandingService extends BaseImageProService {
       • The reference image may contribute texture, depth, or composition cues ONLY.
       • DO NOT import dominant colors, color temperature, or mood from the reference image.
       • Any color present in the reference image that conflicts with the product branding MUST be ignored.
+      • If finalPrompt includes specific color/atmosphere instructions, they take absolute priority.
 
-    SECTION OBJECTIVE: ${prompt}
+    SECTION OBJECTIVE: ${finalPrompt}
     
     CRITICAL INSTRUCTION: 
     - You are generating a HIGH-END COMMERCIAL advertisement.
@@ -65,7 +72,7 @@ export class LandingService extends BaseImageProService {
     STRICT VISUAL DIRECTIVES:
     - ASPECT RATIO: ${aspectRatio}
     - TYPOGRAPHY & TEXT: ${
-      /RENDER|HEADLINE|TEXT|COPY|ACTION|STAMP/i.test(prompt)
+      /RENDER|HEADLINE|TEXT|COPY|ACTION|STAMP/i.test(finalPrompt)
         ? "RENDER professional, clean, and legible typography ONLY when explicitly required by the section objective. Text must be minimal, conversion-focused, and NEVER instructional or generic."
         : "KEEP IT PURELY VISUAL. No text or watermarks in the scene."
     }
@@ -73,7 +80,9 @@ export class LandingService extends BaseImageProService {
     - BRANDING PRIORITY: Color palette, mood, and visual tone must be derived from the product itself (packaging, category, buyer persona), NOT from the reference image.
       • EXCEPTION: If the reference is a MOCKUP, use it ONLY to understand layout and hierarchy, NEVER as a source of branding or color.
     
+    
     VISUAL AUTHORITY & CONTINUITY RULES:
+    - USER SPECIFIC OVERRIDES: ${extraInstructions ? `PRIORITY 1: ${extraInstructions}` : "None"}
 
     1. SECTION OBJECTIVE:
     - Defines the purpose, emotion, and conversion goal of this image.
@@ -97,7 +106,12 @@ export class LandingService extends BaseImageProService {
       • Respect block positions, proportions, and visual grouping EXACTLY.
       • Translate each placeholder block into a real photographic and commercial element.
     
-    3. PREVIOUS IMAGE (ITEM 3 - CONTINUITY):
+    3. PREVIOUS IMAGE (ITEM 1 - CORE PRODUCT IDENTITY):
+    - This is the ONLY source of truth for the product properties (shape, label, color, branding).
+    - MUST be replicated with absolute fidelity in the new scene.
+    - DO NOT allow ITEM 2 (Reference) or ITEM 3 (Continuity) to alter the product's physical appearance.
+
+    4. PREVIOUS IMAGE (ITEM 3 - CONTINUITY):
     - Used ONLY to maintain visual continuity across the landing.
     - Maintain consistency in:
       • Color temperature

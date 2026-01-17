@@ -15,6 +15,7 @@ interface ChatOrchestratorProps {
   setProductData: (data: ProductData | null) => void;
   creativePaths: CreativePath[] | null;
   landingState?: LandingGenerationState | null;
+  onUpdateSection?: (sectionId: string, extraInstructions: string) => void;
 }
 
 const ChatOrchestrator: React.FC<ChatOrchestratorProps> = ({
@@ -24,7 +25,8 @@ const ChatOrchestrator: React.FC<ChatOrchestratorProps> = ({
   productData,
   setProductData,
   creativePaths,
-  landingState
+  landingState,
+  onUpdateSection
 }) => {
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: '¡Hola! Soy tu Estratega de Marketing de DropApp. ¿Qué producto vamos a lanzar hoy?' }
@@ -73,21 +75,18 @@ const ChatOrchestrator: React.FC<ChatOrchestratorProps> = ({
 
       const result = await response.json();
       if (result.success) {
-        let aiContent = result.data as string;
+        const { text, protocol } = result.data;
 
-        // Parse tags like [UPDATE_DNA]
-        const updateMatch = aiContent.match(/\[UPDATE_DNA\]\s*(\{[\s\S]*\})/);
-        if (updateMatch) {
-          try {
-            const newData = JSON.parse(updateMatch[1]);
-            setProductData(newData);
-            aiContent = aiContent.replace(updateMatch[0], '').trim();
-          } catch (e) {
-            console.error('Failed to parse DNA update:', e);
+        if (protocol) {
+          console.log('[ChatOrchestrator] Executing protocol:', protocol);
+          if (protocol.action === 'UPDATE_DNA') {
+            setProductData({ ...productData, ...protocol.data } as ProductData);
+          } else if (protocol.action === 'UPDATE_SECTION') {
+            onUpdateSection?.(protocol.data.sectionId, protocol.data.extraInstructions);
           }
         }
 
-        setMessages(prev => [...prev, { role: 'assistant', content: aiContent }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: text }]);
       } else {
         setMessages(prev => [...prev, { role: 'assistant', content: 'Parece que tengo un problema de conexión. ¿Podemos reintentar?' }]);
       }
@@ -138,8 +137,8 @@ const ChatOrchestrator: React.FC<ChatOrchestratorProps> = ({
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
             <div className={`max-w-[85%] p-4 rounded-2xl text-xs leading-relaxed ${m.role === 'user'
-                ? 'bg-primary-color text-black font-bold rounded-tr-none'
-                : 'bg-white/5 text-gray-200 border border-white/5 rounded-tl-none'
+              ? 'bg-primary-color text-black font-bold rounded-tr-none'
+              : 'bg-white/5 text-gray-200 border border-white/5 rounded-tl-none'
               }`}>
               {m.content}
             </div>

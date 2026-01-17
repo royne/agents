@@ -36,6 +36,7 @@ export interface LandingLayoutProposal {
     sectionId: string;
     title: string;
     reasoning: string;
+    extraInstructions?: string; // New: instructions from chat
   }[];
 }
 
@@ -47,6 +48,7 @@ export interface SectionGeneration {
   };
   imageUrl: string;
   status: 'pending' | 'completed' | 'failed';
+  extraInstructions?: string; // Persisted instructions
 }
 
 export interface LandingGenerationState {
@@ -63,4 +65,14 @@ export interface LandingSection {
   description: string;
   icon: any;
   prompt: string;
+}
+
+export interface ChatProtocol {
+  action: 'UPDATE_DNA' | 'UPDATE_SECTION' | 'REGENERATE_STRUCTURE';
+  data: any;
+}
+
+export interface ChatResponse {
+  text: string;
+  protocol?: ChatProtocol;
 }

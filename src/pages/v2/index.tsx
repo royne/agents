@@ -22,7 +22,8 @@ const V2PrototypePage: React.FC = () => {
     selectReference,
     resetDiscovery,
     setProductData,
-    generateSection
+    generateSection,
+    updateSectionInstructions
   } = useDiscovery();
 
   return (
@@ -42,6 +43,7 @@ const V2PrototypePage: React.FC = () => {
               setProductData={setProductData}
               creativePaths={creativePaths}
               landingState={landingState}
+              onUpdateSection={updateSectionInstructions}
             />
           }
           canvasPanel={
