@@ -16,3 +16,17 @@ export interface AdStep {
   title: string;
   prompt: string;
 }
+
+export interface CreativePackage {
+  id: string;
+  name: string;
+  description: string;
+  category: 'landing' | 'image' | 'both';
+  style: string;
+  tone: string;
+}
+
+export interface CreativePath {
+  package: CreativePackage;
+  justification: string;
+}

@@ -7,7 +7,16 @@ import { useDiscovery } from '../../hooks/useDiscovery';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 
 const V2PrototypePage: React.FC = () => {
-  const { productData, isDiscovering, error, discover, resetDiscovery } = useDiscovery();
+  const {
+    productData,
+    creativePaths,
+    isDiscovering,
+    isRecommending,
+    error,
+    discover,
+    getCreativeRecommendations,
+    resetDiscovery
+  } = useDiscovery();
 
   return (
     <DashboardLayout>
@@ -20,15 +29,18 @@ const V2PrototypePage: React.FC = () => {
           chatPanel={
             <ChatOrchestrator
               onDiscover={discover}
-              isDiscovering={isDiscovering}
+              isDiscovering={isDiscovering || isRecommending}
               onReset={resetDiscovery}
             />
           }
           canvasPanel={
             <ArtifactViewer
               data={productData}
-              isLoading={isDiscovering}
+              creativePaths={creativePaths}
+              isLoading={isDiscovering || isRecommending}
+              isRecommending={isRecommending}
               error={error}
+              onConfirmDiscovery={getCreativeRecommendations}
             />
           }
         />

@@ -1,14 +1,24 @@
 import React from 'react';
-import { FaDesktop, FaMobileAlt, FaExpand, FaCheckCircle, FaExclamationTriangle, FaUserAstronaut, FaBullseye, FaInfoCircle, FaMagic } from 'react-icons/fa';
-import { ProductData } from '../../../types/image-pro';
+import { FaDesktop, FaMobileAlt, FaExpand, FaCheckCircle, FaExclamationTriangle, FaUserAstronaut, FaBullseye, FaInfoCircle, FaMagic, FaRocket } from 'react-icons/fa';
+import { CreativePath, ProductData } from '../../../types/image-pro';
 
 interface ArtifactViewerProps {
   data: ProductData | null;
+  creativePaths: CreativePath[] | null;
   isLoading: boolean;
+  isRecommending?: boolean;
   error: string | null;
+  onConfirmDiscovery?: () => void;
 }
 
-const ArtifactViewer: React.FC<ArtifactViewerProps> = ({ data, isLoading, error }) => {
+const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
+  data,
+  creativePaths,
+  isLoading,
+  isRecommending,
+  error,
+  onConfirmDiscovery
+}) => {
   return (
     <div className="w-full max-w-5xl h-[80vh] bg-theme-component/30 backdrop-blur-3xl border border-white/10 rounded-[40px] shadow-2xl flex flex-col overflow-hidden group">
       {/* Canvas Header */}
@@ -27,10 +37,13 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({ data, isLoading, error 
         <div className="flex items-center gap-3">
           {isLoading && <span className="text-[10px] font-black uppercase tracking-widest text-primary-color animate-pulse flex items-center gap-2">
             <div className="w-2 h-2 bg-primary-color rounded-full animate-ping"></div>
-            Analizando estrategia...
+            {isRecommending ? 'Diseñando Caminos...' : 'Analizando estrategia...'}
           </span>}
-          {data && <span className="text-[10px] font-black uppercase tracking-widest text-green-400 flex items-center gap-2">
-            <FaCheckCircle /> Estrategia Lista
+          {data && !creativePaths && !isLoading && <span className="text-[10px] font-black uppercase tracking-widest text-green-400 flex items-center gap-2">
+            <FaCheckCircle /> ADN Detectado
+          </span>}
+          {creativePaths && <span className="text-[10px] font-black uppercase tracking-widest text-primary-color flex items-center gap-2">
+            <FaMagic /> Selección Creativa
           </span>}
           <button className="p-2 text-gray-500 hover:text-white">
             <FaExpand />
@@ -39,7 +52,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({ data, isLoading, error 
       </div>
 
       {/* Actual Content Area */}
-      <div className="flex-1 bg-[#05070A] relative flex flex-col items-center justify-center overflow-y-auto custom-scrollbar p-12">
+      <div className="flex-1 bg-[#05070A] relative flex flex-col items-center justify-center overflow-y-auto v2-scrollbar p-8">
         {isLoading ? (
           <div className="text-center space-y-8 animate-pulse">
             <div className="relative">
@@ -49,8 +62,51 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({ data, isLoading, error 
               <div className="absolute inset-0 w-32 h-32 border-2 border-primary-color border-t-transparent animate-spin rounded-full mx-auto"></div>
             </div>
             <div className="space-y-2">
-              <h3 className="text-xl font-bold tracking-tight text-white">Extrayendo ADN del Producto</h3>
-              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Identificando identidad, audiencia y estrategia...</p>
+              <h3 className="text-xl font-bold tracking-tight text-white">
+                {isRecommending ? 'Orquestando Caminos Creativos' : 'Extrayendo ADN del Producto'}
+              </h3>
+              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
+                {isRecommending ? 'El Director Creativo está seleccionando las mejores referencias...' : 'Identificando identidad, audiencia y estrategia...'}
+              </p>
+            </div>
+          </div>
+        ) : creativePaths ? (
+          <div className="w-full max-w-4xl space-y-8 animate-in fade-in slide-in-from-bottom duration-1000">
+            <div className="text-center space-y-2 mb-8">
+              <h2 className="text-2xl font-black text-white">Elige tu Camino Creativo</h2>
+              <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">La IA ha seleccionado 3 estrategias maestras para tu producto</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {creativePaths.map((path, idx) => (
+                <div key={idx} className="bg-white/5 border border-white/10 hover:border-primary-color/50 rounded-3xl p-6 flex flex-col gap-4 transition-all group/card cursor-pointer hover:bg-white/[0.07] relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/card:opacity-30 transition-opacity">
+                    <FaRocket className="text-4xl" />
+                  </div>
+
+                  <div>
+                    <span className="text-[9px] font-black text-primary-color uppercase tracking-widest mb-1 block">{path.package.style}</span>
+                    <h3 className="text-lg font-bold text-white mb-2">{path.package.name}</h3>
+                    <p className="text-[11px] text-gray-400 leading-relaxed mb-4">{path.package.description}</p>
+                  </div>
+
+                  <div className="mt-auto pt-4 border-t border-white/5">
+                    <div className="flex items-start gap-2 mb-4">
+                      <FaBullseye className="text-primary-color mt-0.5 shrink-0" />
+                      <p className="text-[10px] font-medium text-gray-300 italic">"{path.justification}"</p>
+                    </div>
+                    <button className="w-full py-3 bg-white/5 hover:bg-primary-color hover:text-black text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all">
+                      Seleccionar Estilo
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-center pt-8">
+              <button onClick={() => window.location.reload()} className="text-[10px] text-gray-500 hover:text-white uppercase tracking-widest font-bold flex items-center gap-2">
+                <FaMagic /> Probar otros ángulos
+              </button>
             </div>
           </div>
         ) : data ? (
@@ -95,7 +151,10 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({ data, isLoading, error 
               </div>
 
               <div className="pt-6 border-t border-white/5 flex gap-4">
-                <button className="flex-1 py-4 bg-primary-color text-black font-black rounded-2xl text-[10px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-primary-color/20">
+                <button
+                  onClick={onConfirmDiscovery}
+                  className="flex-1 py-4 bg-primary-color text-black font-black rounded-2xl text-[10px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-primary-color/20"
+                >
                   Confirmar y Crear Lanzamiento
                 </button>
                 <button className="px-6 py-4 bg-white/5 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest border border-white/10 hover:bg-white/10 transition-all">
