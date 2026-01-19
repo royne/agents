@@ -109,7 +109,11 @@ export function useDiscovery() {
   };
 
   const selectSection = (sectionId: string) => {
-    setLandingState(prev => ({ ...prev, selectedSectionId: sectionId, selectedReferenceUrl: null }));
+    setLandingState(prev => ({ 
+      ...prev, 
+      selectedSectionId: sectionId, 
+      selectedReferenceUrl: null 
+    }));
   };
 
   const selectReference = (url: string) => {
@@ -143,8 +147,18 @@ export function useDiscovery() {
     });
   };
 
-  const generateSection = async (sectionId: string, sectionTitle: string, isCorrection: boolean = false) => {
-    if (!productData || !landingState.proposedStructure || !landingState.selectedReferenceUrl) return;
+  const generateSection = async (sectionId: string, sectionTitle: string, isCorrection: boolean = false, manualInstructions?: string) => {
+    console.log('[useDiscovery] generateSection CALLED:', { sectionId, sectionTitle, isCorrection, manualInstructions });
+    
+    if (!productData || !landingState.proposedStructure) {
+      console.warn('[useDiscovery] generateSection ABORTED: Missing productData or proposedStructure');
+      return;
+    }
+
+    if (!landingState.selectedReferenceUrl && !isCorrection) {
+      console.warn('[useDiscovery] generateSection ABORTED: Missing selectedReferenceUrl (and not a correction)');
+      return;
+    }
 
     // Set status to pending
     setLandingState(prev => ({
@@ -155,7 +169,8 @@ export function useDiscovery() {
       }
     }));
 
-    const extraInstructions = landingState.proposedStructure.sections.find(s => s.sectionId.toLowerCase() === sectionId.toLowerCase())?.extraInstructions;
+    const extraInstructions = manualInstructions || landingState.proposedStructure.sections.find(s => s.sectionId.toLowerCase() === sectionId.toLowerCase())?.extraInstructions;
+    console.log('[useDiscovery] Using extraInstructions:', extraInstructions);
 
     try {
       const creativePath = creativePaths?.[0]; // Defaulting to first for now, ideally pass selected

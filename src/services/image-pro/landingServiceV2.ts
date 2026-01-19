@@ -49,21 +49,13 @@ export class LandingServiceV2 extends BaseImageProService {
     - Dominant colors and atmosphere derived from the product packaging and target buyer.
     - If finalPrompt includes specific color/atmosphere instructions, they take absolute priority.
 
-    SECTION OBJECTIVE: ${finalPrompt}
+    SECTION OBJECTIVE (TEXT SOURCE): ${finalPrompt}
     
-    CRITICAL INSTRUCTION: 
-    - You are generating a HIGH-END COMMERCIAL advertisement.
-    - If you see placeholders like "FOTO PRODUCTO", "FOTO MODELO", or "TEXTO" in ITEM 2, YOU MUST REPLACE THEM with real cinematic content: real professional models, real textures, and real marketing copy.
-    - NEVER RENDER DIALECT OR PLACEHOLDER LABELS. Replace everything with professional finished assets.
-    - SECTION TITLES OR PROMPT NAMES MUST NEVER APPEAR AS VISIBLE TEXT IN THE IMAGE.
-    
-    STRICT VISUAL DIRECTIVES:
-    - ASPECT RATIO: ${aspectRatio}
-    - TYPOGRAPHY & TEXT: ${
-      /RENDER|HEADLINE|TEXT|COPY|ACTION|STAMP/i.test(finalPrompt)
-        ? "RENDER professional, clean, and legible typography ONLY when explicitly required by the section objective. Text must be minimal and conversion-focused."
-        : "KEEP IT PURELY VISUAL. No text or watermarks in the scene."
-    }
+    CRITICAL TEXT & IDENTITY RULES:
+    - NO COPYING TEXT from ITEM 2 (Reference). The reference is for LAYOUT ONLY.
+    - If the image requires text, use ONLY the core ideas from "SECTION OBJECTIVE" above. 
+    - BE PROPORTIONAL: Do not render long paragraphs. Use short, punchy headlines or labels that fit the visual design.
+    - If the reference shows placeholder text (lorem ipsum, etc.), IGNORE it. Replace with specific product benefits.
     
     VISUAL AUTHORITY & CONTINUITY RULES:
     - USER SPECIFIC OVERRIDES: ${extraInstructions ? `PRIORITY 1: ${extraInstructions}` : "None"}

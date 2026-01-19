@@ -70,12 +70,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const modelId = "gemini-3-pro-image-preview";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${googleKey}`;
     
-    const geminiRes = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ role: 'user', parts: promptConfig.parts }] })
-    });
+    let geminiRes;
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (attempts < maxAttempts) {
+      attempts++;
+      geminiRes = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ role: 'user', parts: promptConfig.parts }] })
+      });
 
+      if (geminiRes.status === 200) break;
+      
+      const errorData = await geminiRes.json().catch(() => ({}));
+      const isOverloaded = geminiRes.status === 503 || errorData.error?.message?.includes('overloaded');
+      
+      if (isOverloaded && attempts < maxAttempts) {
+        console.warn(`[API/V2/GenerateSection] Google AI overloaded (Attempt ${attempts}/${maxAttempts}). Retrying in 2s...`);
+        await new Promise(resolve => setTimeout(resolve, 2000 * attempts));
+        continue;
+      }
+      
+      throw new Error(errorData.error?.message || `Google AI failed with status ${geminiRes.status}`);
+    }
+
+    if (!geminiRes) throw new Error('Failed to connect to Google AI');
     const result = await geminiRes.json();
     const imagePart = result.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
 

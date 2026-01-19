@@ -54,10 +54,23 @@ export function useChatOrchestrator({
       return;
     }
 
+    // PHASE 2 SHORT-CIRCUIT: If structure exists, do NOT use AI.
+    if (landingState?.proposedStructure) {
+      console.log('[useChatOrchestrator] Structure detected, skipping AI call for phase 2.');
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: '¡Entendido! Para realizar cambios específicos en el diseño, imágenes o textos de las secciones, por favor utiliza el botón **"Editar esta imagen"** directamente en la sección correspondiente del Canvas. Desde mi rol estratégico ya he definido la estructura optimizada para conversión.' 
+      }]);
+      return;
+    }
+
     setIsThinking(true);
     console.log('[useChatOrchestrator] Sending to agent. Messages:', [...messages, userMessage].length, 'ProductData detected:', !!productData);
     
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
       const response = await fetch('/api/v2/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -67,8 +80,10 @@ export function useChatOrchestrator({
           creativePaths,
           landingState
         }),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
       const result = await response.json();
       console.log('[useChatOrchestrator] API Result Full:', result);
       

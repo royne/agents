@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaDesktop, FaMobileAlt, FaExpand, FaCheckCircle, FaExclamationTriangle, FaUserAstronaut, FaBullseye, FaInfoCircle, FaMagic, FaRocket, FaChevronRight } from 'react-icons/fa';
+import { FaDesktop, FaMobileAlt, FaExpand, FaCheckCircle, FaExclamationTriangle, FaUserAstronaut, FaBullseye, FaInfoCircle, FaMagic, FaRocket, FaChevronRight, FaEdit } from 'react-icons/fa';
 import { CreativePath, ProductData, LandingGenerationState } from '../../../types/image-pro';
 
 interface ArtifactViewerProps {
@@ -14,7 +14,7 @@ interface ArtifactViewerProps {
   onSelectPath?: (path: CreativePath) => void;
   onSelectSection?: (sectionId: string) => void;
   onSelectReference?: (url: string) => void;
-  onGenerateSection?: (sectionId: string, sectionTitle: string, isCorrection?: boolean) => void;
+  onGenerateSection?: (sectionId: string, sectionTitle: string, isCorrection?: boolean, manualInstructions?: string) => void;
 }
 
 const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
@@ -35,6 +35,8 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const [loadingRefs, setLoadingRefs] = useState(false);
   const [previewSectionId, setPreviewSectionId] = useState<string | null>(null);
   const [showStrategyPanel, setShowStrategyPanel] = useState(false);
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
+  const [editInstructions, setEditInstructions] = useState('');
 
   useEffect(() => {
     console.log('[ArtifactViewer] Data Prop Updated:', data?.name, data?.angle);
@@ -171,13 +173,19 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               </div>
             )}
           </div>
-        ) : previewSectionId && landingState.generations[previewSectionId]?.status === 'completed' ? (
+        ) : previewSectionId && (landingState.generations[previewSectionId]?.status === 'completed' || landingState.generations[previewSectionId]?.status === 'pending') ? (
           <div key={previewSectionId} className="w-full max-w-5xl h-full flex flex-col md:flex-row gap-8 animate-in fade-in zoom-in duration-500 p-4">
             {/* Left: Huge Preview */}
             <div className="flex-1 bg-black/40 rounded-[32px] overflow-hidden border border-white/5 relative group/preview">
+              {landingState.generations[previewSectionId].status === 'pending' ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm z-20 space-y-4">
+                  <div className="w-12 h-12 border-4 border-primary-color border-t-transparent animate-spin rounded-full"></div>
+                  <p className="text-[10px] font-black text-primary-color uppercase tracking-widest animate-pulse">Generando nueva versión...</p>
+                </div>
+              ) : null}
               <img
-                src={landingState.generations[previewSectionId].imageUrl}
-                className="w-full h-full object-contain"
+                src={landingState.generations[previewSectionId].imageUrl || 'https://via.placeholder.com/1080x1920?text=Generando...'}
+                className={`w-full h-full object-contain ${landingState.generations[previewSectionId].status === 'pending' ? 'opacity-40 grayscale' : ''}`}
               />
               <div className="absolute top-4 left-4 p-2 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-[10px] font-black uppercase text-primary-color tracking-widest shadow-2xl">
                 9:16 Mobile Optimized
@@ -217,26 +225,56 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 )}
               </div>
 
-              {/* Direct Edit Button (From Chat) */}
-              {landingState.proposedStructure?.sections.find(s => s.sectionId.toLowerCase() === previewSectionId.toLowerCase())?.extraInstructions ? (
-                <div className="space-y-2">
-                  <p className="text-[9px] text-primary-color font-black uppercase text-center animate-pulse">¡Instrucciones del Chat listas!</p>
+              {/* Manual Local Edit UI */}
+              <div className="space-y-4">
+                {editingSectionId === previewSectionId ? (
+                  <div className="space-y-3 p-4 bg-white/5 rounded-2xl border border-primary-color/30 animate-in fade-in zoom-in duration-300">
+                    <span className="text-[10px] font-black text-primary-color uppercase tracking-widest">Instrucciones de Edición</span>
+                    <textarea
+                      value={editInstructions}
+                      onChange={(e) => setEditInstructions(e.target.value)}
+                      placeholder="Ej: pon el fondo rosa, cambia el precio a $99..."
+                      className="w-full h-24 bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-primary-color outline-none resize-none v2-scrollbar"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          console.log('[ArtifactViewer] Applying Manual Edit for Section:', previewSectionId, 'Instructions:', editInstructions);
+                          if (previewSectionId) {
+                            onGenerateSection?.(previewSectionId, landingState.generations[previewSectionId]?.copy?.headline || 'Sección', true, editInstructions);
+                          }
+                          setEditingSectionId(null);
+                          setEditInstructions('');
+                          // setPreviewSectionId(null); 
+                        }}
+                        disabled={!editInstructions.trim()}
+                        className="flex-1 py-2 bg-primary-color text-black font-black rounded-xl text-[9px] uppercase tracking-widest disabled:opacity-50"
+                      >
+                        Aplicar
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingSectionId(null);
+                          setEditInstructions('');
+                        }}
+                        className="px-4 py-2 bg-white/5 text-gray-400 font-bold rounded-xl text-[9px] uppercase tracking-widest hover:text-white"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
                   <button
                     onClick={() => {
-                      const section = landingState.proposedStructure?.sections.find(s => s.sectionId.toLowerCase() === previewSectionId.toLowerCase());
-                      if (section) onGenerateSection?.(section.sectionId, section.title, true); // true = isCorrection
-                      setPreviewSectionId(null);
+                      setEditingSectionId(previewSectionId);
+                      setEditInstructions('');
                     }}
-                    className="w-full py-5 bg-primary-color text-black font-extrabold text-[12px] uppercase tracking-widest rounded-3xl transition-all shadow-[0_0_30px_rgba(18,216,250,0.4)] hover:scale-[1.03] active:scale-95 border-2 border-white/30 flex items-center justify-center gap-3"
+                    className="w-full py-4 bg-white/10 hover:bg-white/20 text-white border border-white/10 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-2"
                   >
-                    <FaMagic className="text-lg animate-pulse" /> APLICAR CAMBIOS DEL CHAT
+                    <FaEdit /> Editar esta imagen
                   </button>
-                </div>
-              ) : (
-                /* Show a subtle Edit button even if no pending instruction, to allow manual re-generation without carousel if desired? 
-                   Actually, the user specifically wants the chat-triggered one. */
-                null
-              )}
+                )}
+              </div>
 
               <button
                 onClick={() => {
@@ -276,24 +314,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       <div className="h-64 w-full relative overflow-hidden">
                         <img src={generation.imageUrl} className="w-full h-full object-cover object-top" />
 
-                        {/* Edit Indicator Badge & Quick Action */}
-                        {section.extraInstructions && (
-                          <div className="absolute top-4 right-4 flex flex-col items-end gap-3 z-20 animate-in fade-in zoom-in duration-300">
-                            <div className="px-3 py-1 bg-primary-color text-black text-[10px] font-black uppercase tracking-tighter rounded-full shadow-[0_0_20px_rgba(18,216,250,0.5)] border border-white/20 flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
-                              Edición Lista
-                            </div>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onGenerateSection?.(section.sectionId, section.title, true);
-                              }}
-                              className="px-6 py-3 bg-white text-black text-[10px] font-black uppercase tracking-wider rounded-2xl shadow-2xl hover:bg-primary-color hover:scale-105 transition-all flex items-center gap-2 border-2 border-primary-color/20"
-                            >
-                              <FaMagic className="animate-spin-slow" /> Aplicar Edición (Chat)
-                            </button>
-                          </div>
-                        )}
+                        {/* Remove chat-driven indicators as per user request */}
 
                         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent flex flex-col justify-end p-6">
                           <h3 className="text-sm font-bold text-white mb-1">{generation.copy.headline}</h3>
