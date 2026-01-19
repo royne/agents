@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
   try {
-    const { productData, creativePath, sectionId, sectionTitle, referenceUrl, previousImageUrl, continuityImage } = req.body;
+    const { productData, creativePath, sectionId, sectionTitle, referenceUrl, previousImageUrl, continuityImage, extraInstructions, isCorrection } = req.body;
 
     // 1. Get User ID from headers (simpler version for now, ideally use supabase.auth.getUser)
     const authHeader = req.headers.authorization;
@@ -55,14 +55,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     const promptConfig = await LandingService.buildPrompt({
       mode: 'landing',
-      isCorrection: false,
+      isCorrection: isCorrection || false,
       productData,
       prompt: sectionPrompt,
       aspectRatio: '9:16',
       referenceImage: referenceUrl,
       referenceType: 'layout',
       previousImageUrl: previousImageUrl,
-      continuityImage: continuityImage
+      continuityImage: continuityImage,
+      extraInstructions: extraInstructions
     });
 
     console.log('[API/V2/GenerateSection] Calling Google AI...');

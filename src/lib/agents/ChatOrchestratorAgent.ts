@@ -25,11 +25,11 @@ export class ChatOrchestratorAgent {
       ${creativePaths.map((cp, i) => `${i+1}. ${cp.package.name}: ${cp.package.description}`).join('\n')}`;
     } else if (landingState?.proposedStructure) {
       contextPrompt += `\n\nESTADO ACTUAL: Estamos en la fase de DISEÑO DE ESTRUCTURA. He diseñado esta landing de ${landingState.proposedStructure.sections.length} secciones:
-      ${landingState.proposedStructure.sections.map((s, i) => `${i+1}. ${s.title}${s.extraInstructions ? ` (Extra: ${s.extraInstructions})` : ''}`).join(', ')}.
+      ${landingState.proposedStructure.sections.map((s, i) => `${i+1}. Título: "${s.title}" [ID TÉCNICO: ${s.sectionId}]${s.extraInstructions ? ` (Instrucción actual: ${s.extraInstructions})` : ''}`).join('\n      ')}.
       El usuario debe hacer clic en una sección en el Canvas para elegir su referencia visual.`;
       
       if (landingState.selectedSectionId) {
-        contextPrompt += `\n\nDETALLE: El usuario ha seleccionado la sección "${landingState.selectedSectionId}".`;
+        contextPrompt += `\n\nDETALLE: El usuario tiene abierta la sección con ID "${landingState.selectedSectionId}".`;
       }
     }
 
@@ -48,15 +48,20 @@ export class ChatOrchestratorAgent {
       
       Protocolos disponibles:
       1. UPDATE_DNA: Si pide cambiar nombre, ángulo, buyer o detalles.
-         Ej: { "action": "UPDATE_DNA", "data": { "angle": "Enfoque en artritis y movilidad" } }
-      2. UPDATE_SECTION: Si pide cambiar contenido de una sección (precios, colores, etc).
-         Ej: { "action": "UPDATE_SECTION", "data": { "sectionId": "hero", "extraInstructions": "Cambiar 'was' por 'antes' y precio a $99.900" } }
+         Ej: { "action": "UPDATE_DNA", "data": { "angle": "..." } }
+      2. UPDATE_SECTION: Si pide cambiar contenido de una sección. 
+         IMPORTANTE: Usa el "sectionId" EXACTO que aparece en el contexto (ej: "hero", "beneficios"). No inventes IDs ni uses el título.
+         Ej: { "action": "UPDATE_SECTION", "data": { "sectionId": "hero", "extraInstructions": "..." } }
       3. REGENERATE_STRUCTURE: Si pide cambiar toda la estructura.
       
       REGLA DE RESPUESTA (OBLIGATORIO JSON):
       Responde SIEMPRE con un JSON válido. Sé conversacional en el campo "text".
+      
+      IMPORTANTE (GUÍA DE USUARIO):
+      - Si ejecutas un protocolo "UPDATE_SECTION", DEBES decir al usuario en el campo "text" que haga clic en la sección correspondiente en el Canvas y presione el botón "APLICAR CAMBIOS DEL CHAT" para ver el resultado.
+      
       {
-        "text": "Tu respuesta estratégica y humana aquí confirmando lo que has hecho...",
+        "text": "Tu respuesta estratégica y humana aquí confirmando lo que has hecho y dando la instrucción de clicar en el botón APLICAR CAMBIOS DEL CHAT...",
         "protocol": { "action": "...", "data": { ... } } // Opcional pero necesario para cambios
       }
       

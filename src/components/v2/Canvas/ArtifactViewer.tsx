@@ -14,7 +14,7 @@ interface ArtifactViewerProps {
   onSelectPath?: (path: CreativePath) => void;
   onSelectSection?: (sectionId: string) => void;
   onSelectReference?: (url: string) => void;
-  onGenerateSection?: (sectionId: string, sectionTitle: string) => void;
+  onGenerateSection?: (sectionId: string, sectionTitle: string, isCorrection?: boolean) => void;
 }
 
 const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
@@ -154,7 +154,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             )}
           </div>
         ) : previewSectionId && landingState.generations[previewSectionId]?.status === 'completed' ? (
-          <div className="w-full max-w-5xl h-full flex flex-col md:flex-row gap-8 animate-in fade-in zoom-in duration-500 p-4">
+          <div key={previewSectionId} className="w-full max-w-5xl h-full flex flex-col md:flex-row gap-8 animate-in fade-in zoom-in duration-500 p-4">
             {/* Left: Huge Preview */}
             <div className="flex-1 bg-black/40 rounded-[32px] overflow-hidden border border-white/5 relative group/preview">
               <img
@@ -200,19 +200,27 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               </div>
 
               <div className="mt-auto flex flex-col gap-3">
+                {landingState.proposedStructure?.sections.find(s => s.sectionId.toLowerCase() === previewSectionId.toLowerCase())?.extraInstructions ? (
+                  <button
+                    onClick={() => {
+                      const section = landingState.proposedStructure?.sections.find(s => s.sectionId.toLowerCase() === previewSectionId.toLowerCase());
+                      if (section) onGenerateSection?.(section.sectionId, section.title, true); // true = isCorrection
+                      setPreviewSectionId(null);
+                    }}
+                    className="w-full py-4 bg-primary-color text-black font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all shadow-xl shadow-primary-color/20 hover:scale-[1.02] active:scale-95 animate-pulse"
+                  >
+                    <FaMagic className="inline mr-2" /> Aplicar Cambios del Chat
+                  </button>
+                ) : null}
+
                 <button
                   onClick={() => {
                     setPreviewSectionId(null);
                     onSelectSection?.(previewSectionId);
                   }}
-                  className={`w-full py-4 font-bold text-[10px] uppercase tracking-widest rounded-2xl transition-all border ${landingState.proposedStructure?.sections.find(s => s.sectionId === previewSectionId)?.extraInstructions
-                    ? 'bg-primary-color text-black border-primary-color shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)] animate-pulse'
-                    : 'bg-white/5 hover:bg-white/10 text-white border-white/10'
-                    }`}
+                  className="w-full py-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold text-[10px] uppercase tracking-widest rounded-2xl transition-all"
                 >
-                  {landingState.proposedStructure?.sections.find(s => s.sectionId === previewSectionId)?.extraInstructions
-                    ? 'Aplicar Cambios del Chat'
-                    : 'Regenerar con otro estilo'}
+                  Regenerar con otro estilo
                 </button>
               </div>
             </div>
@@ -398,7 +406,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               </div>
               <div className="absolute inset-0 border-2 border-primary-color/20 border-dashed rounded-full animate-[spin_10s_linear_infinite]"></div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 text-center">
               <h3 className="text-xl font-bold tracking-tight text-white">Tu Mesa de Trabajo</h3>
               <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto">
                 Los activos generados aparecerán aquí. Inicia pegando una URL o subiendo una imagen del producto en el chat.

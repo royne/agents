@@ -115,14 +115,14 @@ export function useDiscovery() {
         proposedStructure: {
           ...prev.proposedStructure,
           sections: prev.proposedStructure.sections.map(s => 
-            s.sectionId === sectionId ? { ...s, extraInstructions } : s
+            s.sectionId.toLowerCase() === sectionId.toLowerCase() ? { ...s, extraInstructions } : s
           )
         }
       };
     });
   };
 
-  const generateSection = async (sectionId: string, sectionTitle: string) => {
+  const generateSection = async (sectionId: string, sectionTitle: string, isCorrection: boolean = false) => {
     if (!productData || !landingState.proposedStructure || !landingState.selectedReferenceUrl) return;
 
     // Set status to pending
@@ -134,21 +134,23 @@ export function useDiscovery() {
       }
     }));
 
-    const extraInstructions = landingState.proposedStructure.sections.find(s => s.sectionId === sectionId)?.extraInstructions;
+    const extraInstructions = landingState.proposedStructure.sections.find(s => s.sectionId.toLowerCase() === sectionId.toLowerCase())?.extraInstructions;
 
     try {
       const creativePath = creativePaths?.[0]; // Defaulting to first for now, ideally pass selected
       if (!creativePath) throw new Error('No creative path selected');
 
-      // Find previous image for continuity (Identity first, then history)
-      let previousImageUrl = landingState.baseImageUrl;
+      // IDENTITY: Always use the original product photo
+      const identityImageUrl = landingState.baseImageUrl;
       
-      const previousImages = Object.values(landingState.generations)
+      // CONTINUITY: Use the immediately preceding generated section for style consistency
+      let continuityImageUrl = identityImageUrl;
+      const completedGenerations = Object.values(landingState.generations)
         .filter(g => g.status === 'completed' && g.imageUrl)
         .map(g => g.imageUrl);
       
-      if (previousImages.length > 0) {
-        previousImageUrl = previousImages[previousImages.length - 1];
+      if (completedGenerations.length > 0) {
+        continuityImageUrl = completedGenerations[completedGenerations.length - 1];
       }
 
       const { data: { session } } = await supabase.auth.getSession();
@@ -165,10 +167,11 @@ export function useDiscovery() {
           creativePath,
           sectionId,
           sectionTitle,
-          extraInstructions, // New: Pass extra instructions to API
+          extraInstructions,
+          isCorrection, // New: Pass isCorrection flag
           referenceUrl: landingState.selectedReferenceUrl,
-          previousImageUrl, // Identity
-          continuityImage: previousImageUrl // Last generated section for style consistency
+          previousImageUrl: identityImageUrl, // Real Identity Anchor
+          continuityImage: continuityImageUrl // Style Reference
         }),
       });
 
@@ -180,39 +183,49 @@ export function useDiscovery() {
           generations: {
             ...prev.generations,
             [sectionId]: { 
-              copy: result.data.copy, 
+              status: 'completed', 
               imageUrl: result.data.imageUrl, 
-              status: 'completed' 
+              copy: result.data.copy 
             }
           }
         }));
+        
+        if (isCorrection) {
+          updateSectionInstructions(sectionId, '');
+        }
       } else {
+        const errorMsg = result.error || 'Error al generar la sección';
+        setError(errorMsg);
+        
         setLandingState(prev => ({
           ...prev,
           generations: {
             ...prev.generations,
             [sectionId]: { 
-              copy: { headline: '', body: '' }, 
-              imageUrl: '', 
+              ...prev.generations[sectionId], 
               status: 'failed' 
             }
           }
         }));
-        setError(result.error || 'Failed to generate section.');
+
+        setTimeout(() => setError(null), 6000);
       }
     } catch (err: any) {
+      console.error('[useDiscovery] Fetch error:', err);
+      setError(err.message || 'Error de conexión');
+      
       setLandingState(prev => ({
         ...prev,
         generations: {
           ...prev.generations,
           [sectionId]: { 
-            copy: { headline: '', body: '' }, 
-            imageUrl: '', 
+            ...prev.generations[sectionId],
             status: 'failed' 
           }
         }
       }));
-      setError(err.message || 'Error connecting to generation service.');
+      
+      setTimeout(() => setError(null), 6000);
     }
   };
 
@@ -239,6 +252,7 @@ export function useDiscovery() {
     updateSectionInstructions,
     generateSection,
     resetDiscovery,
-    setProductData
+    setProductData,
+    setError
   };
 }

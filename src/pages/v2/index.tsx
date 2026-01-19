@@ -5,6 +5,7 @@ import ChatOrchestrator from '../../components/v2/Chat/ChatOrchestrator';
 import ArtifactViewer from '../../components/v2/Canvas/ArtifactViewer';
 import { useDiscovery } from '../../hooks/useDiscovery';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import Notification from '../../components/common/Notification';
 
 const V2PrototypePage: React.FC = () => {
   const {
@@ -15,6 +16,7 @@ const V2PrototypePage: React.FC = () => {
     isRecommending,
     isDesigning,
     error,
+    setError,
     discover,
     getCreativeRecommendations,
     generateLandingProposal,
@@ -63,6 +65,14 @@ const V2PrototypePage: React.FC = () => {
             />
           }
         />
+
+        {error && (
+          <Notification
+            message={error}
+            type="error"
+            onClose={() => setError(null)}
+          />
+        )}
       </div>
     </DashboardLayout>
   );
