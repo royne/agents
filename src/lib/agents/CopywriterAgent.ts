@@ -11,9 +11,10 @@ export class CopywriterAgent {
     productData: ProductData,
     creativePath: CreativePath,
     sectionId: string,
-    sectionTitle: string
+    sectionTitle: string,
+    extraInstructions?: string
   ): Promise<SectionCopy> {
-    console.log('[CopywriterAgent] Generating copy for section:', sectionId);
+    console.log('[CopywriterAgent] Generating copy for section:', sectionId, extraInstructions ? '(with extra instructions)' : '');
 
     const googleKey = process.env.GOOGLE_AI_KEY;
     if (!googleKey) throw new Error('Google AI Key is missing.');
@@ -35,6 +36,11 @@ export class CopywriterAgent {
       SECTION TO WRITE:
       - ID: ${sectionId}
       - Title: ${sectionTitle}
+      
+      ${extraInstructions ? `USER FEEDBACK / SPECIFIC REQUIREMENTS (PRIORITY):
+      ${extraInstructions}
+      
+      IMPORTANT: If the user explicitly asks to change the text, headline, or tone, you MUST follow those instructions strictly.` : ''}
       
       INSTRUCTIONS:
       1. Write in Spanish (neutral/Latam).

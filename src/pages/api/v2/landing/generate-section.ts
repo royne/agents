@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { CreditService } from '../../../../lib/creditService';
 import { CopywriterAgent } from '../../../../lib/agents/CopywriterAgent';
-import { LandingService } from '../../../../services/image-pro/landingService';
+import { LandingServiceV2 } from '../../../../services/image-pro/landingServiceV2';
 import { BaseImageProService } from '../../../../services/image-pro/baseService';
 
 export const config = {
@@ -46,14 +46,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // 3. Generate Copy (Fast)
-    console.log('[API/V2/GenerateSection] Generating copy...');
-    const copy = await CopywriterAgent.generateSectionCopy(productData, creativePath, sectionId, sectionTitle);
+    console.log('[API/V2/GenerateSection] Generating copy...', extraInstructions ? '(with corrections)' : '');
+    const copy = await CopywriterAgent.generateSectionCopy(productData, creativePath, sectionId, sectionTitle, extraInstructions);
 
     // 4. Generate Image (Artist)
     console.log('[API/V2/GenerateSection] Building image prompt...');
     const sectionPrompt = `SECTION: ${sectionTitle}. GOAL: ${copy.headline}. ${copy.body}`;
     
-    const promptConfig = await LandingService.buildPrompt({
+    const promptConfig = await LandingServiceV2.buildPrompt({
       mode: 'landing',
       isCorrection: isCorrection || false,
       productData,

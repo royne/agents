@@ -70,6 +70,8 @@ export function useChatOrchestrator({
       });
 
       const result = await response.json();
+      console.log('[useChatOrchestrator] API Result Full:', result);
+      
       if (result.success) {
         const { text, protocol } = result.data;
 
@@ -89,8 +91,6 @@ export function useChatOrchestrator({
               setSuccess?.('Re-formulando estrategia y estructura...');
             }
           }
-        } else {
-          console.warn('[useChatOrchestrator] No protocol found in agent response.');
         }
 
         setMessages(prev => [...prev, { role: 'assistant', content: text }]);

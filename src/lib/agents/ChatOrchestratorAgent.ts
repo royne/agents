@@ -37,21 +37,22 @@ export class ChatOrchestratorAgent {
 ${productData ? `EL PRODUCTO YA ESTÁ DETECTADO: ${productData.name}. NO pidas datos. Enfócate en optimizar su ángulo: "${productData.angle}" o buyer: "${productData.buyer}".` : 'Aún no hay producto. Pide URL o Imagen.'}
 
 CONVERSE: Sé directo, experto y persuasivo. 
-PROTOCOLOS (OBLIGATORIO): Si el usuario pide cualquier cambio (visual, texto, estrategia), DEBES incluirlo en el objeto "protocol". Sin protocolo, el Canvas NO se actualizará y el usuario pensará que no has hecho nada.
+PROTOCOLOS (OBLIGATORIO): Si el usuario pide cualquier cambio (visual, precios, texto), DEBES incluirlo en el objeto "protocol". Sin protocolo, el Canvas NO se actualizará.
 1. UPDATE_DNA: cambias ángulo/buyer/detalles generales del producto.
-2. UPDATE_SECTION: cambias instrucciones específicas de una sección (ej: "pon más texto", "usa fondo rosa", "cambia el headline").
-   IDs VÁLIDOS (Usa EXACTAMENTE estos): ${landingState?.proposedStructure?.sections.map(s => s.sectionId).join(', ') || 'hero, beneficios, oferta'}.
-3. REGENERATE_STRUCTURE: si el cambio de estrategia es tan profundo que la secuencia actual de secciones ya no sirve.
+2. UPDATE_SECTION: cambias instrucciones de una sección (ej: "pon más texto", "usa fondo rosa", "cambia el precio").
+   IDs VÁLIDOS: ${landingState?.proposedStructure?.sections.map(s => s.sectionId).join(', ') || 'hero, beneficios, oferta'}.
+   ID de sección abierta: "${landingState?.selectedSectionId || 'ninguna'}".
+   REGLA: Si el usuario menciona PRECIOS, aplica UPDATE_SECTION en la sección de "Oferta" o en la que tenga abierta.
 
-REGLA DE ORO: Prioriza hablar menos y ejecutar más protocolos. Si el usuario dice "ponlo azul", tu respuesta debe tener el protocolo UPDATE_SECTION con extraInstructions: "usa una paleta de colores azules".
+REGLA DE ORO: Prioriza hablar poco y ejecutar protocolos. Si el usuario dice "cambia el precio", usa UPDATE_SECTION.
 
-CONTEXTO ACTUAL:
+CONTEXTO ACTUAL DEL CANVAS:
 ${contextPrompt}`;
 
     const responseSchema = {
       type: "object",
       properties: {
-        text: { type: "string", description: "Respuesta humana para el chat" },
+        text: { type: "string", description: "Respuesta humana breve y profesional" },
         protocol: {
           type: "object",
           properties: {
@@ -66,7 +67,7 @@ ${contextPrompt}`;
                 sectionId: { type: "string" },
                 extraInstructions: { type: "string" }
               },
-              description: "Datos para la actualización" 
+              description: "Datos actualizados." 
             }
           },
           required: ["action", "data"]
@@ -82,7 +83,7 @@ ${contextPrompt}`;
       console.log(`[ChatOrchestratorAgent] Calling Gemini (${modelId})...`);
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 35000); // 35s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 35000);
 
       const res = await fetch(url, {
         method: 'POST',
@@ -99,15 +100,11 @@ ${contextPrompt}`;
           generationConfig: {
             response_mime_type: "application/json",
             response_schema: responseSchema
-          },
-          safetySettings: [
-            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-          ]
+          }
         })
       });
+
+      clearTimeout(timeoutId);
 
       clearTimeout(timeoutId);
       const result = await res.json();

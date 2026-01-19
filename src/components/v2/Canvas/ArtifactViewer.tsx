@@ -36,6 +36,10 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const [previewSectionId, setPreviewSectionId] = useState<string | null>(null);
   const [showStrategyPanel, setShowStrategyPanel] = useState(false);
 
+  useEffect(() => {
+    console.log('[ArtifactViewer] Data Prop Updated:', data?.name, data?.angle);
+  }, [data]);
+
   // Debug: Log structure changes
   useEffect(() => {
     if (landingState.proposedStructure) {
@@ -213,35 +217,36 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 )}
               </div>
 
-              <div className="mt-auto flex flex-col gap-3">
-                {/* Direct Edit Button (From Chat) */}
-                {landingState.proposedStructure?.sections.find(s => s.sectionId.toLowerCase() === previewSectionId.toLowerCase())?.extraInstructions ? (
+              {/* Direct Edit Button (From Chat) */}
+              {landingState.proposedStructure?.sections.find(s => s.sectionId.toLowerCase() === previewSectionId.toLowerCase())?.extraInstructions ? (
+                <div className="space-y-2">
+                  <p className="text-[9px] text-primary-color font-black uppercase text-center animate-pulse">¡Instrucciones del Chat listas!</p>
                   <button
                     onClick={() => {
                       const section = landingState.proposedStructure?.sections.find(s => s.sectionId.toLowerCase() === previewSectionId.toLowerCase());
                       if (section) onGenerateSection?.(section.sectionId, section.title, true); // true = isCorrection
                       setPreviewSectionId(null);
                     }}
-                    className="w-full py-4 bg-primary-color text-black font-black text-[11px] uppercase tracking-widest rounded-2xl transition-all shadow-xl shadow-primary-color/20 hover:scale-[1.02] active:scale-95 animate-gradient-x border-2 border-white/20"
+                    className="w-full py-5 bg-primary-color text-black font-extrabold text-[12px] uppercase tracking-widest rounded-3xl transition-all shadow-[0_0_30px_rgba(18,216,250,0.4)] hover:scale-[1.03] active:scale-95 border-2 border-white/30 flex items-center justify-center gap-3"
                   >
-                    <FaMagic className="inline mr-2" /> ACTUALIZAR CON REQUERIMIENTOS DEL CHAT
+                    <FaMagic className="text-lg animate-pulse" /> APLICAR CAMBIOS DEL CHAT
                   </button>
-                ) : (
-                  /* Show a subtle Edit button even if no pending instruction, to allow manual re-generation without carousel if desired? 
-                     Actually, the user specifically wants the chat-triggered one. */
-                  null
-                )}
+                </div>
+              ) : (
+                /* Show a subtle Edit button even if no pending instruction, to allow manual re-generation without carousel if desired? 
+                   Actually, the user specifically wants the chat-triggered one. */
+                null
+              )}
 
-                <button
-                  onClick={() => {
-                    setPreviewSectionId(null);
-                    onSelectSection?.(previewSectionId);
-                  }}
-                  className="w-full py-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold text-[10px] uppercase tracking-widest rounded-2xl transition-all"
-                >
-                  Regenerar con otro estilo
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  setPreviewSectionId(null);
+                  onSelectSection?.(previewSectionId);
+                }}
+                className="w-full py-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold text-[10px] uppercase tracking-widest rounded-2xl transition-all"
+              >
+                Regenerar con otro estilo
+              </button>
             </div>
           </div>
         ) : landingState.proposedStructure ? (
@@ -252,7 +257,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {landingState.proposedStructure.sections.map((section, idx) => {
+              {landingState.proposedStructure!.sections.map((section, idx) => {
                 const generation = landingState.generations[section.sectionId];
                 const isPending = generation?.status === 'pending';
                 const isCompleted = generation?.status === 'completed';
@@ -273,19 +278,19 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
 
                         {/* Edit Indicator Badge & Quick Action */}
                         {section.extraInstructions && (
-                          <div className="absolute top-4 right-4 flex flex-col items-end gap-2 z-20">
-                            <div className="px-3 py-1 bg-primary-color text-black text-[8px] font-black uppercase tracking-tighter rounded-full shadow-2xl animate-bounce border border-white/20 flex items-center gap-1">
-                              <div className="w-1 h-1 bg-white rounded-full animate-ping"></div>
-                              Cambios Pendientes
+                          <div className="absolute top-4 right-4 flex flex-col items-end gap-3 z-20 animate-in fade-in zoom-in duration-300">
+                            <div className="px-3 py-1 bg-primary-color text-black text-[10px] font-black uppercase tracking-tighter rounded-full shadow-[0_0_20px_rgba(18,216,250,0.5)] border border-white/20 flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
+                              Edición Lista
                             </div>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onGenerateSection?.(section.sectionId, section.title, true);
                               }}
-                              className="px-4 py-2 bg-white text-black text-[9px] font-black uppercase tracking-widest rounded-xl shadow-2xl hover:bg-primary-color transition-colors"
+                              className="px-6 py-3 bg-white text-black text-[10px] font-black uppercase tracking-wider rounded-2xl shadow-2xl hover:bg-primary-color hover:scale-105 transition-all flex items-center gap-2 border-2 border-primary-color/20"
                             >
-                              Aplicar Ya
+                              <FaMagic className="animate-spin-slow" /> Aplicar Edición (Chat)
                             </button>
                           </div>
                         )}
@@ -324,7 +329,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {creativePaths.map((path, idx) => (
+              {creativePaths!.map((path, idx) => (
                 <div
                   key={idx}
                   onClick={() => onSelectPath?.(path)}
@@ -369,7 +374,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 <div className="flex-1 space-y-6">
                   <div>
                     <span className="text-[10px] font-black text-primary-color uppercase tracking-widest mb-2 block">Producto Detectado</span>
-                    <h2 className="text-3xl font-black text-white leading-tight">{data.name}</h2>
+                    <h2 className="text-3xl font-black text-white leading-tight">{data!.name}</h2>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -378,7 +383,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                         <FaBullseye className="text-primary-color" />
                         <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Ángulo de Venta</span>
                       </div>
-                      <p className="text-sm font-bold text-gray-100 leading-relaxed">{data.angle}</p>
+                      <p className="text-sm font-bold text-gray-100 leading-relaxed">{data!.angle}</p>
                     </div>
 
                     <div className="bg-black/40 p-5 rounded-2xl border border-white/5 hover:border-primary-color/30 transition-all">
@@ -386,7 +391,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                         <FaUserAstronaut className="text-primary-color" />
                         <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Buyer Persona</span>
                       </div>
-                      <p className="text-sm font-bold text-gray-100 leading-relaxed">{data.buyer}</p>
+                      <p className="text-sm font-bold text-gray-100 leading-relaxed">{data!.buyer}</p>
                     </div>
                   </div>
 
@@ -395,7 +400,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       <FaInfoCircle className="text-primary-color" />
                       <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">ADN Visual y Detalles</span>
                     </div>
-                    <p className="text-sm text-gray-400 leading-relaxed whitespace-pre-wrap">{data.details}</p>
+                    <p className="text-sm text-gray-400 leading-relaxed whitespace-pre-wrap">{data!.details}</p>
                   </div>
                 </div>
               </div>
