@@ -34,6 +34,14 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const [references, setReferences] = useState<any[]>([]);
   const [loadingRefs, setLoadingRefs] = useState(false);
   const [previewSectionId, setPreviewSectionId] = useState<string | null>(null);
+  const [showStrategyPanel, setShowStrategyPanel] = useState(false);
+
+  // Debug: Log structure changes
+  useEffect(() => {
+    if (landingState.proposedStructure) {
+      console.log('[ArtifactViewer] Structure Update Detected:', landingState.proposedStructure.sections.map(s => ({ id: s.sectionId, instr: !!s.extraInstructions })));
+    }
+  }, [landingState.proposedStructure]);
 
   // Fetch references when a section is selected
   useEffect(() => {
@@ -61,6 +69,12 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             </button>
             <button className="p-1 px-3 hover:text-white transition-colors flex items-center gap-2">
               <FaMobileAlt /> Mobile
+            </button>
+            <button
+              onClick={() => setShowStrategyPanel(!showStrategyPanel)}
+              className={`p-1 px-3 flex items-center gap-2 transition-all rounded-md ${showStrategyPanel ? 'bg-primary-color/20 text-primary-color font-bold' : 'hover:text-white'}`}
+            >
+              <FaBullseye /> Estrategia
             </button>
           </div>
         </div>
@@ -200,6 +214,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               </div>
 
               <div className="mt-auto flex flex-col gap-3">
+                {/* Direct Edit Button (From Chat) */}
                 {landingState.proposedStructure?.sections.find(s => s.sectionId.toLowerCase() === previewSectionId.toLowerCase())?.extraInstructions ? (
                   <button
                     onClick={() => {
@@ -207,11 +222,15 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       if (section) onGenerateSection?.(section.sectionId, section.title, true); // true = isCorrection
                       setPreviewSectionId(null);
                     }}
-                    className="w-full py-4 bg-primary-color text-black font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all shadow-xl shadow-primary-color/20 hover:scale-[1.02] active:scale-95 animate-pulse"
+                    className="w-full py-4 bg-primary-color text-black font-black text-[11px] uppercase tracking-widest rounded-2xl transition-all shadow-xl shadow-primary-color/20 hover:scale-[1.02] active:scale-95 animate-gradient-x border-2 border-white/20"
                   >
-                    <FaMagic className="inline mr-2" /> Aplicar Cambios del Chat
+                    <FaMagic className="inline mr-2" /> ACTUALIZAR CON REQUERIMIENTOS DEL CHAT
                   </button>
-                ) : null}
+                ) : (
+                  /* Show a subtle Edit button even if no pending instruction, to allow manual re-generation without carousel if desired? 
+                     Actually, the user specifically wants the chat-triggered one. */
+                  null
+                )}
 
                 <button
                   onClick={() => {
@@ -252,10 +271,22 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       <div className="h-64 w-full relative overflow-hidden">
                         <img src={generation.imageUrl} className="w-full h-full object-cover object-top" />
 
-                        {/* Edit Indicator Badge */}
+                        {/* Edit Indicator Badge & Quick Action */}
                         {section.extraInstructions && (
-                          <div className="absolute top-4 right-4 px-3 py-1 bg-primary-color text-black text-[8px] font-black uppercase tracking-tighter rounded-full shadow-2xl animate-bounce">
-                            Instrucción Pendiente
+                          <div className="absolute top-4 right-4 flex flex-col items-end gap-2 z-20">
+                            <div className="px-3 py-1 bg-primary-color text-black text-[8px] font-black uppercase tracking-tighter rounded-full shadow-2xl animate-bounce border border-white/20 flex items-center gap-1">
+                              <div className="w-1 h-1 bg-white rounded-full animate-ping"></div>
+                              Cambios Pendientes
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onGenerateSection?.(section.sectionId, section.title, true);
+                              }}
+                              className="px-4 py-2 bg-white text-black text-[9px] font-black uppercase tracking-widest rounded-xl shadow-2xl hover:bg-primary-color transition-colors"
+                            >
+                              Aplicar Ya
+                            </button>
                           </div>
                         )}
 
@@ -411,6 +442,44 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto">
                 Los activos generados aparecerán aquí. Inicia pegando una URL o subiendo una imagen del producto en el chat.
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* Strategy Sidebar Panel */}
+        {showStrategyPanel && data && (
+          <div className="absolute top-24 right-8 w-72 bg-black/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-2xl animate-in slide-in-from-right-4 fade-in duration-500 z-50 overflow-y-auto max-h-[70%]">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xs font-black text-primary-color uppercase tracking-widest">Estrategia Actual</h3>
+              <button
+                onClick={() => setShowStrategyPanel(false)}
+                className="text-gray-500 hover:text-white"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block">Producto</span>
+                <p className="text-sm font-bold text-white leading-tight">{data.name}</p>
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block">Ángulo de Venta</span>
+                <p className="text-xs font-medium text-gray-300 leading-relaxed">{data.angle}</p>
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block">Buyer Persona</span>
+                <p className="text-xs font-medium text-gray-300 leading-relaxed">{data.buyer}</p>
+              </div>
+
+              <div className="pt-4 border-t border-white/5">
+                <p className="text-[9px] text-gray-500 italic leading-relaxed">
+                  Puedes pedir al estratega que cambie el ángulo o el público objetivo en cualquier momento desde el chat.
+                </p>
+              </div>
             </div>
           </div>
         )}

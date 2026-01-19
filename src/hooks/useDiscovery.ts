@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { CreativePath, ProductData, LandingLayoutProposal, LandingGenerationState } from '../types/image-pro';
 
@@ -9,6 +9,7 @@ export function useDiscovery() {
   const [isRecommending, setIsRecommending] = useState(false);
   const [isDesigning, setIsDesigning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // Landing Generation State
   const [landingState, setLandingState] = useState<LandingGenerationState>({
@@ -17,6 +18,14 @@ export function useDiscovery() {
     selectedReferenceUrl: null,
     generations: {}
   });
+
+  // Auto-clear success after 4 seconds
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => setSuccess(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [success]);
 
   const discover = async (input: { url?: string; imageBase64?: string }) => {
     setIsDiscovering(true);
@@ -108,15 +117,27 @@ export function useDiscovery() {
   };
 
   const updateSectionInstructions = (sectionId: string, extraInstructions: string) => {
+    console.log('[useDiscovery] updateSectionInstructions called for:', sectionId, 'New Instructions:', extraInstructions);
     setLandingState(prev => {
-      if (!prev.proposedStructure) return prev;
+      if (!prev.proposedStructure) {
+        console.warn('[useDiscovery] No proposedStructure found, cannot update instructions.');
+        return prev;
+      }
+      
+      const updatedSections = prev.proposedStructure.sections.map(s => {
+        const match = s.sectionId.toLowerCase() === sectionId.toLowerCase();
+        if (match) console.log('[useDiscovery] MATCH FOUND for section:', s.sectionId);
+        return match ? { ...s, extraInstructions } : s;
+      });
+
+      const found = updatedSections.some(s => s.sectionId.toLowerCase() === sectionId.toLowerCase());
+      if (!found) console.error('[useDiscovery] NO MATCH FOUND for ID:', sectionId, 'Available IDs:', prev.proposedStructure.sections.map(s => s.sectionId));
+
       return {
         ...prev,
         proposedStructure: {
           ...prev.proposedStructure,
-          sections: prev.proposedStructure.sections.map(s => 
-            s.sectionId.toLowerCase() === sectionId.toLowerCase() ? { ...s, extraInstructions } : s
-          )
+          sections: updatedSections
         }
       };
     });
@@ -156,6 +177,13 @@ export function useDiscovery() {
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;
 
+      // REFERENCE: If it's a correction, use the CURRENT image as structural reference.
+      // If it's a new generation, use the selected reference URL from the catalog.
+      const currentGeneration = landingState.generations[sectionId];
+      const effectiveReferenceUrl = (isCorrection && currentGeneration?.imageUrl) 
+        ? currentGeneration.imageUrl 
+        : landingState.selectedReferenceUrl;
+
       const response = await fetch('/api/v2/landing/generate-section', {
         method: 'POST',
         headers: { 
@@ -169,7 +197,7 @@ export function useDiscovery() {
           sectionTitle,
           extraInstructions,
           isCorrection, // New: Pass isCorrection flag
-          referenceUrl: landingState.selectedReferenceUrl,
+          referenceUrl: effectiveReferenceUrl,
           previousImageUrl: identityImageUrl, // Real Identity Anchor
           continuityImage: continuityImageUrl // Style Reference
         }),
@@ -244,6 +272,7 @@ export function useDiscovery() {
     isRecommending,
     isDesigning,
     error,
+    success,
     discover,
     getCreativeRecommendations,
     generateLandingProposal,
@@ -253,6 +282,7 @@ export function useDiscovery() {
     generateSection,
     resetDiscovery,
     setProductData,
-    setError
+    setError,
+    setSuccess
   };
 }

@@ -16,7 +16,9 @@ const V2PrototypePage: React.FC = () => {
     isRecommending,
     isDesigning,
     error,
+    success,
     setError,
+    setSuccess,
     discover,
     getCreativeRecommendations,
     generateLandingProposal,
@@ -46,6 +48,7 @@ const V2PrototypePage: React.FC = () => {
               creativePaths={creativePaths}
               landingState={landingState}
               onUpdateSection={updateSectionInstructions}
+              setSuccess={setSuccess}
             />
           }
           canvasPanel={
@@ -71,6 +74,13 @@ const V2PrototypePage: React.FC = () => {
             message={error}
             type="error"
             onClose={() => setError(null)}
+          />
+        )}
+        {success && (
+          <Notification
+            message={success}
+            type="success"
+            onClose={() => setSuccess(null)}
           />
         )}
       </div>
