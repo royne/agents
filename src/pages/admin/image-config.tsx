@@ -278,7 +278,7 @@ export default function ImageConfigPage() {
                 <div>
                   <label className="text-xs font-bold text-theme-tertiary uppercase mb-1 block">Calidad por Defecto</label>
                   <select className="w-full bg-theme-primary p-3 rounded-xl border border-gray-700 text-theme-primary">
-                    <option>4K HD (Premium)</option>
+                    <option>2K HD (Premium)</option>
                     <option>1024x1024</option>
                   </select>
                 </div>

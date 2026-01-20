@@ -44,6 +44,7 @@ export class LandingServiceV2 extends BaseImageProService {
       • For Technical/Detail sections: Use macro shots, clean textures, or focused lighting.
       • For Social Proof/Trust: Use relatable environments or human interaction (different poses/people).
     - The background MUST be a direct expression of the buyer and angle, but it MUST VARY from previous images to avoid monotony.
+    - image generetion in 2k resolution
     
     ATMOSPHERE & IDENTITY:
     - Dominant colors and atmosphere derived from the product packaging and target buyer.

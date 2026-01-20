@@ -51,6 +51,7 @@ export class AdsServiceV2 extends BaseImageProService {
     
     FORMAT OPTIMIZATION:
     - ${aspectRatio === '1:1' ? '1: square' : '9:16 vertical'}.
+    - image generetion in 2k resolution
     
     VISUAL AUTHORITY:
     - ITEM 2 (REFERENCE - LAYOUT): Replicate structural balance.`;
