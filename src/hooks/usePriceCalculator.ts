@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useAppContext } from '../contexts/AppContext';
+import { Country, COUNTRIES, getCountryByName } from '../constants/countries';
 
 export interface PriceConfig {
   name: string;
@@ -18,10 +20,22 @@ export interface ChartData {
 }
 
 export const usePriceCalculator = () => {
+  const { authData } = useAppContext();
+  
+  // País seleccionado (inicializar con el del usuario o Colombia por defecto)
+  const [selectedCountry, setSelectedCountry] = useState<Country>(() => {
+    if (authData?.country) {
+      return getCountryByName(authData.country);
+    }
+    return COUNTRIES[0]; // Colombia por defecto
+  });
+
   // Configuraciones predeterminadas
   const [productName, setProductName] = useState<string>('');
   const [productCost, setProductCost] = useState<number>(0);
   const [showAdditionalCosts, setShowAdditionalCosts] = useState<boolean>(false);
+  
+  // Inicializar configs con los valores del país seleccionado
   const [configs, setConfigs] = useState<PriceConfig[]>([
     { name: 'Inefectividad', value: 25 },
     { name: 'Flete', value: 20000 },
@@ -29,6 +43,15 @@ export const usePriceCalculator = () => {
     { name: 'Costo Administrativo', value: 0 },
     { name: 'Otros Gastos', value: 0 },
   ]);
+
+  // Actualizar configs cuando cambia el país
+  useEffect(() => {
+    setConfigs(prev => prev.map(config => {
+      if (config.name === 'Flete') return { ...config, value: selectedCountry.defaultFreight };
+      if (config.name === 'CPA base') return { ...config, value: selectedCountry.defaultCPABase };
+      return config;
+    }));
+  }, [selectedCountry]);
   
   // Márgenes de rentabilidad a calcular
   const [margins, setMargins] = useState<number[]>([10, 15, 20]);
@@ -36,7 +59,7 @@ export const usePriceCalculator = () => {
   const [customMargin, setCustomMargin] = useState<number>(0);
   const [useCustomMargin, setUseCustomMargin] = useState<boolean>(false);
   
-  // Resultados calculados:w
+  // Resultados calculados
   const [profitMargins, setProfitMargins] = useState<ProfitMargin[]>([]);
   const [totalCost, setTotalCost] = useState<number>(0);
   const [chartData, setChartData] = useState<ChartData[]>([]);
@@ -62,7 +85,7 @@ export const usePriceCalculator = () => {
     // Valores por defecto si no se encuentran las configuraciones
     const ineffectivityPercentage = ineffectivityConfig ? ineffectivityConfig.value : 0;
     const baseFreight = freightConfig ? freightConfig.value : 0;
-    const cpaBase = cpaBaseConfig ? cpaBaseConfig.value : 15000;
+    const cpaBase = cpaBaseConfig ? cpaBaseConfig.value : selectedCountry.defaultCPABase;
     const adminCost = adminCostConfig ? adminCostConfig.value : 0;
     const otherCosts = otherCostsConfig ? otherCostsConfig.value : 0;
     
@@ -91,8 +114,6 @@ export const usePriceCalculator = () => {
       
       // Calcular el CPA real (23% del precio de venta)
       const realCPA = finalSellingPrice * cpaPercentage;
-      // Asegurarse de que el CPA no sea menor que el CPA base
-      const adjustedCPA = Math.max(cpaBase, realCPA);
       
       // Si el CPA real es menor que el base, recalcular el precio de venta
       let adjustedSellingPrice = finalSellingPrice;
@@ -108,8 +129,13 @@ export const usePriceCalculator = () => {
       const profit = adjustedSellingPrice - calculatedTotalCost;
       
       // Calcular el precio de venta en landing (aproximación que genere el mayor margen)
-      // Redondeamos hacia arriba a la centena más cercana para tener un precio "limpio"
-      const landingPrice = Math.ceil(adjustedSellingPrice / 100) * 100;
+      // Redondeamos según la moneda
+      let landingPrice = adjustedSellingPrice;
+      if (selectedCountry.currency === 'COP' || selectedCountry.currency === 'CLP') {
+        landingPrice = Math.ceil(adjustedSellingPrice / 100) * 100;
+      } else {
+        landingPrice = Math.ceil(adjustedSellingPrice);
+      }
       
       return {
         percentage,
@@ -132,32 +158,11 @@ export const usePriceCalculator = () => {
     setProfitMargins(calculatedMargins);
     
     // Preparar datos para el gráfico
-    // Usamos la misma variable para evitar redeclaración
     if (selectedMarginItem) {
-      // Obtener los valores de configuración
-      const ineffectivityConfig = configs.find(c => c.name === 'Inefectividad');
-      const freightConfig = configs.find(c => c.name === 'Flete');
-      const cpaBaseConfig = configs.find(c => c.name === 'CPA base');
-      const adminCostConfig = configs.find(c => c.name === 'Costo Administrativo');
-      const otherCostsConfig = configs.find(c => c.name === 'Otros Gastos');
-      
-      // Valores por defecto si no se encuentran las configuraciones
-      const ineffectivityPercentage = ineffectivityConfig ? ineffectivityConfig.value : 0;
-      const baseFreight = freightConfig ? freightConfig.value : 0;
-      const cpaBase = cpaBaseConfig ? cpaBaseConfig.value : 15000;
-      
-      // Calcular valores reales para el gráfico usando la fórmula correcta
-      // La fórmula correcta es: fletebase/(1-inefectividad)
-      const ineffectivityFactor = ineffectivityPercentage / 100;
-      const totalFreight = baseFreight / (1 - ineffectivityFactor);
-      
       // Calcular el CPA real (23% del precio de venta)
       const realCPA = selectedMarginItem.sellingPrice * 0.23;
       // Asegurarse de que el CPA no sea menor que el CPA base
       const adjustedCPA = Math.max(cpaBase, realCPA);
-      
-      const adminCost = adminCostConfig ? adminCostConfig.value : 0;
-      const otherCosts = otherCostsConfig ? otherCostsConfig.value : 0;
       
       const graphData: ChartData[] = [
         { name: 'Costo Proveedor', valor: supplierCost },
@@ -182,7 +187,7 @@ export const usePriceCalculator = () => {
     } else {
       setChartData([]);
     }
-  }, [productCost, configs, margins, selectedMargin, customMargin, useCustomMargin]);
+  }, [productCost, configs, margins, selectedMargin, customMargin, useCustomMargin, selectedCountry]);
   
   // Manejar cambios en las configuraciones
   const handleConfigChange = (index: number, value: number) => {
@@ -202,15 +207,26 @@ export const usePriceCalculator = () => {
     setSelectedMargin(margin);
     setUseCustomMargin(false);
   };
+
+  // Manejar cambio de país
+  const handleCountryChange = (country: Country) => {
+    setSelectedCountry(country);
+  };
   
   // Formatear números como moneda
   const formatCurrency = (value: number) => {
-    return `$${value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    // Si es una moneda como COP o CLP, evitamos decimales
+    const isNoDecimalCurrency = ['COP', 'CLP', 'ARS'].includes(selectedCountry.currency);
+    
+    return `${selectedCountry.symbol} ${value.toLocaleString(selectedCountry.locale, { 
+      minimumFractionDigits: isNoDecimalCurrency ? 0 : 2, 
+      maximumFractionDigits: isNoDecimalCurrency ? 0 : 2 
+    })}`;
   };
   
   // Calcular valores adicionales para el resumen
   const getCalculatedValues = () => {
-    if (!productCost || productCost <= 0 || profitMargins.length === 0) {
+    if (!productCost || productCost <= 1 || profitMargins.length === 0) {
       return {
         realCPA: 0,
         totalFreight: 0,
@@ -228,7 +244,8 @@ export const usePriceCalculator = () => {
       return {
         realCPA: 0,
         totalFreight: 0,
-        breakeven: 0
+        breakeven: 0,
+        selectedMargin: null
       };
     }
 
@@ -240,10 +257,9 @@ export const usePriceCalculator = () => {
     // Valores por defecto si no se encuentran las configuraciones
     const ineffectivityPercentage = ineffectivityConfig ? ineffectivityConfig.value : 0;
     const baseFreight = freightConfig ? freightConfig.value : 0;
-    const cpaBase = cpaBaseConfig ? cpaBaseConfig.value : 15000;
+    const cpaBase = cpaBaseConfig ? cpaBaseConfig.value : selectedCountry.defaultCPABase;
     
     // Calcular flete total con inefectividad
-    // La fórmula correcta es: fletebase/(1-inefectividad)
     const ineffectivityFactor = ineffectivityPercentage / 100;
     const totalFreight = baseFreight / (1 - ineffectivityFactor);
     
@@ -252,8 +268,7 @@ export const usePriceCalculator = () => {
     // Asegurarse de que el CPA no sea menor que el CPA base
     const adjustedCPA = Math.max(cpaBase, realCPA);
     
-    // Calcular breakeven (precio máximo del producto que puedo pagar antes de perder dinero)
-    // Breakeven = Precio de venta - (Flete total + CPA real + Costos administrativos + Otros gastos)
+    // Calcular breakeven
     const adminCostConfig = configs.find(c => c.name === 'Costo Administrativo');
     const otherCostsConfig = configs.find(c => c.name === 'Otros Gastos');
     const adminCost = adminCostConfig ? adminCostConfig.value : 0;
@@ -265,7 +280,8 @@ export const usePriceCalculator = () => {
       realCPA: adjustedCPA,
       totalFreight,
       breakeven,
-      selectedMargin: selectedMarginItem
+      selectedMargin: selectedMarginItem,
+      totalFreightBase: baseFreight
     };
   };
   
@@ -290,6 +306,8 @@ export const usePriceCalculator = () => {
     handleConfigChange,
     handleCustomMarginChange,
     handleMarginSelect,
-    formatCurrency
+    formatCurrency,
+    selectedCountry,
+    handleCountryChange
   };
 };

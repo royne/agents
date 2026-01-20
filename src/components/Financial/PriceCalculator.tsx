@@ -4,6 +4,7 @@ import MarginsSection from './PriceCalculatorComponents/MarginsSection';
 import SummarySection from './PriceCalculatorComponents/SummarySection';
 import ChartSection from './PriceCalculatorComponents/ChartSection';
 import ProjectionSection from './PriceCalculatorComponents/ProjectionSection';
+import CountrySelector from './PriceCalculatorComponents/CountrySelector';
 
 const PriceCalculator = () => {
   const {
@@ -25,13 +26,23 @@ const PriceCalculator = () => {
     handleConfigChange,
     handleCustomMarginChange,
     handleMarginSelect,
-    formatCurrency
+    formatCurrency,
+    selectedCountry,
+    handleCountryChange
   } = usePriceCalculator();
-  
+
   return (
     <div className="w-full">
+      {/* Selector de País */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-2">
+        <CountrySelector
+          selectedCountry={selectedCountry}
+          onCountryChange={handleCountryChange}
+        />
+      </div>
+
       {/* Sección de entrada de datos */}
-      <ProductInputSection 
+      <ProductInputSection
         productName={productName}
         setProductName={setProductName}
         productCost={productCost}
@@ -40,10 +51,11 @@ const PriceCalculator = () => {
         setShowAdditionalCosts={setShowAdditionalCosts}
         configs={configs}
         handleConfigChange={handleConfigChange}
+        currencySymbol={selectedCountry.symbol}
       />
-      
+
       {/* Sección de márgenes de rentabilidad */}
-      <MarginsSection 
+      <MarginsSection
         margins={margins}
         selectedMargin={selectedMargin}
         customMargin={customMargin}
@@ -53,11 +65,11 @@ const PriceCalculator = () => {
         handleCustomMarginChange={handleCustomMarginChange}
         formatCurrency={formatCurrency}
       />
-      
+
       {/* Resumen y gráfico */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Resumen */}
-        <SummarySection 
+        <SummarySection
           productCost={productCost}
           configs={configs}
           totalCost={totalCost}
@@ -68,18 +80,18 @@ const PriceCalculator = () => {
           calculatedValues={calculatedValues}
           formatCurrency={formatCurrency}
         />
-        
+
         {/* Gráfico */}
-        <ChartSection 
+        <ChartSection
           chartData={chartData}
           totalCost={totalCost}
           formatCurrency={formatCurrency}
         />
       </div>
-      
+
       {/* Sección de proyección */}
       {productCost > 0 && (
-        <ProjectionSection 
+        <ProjectionSection
           productName={productName}
           productCost={productCost}
           sellingPrice={calculatedValues.selectedMargin?.sellingPrice || 0}
@@ -90,6 +102,7 @@ const PriceCalculator = () => {
           totalFreight={calculatedValues.totalFreight || 0}
           realCPA={calculatedValues.realCPA || 0}
           configs={configs}
+          currencySymbol={selectedCountry.symbol}
         />
       )}
     </div>

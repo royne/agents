@@ -10,6 +10,7 @@ interface ProductInputSectionProps {
   setShowAdditionalCosts: (show: boolean) => void;
   configs: PriceConfig[];
   handleConfigChange: (index: number, value: number) => void;
+  currencySymbol: string;
 }
 
 const ProductInputSection = ({
@@ -20,7 +21,8 @@ const ProductInputSection = ({
   showAdditionalCosts,
   setShowAdditionalCosts,
   configs,
-  handleConfigChange
+  handleConfigChange,
+  currencySymbol
 }: ProductInputSectionProps) => {
   return (
     <div className="soft-card p-6 mb-6">
@@ -52,7 +54,7 @@ const ProductInputSection = ({
             Costo del Proveedor
           </label>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">{currencySymbol}</span>
             <input
               type="number"
               value={productCost || ''}
@@ -87,7 +89,7 @@ const ProductInputSection = ({
                   {config.name}
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 text-xs">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">{currencySymbol}</span>
                   <input
                     type="number"
                     value={config.value || ''}

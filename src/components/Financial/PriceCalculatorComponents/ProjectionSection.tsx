@@ -14,6 +14,7 @@ interface ProjectionSectionProps {
   totalFreight: number;
   realCPA: number;
   configs: PriceConfig[];
+  currencySymbol: string;
 }
 
 interface ProjectionDataType {
@@ -41,7 +42,8 @@ const ProjectionSection: React.FC<ProjectionSectionProps> = ({
   formatCurrency,
   totalFreight,
   realCPA,
-  configs
+  configs,
+  currencySymbol
 }) => {
   const [showProjection, setShowProjection] = useState<boolean>(false);
   // Datos de entrada para la proyección
@@ -235,7 +237,7 @@ const ProjectionSection: React.FC<ProjectionSectionProps> = ({
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Gasto Ads (Ayer)</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 text-sm">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">{currencySymbol}</span>
                 <input
                   type="number"
                   value={adsSpent}

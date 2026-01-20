@@ -26,6 +26,7 @@ type AppContextType = {
     expiresAt?: string;
     is_mentor?: boolean;
     community_name?: string;
+    country?: string;
   } | null;
   themeConfig: ThemeConfig;
   setApiKey: (key: string | null) => void;
@@ -87,7 +88,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           // Consultas con timeout para evitar bloqueos
           const [profileRes, creditsRes] = await Promise.race([
             Promise.all([
-              supabase.from('profiles').select('company_id, role, name, plan, modules_override, is_mentor').eq('user_id', session.user.id).single(),
+              supabase.from('profiles').select('company_id, role, name, plan, modules_override, is_mentor, country').eq('user_id', session.user.id).single(),
               supabase.from('user_credits').select('plan_key, balance, expires_at').eq('user_id', session.user.id).single()
             ]),
             dbTimeout(5000) as Promise<[any, any]>
@@ -149,6 +150,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             community_name: communityName,
             modulesOverride: (profile as any)?.modules_override || undefined,
             activeModules: activeModules,
+            country: profile?.country,
           };
 
           const currentSaved = localStorage.getItem('auth_data');
@@ -258,7 +260,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (data?.user) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('company_id, role, name, plan, modules_override')
+        .select('company_id, role, name, plan, modules_override, country')
         .eq('user_id', data.user.id)
         .single();
 
@@ -293,6 +295,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         expiresAt: creditsData?.expires_at,
         modulesOverride: (profile as any)?.modules_override || undefined,
         activeModules: activeModules,
+        country: profile?.country,
       };
 
       localStorage.setItem('auth_data', JSON.stringify(authData));
