@@ -200,6 +200,11 @@ export default function SubscriptionsManagement() {
                         <div className="flex flex-col">
                           <span className="font-bold text-theme-primary group-hover:text-primary-color transition-colors">{item.profiles?.name || 'Usuario'}</span>
                           <span className="text-xs text-theme-tertiary opacity-60">{item.profiles?.email}</span>
+                          {item.mentor_name && (
+                            <span className="text-[9px] font-bold text-amber-500/80 uppercase mt-1">
+                              Ref: {item.mentor_name}
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4">

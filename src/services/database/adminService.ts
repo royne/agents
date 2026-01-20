@@ -350,6 +350,10 @@ export const adminService = {
           updated_at,
           expires_at,
           is_active
+        ),
+        referrals_referred:referrals!referrals_referred_id_fkey (
+          status,
+          mentor:profiles!referrals_mentor_id_fkey (name)
         )
       `)
       .order('created_at', { ascending: false });
@@ -378,7 +382,13 @@ export const adminService = {
         unlimited_credits: credits?.unlimited_credits || false,
         updated_at: credits?.updated_at || p.created_at,
         expires_at: credits?.expires_at,
-        is_active: credits ? credits.is_active : true
+        is_active: credits ? credits.is_active : true,
+        // Mentor info
+        mentor_name: (p as any).referrals_referred ? (
+          Array.isArray((p as any).referrals_referred) 
+            ? (p as any).referrals_referred[0]?.mentor?.name 
+            : (p as any).referrals_referred.mentor?.name
+        ) : null
       };
     });
 
