@@ -30,7 +30,7 @@ export const useAuth = () => {
         
         if (profile) {
           const newAuthData = {
-            username: profile.full_name || session.user.email || '',
+            username: profile.name || session.user.email || '',
             role: profile.role || 'user',
             isAuthenticated: true,
             company_id: profile.company_id,

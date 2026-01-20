@@ -39,7 +39,7 @@ type AppContextType = {
   canAccessModule: (module: ModuleKey) => boolean;
   hasFeature: (feature: FeatureKey) => boolean;
   updateTheme: (config: Partial<ThemeConfig>) => void;
-  register: (email: string, password: string, phone: string, name: string, referralCode?: string) => Promise<{ success: boolean; error?: string }>;
+  register: (email: string, password: string, phone: string, name: string, country: string, referralCode?: string) => Promise<{ success: boolean; error?: string }>;
   isSyncing: boolean;
 };
 
@@ -302,7 +302,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return false;
   };
 
-  const register = async (email: string, password: string, phone: string, name: string, referralCode?: string): Promise<{ success: boolean; error?: string }> => {
+  const register = async (email: string, password: string, phone: string, name: string, country: string, referralCode?: string): Promise<{ success: boolean; error?: string }> => {
     const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/` : undefined;
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -312,6 +312,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         data: {
           full_name: name,
           phone: phone,
+          country: country,
           referral_code: referralCode || null,
         }
       }

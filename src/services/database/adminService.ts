@@ -15,6 +15,8 @@ export interface Profile {
   role: 'superadmin' | 'admin' | 'user';
   email?: string;
   name?: string;
+  phone?: string;
+  country?: string;
   plan?: Plan;
   created_at?: Date;
   updated_at?: Date;
@@ -35,6 +37,8 @@ export interface UserWithProfile {
   id: string;
   email: string;
   name?: string;
+  phone?: string;
+  country?: string;
   role: string;
   company_id: string;
   company_name?: string;
@@ -334,6 +338,8 @@ export const adminService = {
         user_id,
         email,
         name,
+        phone,
+        country,
         created_at,
         plan,
         user_credits (
@@ -361,6 +367,8 @@ export const adminService = {
         profiles: {
           email: p.email,
           name: p.name,
+          phone: p.phone,
+          country: p.country,
           created_at: p.created_at
         },
         // Mapear campos de créditos o valores por defecto

@@ -10,8 +10,11 @@ export default function RegisterPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
+  const [country, setCountry] = useState('Colombia');
+  const [dialCode, setDialCode] = useState('+57');
   const [error, setError] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -20,16 +23,37 @@ export default function RegisterPage() {
   // Capturar código de referido de la URL
   const referralCode = router.query.ref as string || '';
 
+  const countries = [
+    { name: 'Colombia', code: '+57', flag: '🇨🇴' },
+    { name: 'Argentina', code: '+54', flag: '🇦🇷' },
+    { name: 'Chile', code: '+56', flag: '🇨🇱' },
+    { name: 'Perú', code: '+51', flag: '🇵🇪' },
+    { name: 'Ecuador', code: '+593', flag: '🇪🇨' },
+    { name: 'Guatemala', code: '+502', flag: '🇬🇹' },
+    { name: 'México', code: '+52', flag: '🇲🇽' },
+    { name: 'Panamá', code: '+507', flag: '🇵🇦' },
+  ];
+
+  const handleCountryChange = (countryName: string) => {
+    const selected = countries.find(c => c.name === countryName);
+    if (selected) {
+      setCountry(selected.name);
+      setDialCode(selected.code);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // Validación estricta de teléfono (10 dígitos)
+    // Validación flexible de teléfono
     const phoneDigits = phone.replace(/\D/g, '');
-    if (phoneDigits.length !== 10) {
-      setError('El número de celular debe tener exactamente 10 dígitos.');
+    if (phoneDigits.length < 7 || phoneDigits.length > 15) {
+      setError('Por favor ingresa un número de celular válido.');
       return;
     }
+
+    const fullPhone = `${dialCode}${phoneDigits}`;
 
     // Validación de dominio de correo (solo los más comunes)
     const allowedDomains = ['gmail.com', 'hotmail.com', 'yahoo.com', 'outlook.com', 'live.com', 'icloud.com'];
@@ -42,8 +66,10 @@ export default function RegisterPage() {
 
     setLoading(true);
 
+    const fullName = `${firstName.trim()} ${lastName.trim()}`;
+
     try {
-      const result = await register(email.trim(), password, phoneDigits, name.trim(), referralCode);
+      const result = await register(email.trim(), password, fullPhone, fullName, country, referralCode);
       if (result.success) {
         setIsSuccess(true);
         // Rastrear evento de registro como "CompleteRegistration" (Registro completado)
@@ -151,19 +177,36 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="w-full space-y-4">
           <div className="space-y-4">
-            {/* Nombre */}
-            <div className="relative group">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-color transition-colors">
-                <FaUser className="text-base" />
+            <div className="grid grid-cols-2 gap-4">
+              {/* Nombre */}
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-color transition-colors">
+                  <FaUser className="text-sm" />
+                </div>
+                <input
+                  type="text"
+                  className="w-full py-3.5 pl-12 pr-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-color/30 focus:border-primary-color/30 transition-all font-medium text-sm"
+                  placeholder="Nombre"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                />
               </div>
-              <input
-                type="text"
-                className="w-full py-3.5 pl-12 pr-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-color/30 focus:border-primary-color/30 transition-all font-medium text-sm"
-                placeholder="Nombre Completo"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
+
+              {/* Apellido */}
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-color transition-colors">
+                  <FaUser className="text-sm" />
+                </div>
+                <input
+                  type="text"
+                  className="w-full py-3.5 pl-12 pr-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-color/30 focus:border-primary-color/30 transition-all font-medium text-sm"
+                  placeholder="Apellido"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                />
+              </div>
             </div>
 
             {/* Email */}
@@ -181,17 +224,40 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Celular */}
+            {/* País */}
             <div className="relative group">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-color transition-colors">
+                <span className="text-base">{countries.find(c => c.name === country)?.flag}</span>
+              </div>
+              <select
+                className="w-full py-3.5 pl-12 pr-4 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary-color/30 focus:border-primary-color/30 transition-all font-medium text-sm appearance-none cursor-pointer"
+                value={country}
+                onChange={(e) => handleCountryChange(e.target.value)}
+                required
+              >
+                {countries.map((c) => (
+                  <option key={c.name} value={c.name} className="bg-[#050608] text-white">
+                    {c.name} ({c.code})
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                <FaArrowRight className="rotate-90 text-[10px]" />
+              </div>
+            </div>
+
+            {/* Celular */}
+            <div className="relative group">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-color transition-colors flex items-center gap-2">
                 <FaPhone className="text-base" />
+                <span className="text-xs font-bold text-gray-400 border-r border-white/10 pr-2">{dialCode}</span>
               </div>
               <input
                 type="tel"
-                className="w-full py-3.5 pl-12 pr-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-color/30 focus:border-primary-color/30 transition-all font-medium text-sm"
+                className="w-full py-3.5 pl-24 pr-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-color/30 focus:border-primary-color/30 transition-all font-medium text-sm"
                 placeholder="WhatsApp / Celular"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                 required
               />
             </div>

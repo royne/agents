@@ -55,6 +55,17 @@ export default function SubscriptionsManagement() {
     { key: 'tester', label: 'Tester (Unlimited)', color: 'text-pink-400' },
   ];
 
+  const FLAGS: Record<string, string> = {
+    'Colombia': '🇨🇴',
+    'Argentina': '🇦🇷',
+    'Chile': '🇨🇱',
+    'Perú': '🇵🇪',
+    'Ecuador': '🇪🇨',
+    'Guatemala': '🇬🇹',
+    'México': '🇲🇽',
+    'Panamá': '🇵🇦'
+  };
+
   const handleSort = (field: string) => {
     setSortConfig(prev => ({
       field,
@@ -147,6 +158,7 @@ export default function SubscriptionsManagement() {
                 <thead>
                   <tr className="border-b border-white/5">
                     <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-theme-tertiary opacity-40">Usuario</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-theme-tertiary opacity-40">Contacto</th>
                     <th
                       className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-theme-tertiary opacity-40 cursor-pointer hover:text-primary-color transition-colors"
                       onClick={() => handleSort('profiles.created_at')}
@@ -188,6 +200,16 @@ export default function SubscriptionsManagement() {
                         <div className="flex flex-col">
                           <span className="font-bold text-theme-primary group-hover:text-primary-color transition-colors">{item.profiles?.name || 'Usuario'}</span>
                           <span className="text-xs text-theme-tertiary opacity-60">{item.profiles?.email}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col items-start leading-tight">
+                          <span className="text-xl" title={item.profiles?.country || 'Colombia'}>
+                            {FLAGS[item.profiles?.country || 'Colombia'] || '🇨🇴'}
+                          </span>
+                          <span className="text-[10px] text-theme-tertiary opacity-60 mt-0.5">
+                            {item.profiles?.phone || 'Sin teléfono'}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">

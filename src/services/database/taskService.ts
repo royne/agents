@@ -170,7 +170,7 @@ export class TaskService {
       .from('tasks')
       .select(`
         *,
-        task_assignees(*, profiles:profile_id(id, full_name, avatar_url))
+        task_assignees(*, profiles:profile_id(id, name, avatar_url))
       `)
       .eq('project_id', projectId)
       .order('due_date', { ascending: true });
@@ -180,7 +180,7 @@ export class TaskService {
       return [];
     }
 
-    return data as (Task & { task_assignees: (TaskAssignee & { profiles: { id: string, full_name: string, avatar_url: string | null } })[] })[];
+    return data as (Task & { task_assignees: (TaskAssignee & { profiles: { id: string, name: string, avatar_url: string | null } })[] })[];
   }
 
   /**
@@ -233,7 +233,7 @@ export class TaskService {
           ...task,
           is_assigned: true,
           assigned_to: task.task_assignees[0].assigned_to,
-          // Renombrar name a full_name para mantener consistencia con la interfaz
+          // Mantener consistencia con la interfaz usando name
           assigned_to_name: task.task_assignees[0].assigned_to?.name
         };
       }
@@ -242,7 +242,7 @@ export class TaskService {
       return {
         ...task,
         is_assigned: false,
-        // Renombrar name a full_name para mantener consistencia con la interfaz
+        // Usar name del perfil
         owner_name: task.profiles?.name
       };
     });
