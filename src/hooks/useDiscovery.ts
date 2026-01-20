@@ -30,6 +30,90 @@ export function useDiscovery() {
     }
   }, [success]);
 
+  // Polling helper
+  const pollGenerationStatus = async (generationId: string, type: 'landing' | 'ad', id: string, aspectRatio: AspectRatio) => {
+    console.log(`[useDiscovery] Starting polling for ${type}:`, id, 'generationId:', generationId);
+    
+    let attempts = 0;
+    const maxAttempts = 20; // 5 minutes (reasonable for AI)
+    const interval = 15000; // 15 seconds (match V1)
+
+    const check = async () => {
+      try {
+        const response = await fetch(`/api/image-pro/status?id=${generationId}&_t=${Date.now()}`);
+        const result = await response.json();
+
+        if (result.done) {
+          if (result.success) {
+            console.log(`[useDiscovery] Polling SUCCESS for ${type}:`, id);
+            if (type === 'landing') {
+              setLandingState(prev => ({
+                ...prev,
+                generations: {
+                  ...prev.generations,
+                  [id]: { 
+                    status: 'completed', 
+                    imageUrl: result.imageUrl, 
+                    copy: result.metadata?.copy || { headline: '', body: '' },
+                    aspectRatio
+                  }
+                }
+              }));
+              // Clear instructions only on success
+              updateSectionInstructions(id, '');
+            } else {
+              setLandingState(prev => ({
+                ...prev,
+                adGenerations: {
+                  ...prev.adGenerations,
+                  [id]: { imageUrl: result.imageUrl, status: 'completed', aspectRatio }
+                }
+              }));
+            }
+          } else {
+            console.error(`[useDiscovery] Polling FAILED for ${type}:`, id, result.error);
+            setError(result.error || 'Generation failed');
+            setLandingState(prev => ({
+              ...prev,
+              [type === 'landing' ? 'generations' : 'adGenerations']: {
+                ...prev[type === 'landing' ? 'generations' : 'adGenerations'],
+                [id]: { ...prev[type === 'landing' ? 'generations' : 'adGenerations'][id], status: 'failed' }
+              }
+            }));
+          }
+          return true; // Stop polling
+        }
+      } catch (err) {
+        console.error('[useDiscovery] Polling check error:', err);
+      }
+      return false; // Continue polling
+    };
+
+    const runPolling = async () => {
+      // First check deferred by interval as per V1 strategy to avoid server saturation
+      await new Promise(r => setTimeout(r, interval));
+      
+      while (attempts < maxAttempts) {
+        attempts++;
+        const isDone = await check();
+        if (isDone) return;
+        await new Promise(r => setTimeout(r, interval));
+      }
+      
+      console.error(`[useDiscovery] Polling TIMEOUT for ${type}:`, id);
+      setError('Generation timed out. Please try again.');
+      setLandingState(prev => ({
+        ...prev,
+        [type === 'landing' ? 'generations' : 'adGenerations']: {
+          ...prev[type === 'landing' ? 'generations' : 'adGenerations'],
+          [id]: { ...prev[type === 'landing' ? 'generations' : 'adGenerations'][id], status: 'failed' }
+        }
+      }));
+    };
+
+    runPolling();
+  };
+
   const discover = async (input: { url?: string; imageBase64?: string }) => {
     setIsDiscovering(true);
     setCreativePaths(null);
@@ -226,25 +310,11 @@ export function useDiscovery() {
 
       const result = await response.json();
 
-      if (result.success) {
-        setLandingState(prev => ({
-          ...prev,
-          generations: {
-            ...prev.generations,
-            [sectionId]: { 
-              status: 'completed', 
-              imageUrl: result.data.imageUrl, 
-              copy: result.data.copy,
-              aspectRatio
-            }
-          }
-        }));
-        
-        if (isCorrection) {
-          updateSectionInstructions(sectionId, '');
-        }
+      if (result.success && result.data.generationId) {
+        // Start Polling instead of waiting for result
+        pollGenerationStatus(result.data.generationId, 'landing', sectionId, aspectRatio);
       } else {
-        const errorMsg = result.error || 'Error al generar la sección';
+        const errorMsg = result.error || 'Error al iniciar la generación';
         setError(errorMsg);
         
         setLandingState(prev => ({
@@ -354,16 +424,11 @@ export function useDiscovery() {
       });
 
       const result = await response.json();
-      if (result.success) {
-        setLandingState(prev => ({
-          ...prev,
-          adGenerations: {
-            ...prev.adGenerations,
-            [conceptId]: { imageUrl: result.data.imageUrl, status: 'completed', aspectRatio }
-          }
-        }));
+      if (result.success && result.data.generationId) {
+        // Start Polling
+        pollGenerationStatus(result.data.generationId, 'ad', conceptId, aspectRatio);
       } else {
-        throw new Error(result.error);
+        throw new Error(result.error || 'Failed to start ad generation');
       }
     } catch (err: any) {
       setLandingState(prev => ({

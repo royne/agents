@@ -629,9 +629,9 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   </div>
 
                   <div>
-                    <span className="text-[9px] font-black text-primary-color uppercase tracking-widest mb-1 block">{path.package.style}</span>
-                    <h3 className="text-lg font-bold text-white mb-2">{path.package.name}</h3>
-                    <p className="text-[11px] text-gray-400 leading-relaxed mb-4">{path.package.description}</p>
+                    <span className="text-[9px] font-black text-primary-color uppercase tracking-widest mb-1 block">{path.package?.style || 'ESTILO ESTRATÉGICO'}</span>
+                    <h3 className="text-lg font-bold text-white mb-2">{path.package?.name || 'Sin Nombre'}</h3>
+                    <p className="text-[11px] text-gray-400 leading-relaxed mb-4">{path.package?.description || 'Cargando detalles de la estrategia...'}</p>
                   </div>
 
                   <div className="mt-auto pt-4 border-t border-white/5">

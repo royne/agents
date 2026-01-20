@@ -9,6 +9,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { id } = req.query;
   if (!id) return res.status(400).json({ error: 'Falta el ID de generación' });
 
+  // Desactivar caché explícitamente para evitar 304 en polling
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || '',
     process.env.SUPABASE_SERVICE_ROLE_KEY || ''
@@ -30,10 +36,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // 2. Reportar el estado actual
     if (gen.status === 'completed') {
+      let metadata = gen.metadata;
+      
+      // Si metadata no existe como columna, intentamos recuperarla del prompt (estrategia V2)
+      if (!metadata && gen.prompt && gen.prompt.startsWith('{')) {
+        try {
+          const parsedPrompt = JSON.parse(gen.prompt);
+          if (parsedPrompt.copy) {
+            metadata = { copy: parsedPrompt.copy };
+          }
+        } catch (e) {
+          // No es JSON, ignorar
+        }
+      }
+
       return res.json({ 
         done: true, 
         success: true, 
-        imageUrl: gen.image_url 
+        imageUrl: gen.image_url,
+        metadata: metadata
       });
     }
 
