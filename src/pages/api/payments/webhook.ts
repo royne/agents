@@ -120,7 +120,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // 3. Registrar Historial
         console.log(`[Bold-Webhook][${requestId}] [3/4] Registrando payment_history...`);
-        const rawAmount = eventData.amount?.total_amount || eventData.amount || 0;
+        const rawAmount = typeof eventData.amount === 'number' 
+          ? eventData.amount 
+          : (eventData.amount?.total || eventData.amount?.total_amount || 0);
+
         const { error: historyError } = await supabaseAdmin
           .from('payment_history')
           .insert({
