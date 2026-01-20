@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FaDesktop, FaMobileAlt, FaExpand, FaCheckCircle, FaExclamationTriangle, FaUserAstronaut, FaBullseye, FaInfoCircle, FaMagic, FaRocket, FaChevronRight, FaEdit } from 'react-icons/fa';
-import { CreativePath, ProductData, LandingGenerationState } from '../../../types/image-pro';
+import { FaDesktop, FaMobileAlt, FaExpand, FaCheckCircle, FaExclamationTriangle, FaUserAstronaut, FaBullseye, FaInfoCircle, FaMagic, FaRocket, FaChevronRight, FaEdit, FaImage } from 'react-icons/fa';
+import { CreativePath, ProductData, LandingGenerationState, AspectRatio } from '../../../types/image-pro';
 
 interface ArtifactViewerProps {
   data: ProductData | null;
@@ -14,7 +14,20 @@ interface ArtifactViewerProps {
   onSelectPath?: (path: CreativePath) => void;
   onSelectSection?: (sectionId: string) => void;
   onSelectReference?: (url: string) => void;
-  onGenerateSection?: (sectionId: string, sectionTitle: string, isCorrection?: boolean, manualInstructions?: string) => void;
+  onGenerateSection?: (sectionId: string, sectionTitle: string, isCorrection?: boolean, manualInstructions?: string, aspectRatio?: AspectRatio) => void;
+  onGenerateAds?: () => void;
+  onGenerateAdImage?: (
+    conceptId: string,
+    visualPrompt: string,
+    aspectRatio?: AspectRatio,
+    adHook?: string,
+    adBody?: string,
+    adCta?: string,
+    isCorrection?: boolean,
+    manualInstructions?: string,
+    referenceUrl?: string
+  ) => void;
+  setPhase?: (phase: 'landing' | 'ads') => void;
 }
 
 const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
@@ -29,14 +42,20 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   onSelectPath,
   onSelectSection,
   onSelectReference,
-  onGenerateSection
-}) => {
+  onGenerateSection,
+  onGenerateAds,
+  onGenerateAdImage,
+  setPhase
+}: ArtifactViewerProps) => {
   const [references, setReferences] = useState<any[]>([]);
   const [loadingRefs, setLoadingRefs] = useState(false);
   const [previewSectionId, setPreviewSectionId] = useState<string | null>(null);
+  const [adEditInstructions, setAdEditInstructions] = useState<Record<string, string>>({});
+  const [editingAdId, setEditingAdId] = useState<string | null>(null);
   const [showStrategyPanel, setShowStrategyPanel] = useState(false);
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [editInstructions, setEditInstructions] = useState('');
+  const [selectedSectionAspect, setSelectedSectionAspect] = useState<Record<string, AspectRatio>>({});
 
   useEffect(() => {
     console.log('[ArtifactViewer] Data Prop Updated:', data?.name, data?.angle);
@@ -50,6 +69,8 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   }, [landingState.proposedStructure]);
 
   // Fetch references when a section is selected
+  const [selectedAdAspect, setSelectedAdAspect] = useState<Record<string, AspectRatio>>({});
+
   useEffect(() => {
     if (landingState.selectedSectionId) {
       setLoadingRefs(true);
@@ -159,11 +180,25 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             )}
 
             {landingState.selectedReferenceUrl && (
-              <div className="flex justify-center pt-8">
+              <div className="flex flex-col items-center gap-6 pt-8">
+                {/* Aspect Ratio Selector for Landing */}
+                <div className="flex bg-white/5 p-1.5 rounded-2xl border border-white/10 backdrop-blur-md">
+                  {(['1:1', '9:16'] as AspectRatio[]).map(aspect => (
+                    <button
+                      key={aspect}
+                      onClick={() => setSelectedSectionAspect(prev => ({ ...prev, [landingState.selectedSectionId!]: aspect }))}
+                      className={`px-6 py-2 rounded-xl text-[10px] font-black transition-all flex items-center gap-2 ${(selectedSectionAspect[landingState.selectedSectionId!] || '9:16') === aspect ? 'bg-primary-color text-black shadow-lg shadow-primary-color/20' : 'text-white/40 hover:text-white'}`}
+                    >
+                      {aspect === '1:1' ? <div className="w-2 h-2 border border-current rounded-sm" /> : <div className="w-2 h-3.5 border border-current rounded-sm" />}
+                      {aspect}
+                    </button>
+                  ))}
+                </div>
+
                 <button
                   onClick={() => {
                     const section = landingState.proposedStructure?.sections.find(s => s.sectionId === landingState.selectedSectionId);
-                    if (section) onGenerateSection?.(section.sectionId, section.title);
+                    if (section) onGenerateSection?.(section.sectionId, section.title, false, '', selectedSectionAspect[section.sectionId] || '9:16');
                     onSelectSection?.(''); // Return to list after starting
                   }}
                   className="px-12 py-4 bg-primary-color text-black font-black rounded-2xl text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-2xl shadow-primary-color/20 translate-in-bottom"
@@ -188,7 +223,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 className={`w-full h-full object-contain ${landingState.generations[previewSectionId].status === 'pending' ? 'opacity-40 grayscale' : ''}`}
               />
               <div className="absolute top-4 left-4 p-2 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-[10px] font-black uppercase text-primary-color tracking-widest shadow-2xl">
-                9:16 Mobile Optimized
+                {landingState.generations[previewSectionId].aspectRatio || '9:16'} {(landingState.generations[previewSectionId].aspectRatio || '9:16') === '9:16' ? 'Mobile Optimized' : 'Square Format'}
               </div>
             </div>
 
@@ -241,7 +276,13 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                         onClick={() => {
                           console.log('[ArtifactViewer] Applying Manual Edit for Section:', previewSectionId, 'Instructions:', editInstructions);
                           if (previewSectionId) {
-                            onGenerateSection?.(previewSectionId, landingState.generations[previewSectionId]?.copy?.headline || 'Sección', true, editInstructions);
+                            onGenerateSection?.(
+                              previewSectionId,
+                              landingState.generations[previewSectionId]?.copy?.headline || 'Sección',
+                              true,
+                              editInstructions,
+                              landingState.generations[previewSectionId]?.aspectRatio || '9:16'
+                            );
                           }
                           setEditingSectionId(null);
                           setEditInstructions('');
@@ -287,7 +328,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               </button>
             </div>
           </div>
-        ) : landingState.proposedStructure ? (
+        ) : landingState.proposedStructure && landingState.phase === 'landing' ? (
           <div className="w-full max-w-4xl space-y-8 animate-in fade-in slide-in-from-bottom duration-1000">
             <div className="text-center space-y-2 mb-8">
               <h2 className="text-2xl font-black text-white">Estructura Estratégica</h2>
@@ -338,8 +379,235 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               })}
             </div>
 
-            <div className="bg-primary-color/5 border border-primary-color/10 p-4 rounded-xl text-center">
-              <p className="text-[9px] text-primary-color font-bold uppercase tracking-widest">Haz clic en una sección para elegir su estilo visual y empezar la generación</p>
+            {/* BOTTOM ACTION BAR - TEST MODE: Button always visible if structure exists */}
+            {!previewSectionId && landingState.phase === 'landing' && (
+              <div className="mt-8">
+                {landingState.proposedStructure && (
+                  <button
+                    onClick={onGenerateAds}
+                    disabled={isDesigning}
+                    className="w-full py-4 bg-primary-color text-black font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
+                  >
+                    {isDesigning ? (
+                      <>
+                        <div className="w-3 h-3 border-2 border-black border-t-transparent animate-spin rounded-full"></div>
+                        Analizando Estrategia de Pauta...
+                      </>
+                    ) : (
+                      <>🚀 Lanzar Estrategia de Pauta Publicitaria</>
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        ) : landingState.proposedStructure && landingState.phase === 'ads' ? (
+          <div className="w-full mt-8 animate-in slide-in-from-bottom duration-700">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Estrategia de Pauta Publicitaria</h2>
+                <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold">3 Conceptos de Alto Desempeño para Facebook Ads</p>
+              </div>
+              <button
+                onClick={() => onGenerateAds && landingState.phase === 'ads' ? setPhase?.('landing') : null}
+                className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-white/60 hover:text-white transition-colors"
+              >
+                Volver a Landing
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+              {/* ADS COLUMN */}
+              <div className="space-y-6">
+                {landingState.adConcepts?.map((concept, idx) => {
+                  const generation = landingState.adGenerations[concept.id];
+                  const currentAspect = selectedAdAspect[concept.id] || '1:1';
+
+                  return (
+                    <div key={concept.id} className="p-6 bg-white/5 rounded-[32px] border border-white/5 hover:border-primary-color/40 transition-all group/ad">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary-color/20 flex items-center justify-center text-primary-color font-black text-xs">
+                            {idx + 1}
+                          </div>
+                          <h3 className="text-white font-black uppercase text-xs tracking-widest">{concept.title}</h3>
+                        </div>
+
+                        {/* Aspect Ratio Selector */}
+                        <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
+                          {(['1:1', '9:16'] as AspectRatio[]).map(aspect => (
+                            <button
+                              key={aspect}
+                              onClick={() => setSelectedAdAspect(prev => ({ ...prev, [concept.id]: aspect }))}
+                              className={`px-3 py-1 rounded-lg text-[8px] font-black transition-all ${currentAspect === aspect ? 'bg-primary-color text-black shadow-lg' : 'text-white/40 hover:text-white'}`}
+                            >
+                              {aspect}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        {/* Preview if generated */}
+                        {generation?.status === 'completed' && (
+                          <div className={`w-full overflow-hidden rounded-2xl border border-white/10 ${generation.aspectRatio === '1:1' ? 'aspect-square' : 'aspect-[9/16]'}`}>
+                            <img src={generation.imageUrl} className="w-full h-full object-cover" alt="Generated Ad" />
+                          </div>
+                        )}
+
+                        {generation?.status === 'pending' && (
+                          <div className="w-full aspect-square bg-black/40 rounded-2xl flex flex-col items-center justify-center space-y-3 animate-pulse">
+                            <div className="w-8 h-8 border-2 border-primary-color border-t-transparent animate-spin rounded-full"></div>
+                            <span className="text-[8px] font-black text-primary-color uppercase tracking-widest">Generando Asset...</span>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="p-3 bg-black/40 rounded-xl border border-white/5">
+                            <span className="text-[8px] text-primary-color uppercase font-black block mb-1">Gancho (Hook)</span>
+                            <p className="text-sm text-white font-medium italic">"{concept.hook}"</p>
+                          </div>
+                          <div className="p-3 bg-black/40 rounded-xl border border-white/5 border-dashed border-primary-color/20">
+                            <span className="text-[8px] text-primary-color uppercase font-black block mb-1">Etiqueta Visual (CTA)</span>
+                            <p className="text-[10px] text-white font-black uppercase tracking-wider">{concept.adCta || 'SALE'}</p>
+                          </div>
+                        </div>
+
+                        {(!generation || generation.status === 'failed') ? (
+                          <div className="flex gap-2 pt-2">
+                            <button
+                              onClick={() => {
+                                setPreviewSectionId(concept.id); // Reference selection mode
+                                onSelectSection?.(concept.id);
+                              }}
+                              className="flex-1 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2"
+                            >
+                              <FaMagic /> Con Referencia
+                            </button>
+                            <button
+                              onClick={() => onGenerateAdImage?.(concept.id, concept.visualPrompt, currentAspect, concept.hook, concept.body, concept.adCta)}
+                              className="flex-1 py-3 bg-primary-color text-black text-[9px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-primary-color/10 flex items-center justify-center gap-2"
+                            >
+                              <FaRocket /> Generar de 0
+                            </button>
+                          </div>
+                        ) : generation.status === 'completed' ? (
+                          <div className="space-y-3 pt-2">
+                            {editingAdId === concept.id ? (
+                              <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <textarea
+                                  value={adEditInstructions[concept.id] || ''}
+                                  onChange={(e) => setAdEditInstructions(prev => ({ ...prev, [concept.id]: e.target.value }))}
+                                  placeholder="Ej: pon el producto más grande, cambia el fondo..."
+                                  className="w-full h-20 bg-black/40 border border-primary-color/30 rounded-xl p-3 text-[10px] text-white focus:border-primary-color outline-none resize-none"
+                                />
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => setEditingAdId(null)}
+                                    className="px-4 py-2 bg-white/5 text-white text-[8px] font-black uppercase rounded-lg"
+                                  >
+                                    Cancelar
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      onGenerateAdImage?.(concept.id, concept.visualPrompt, currentAspect, concept.hook, concept.body, concept.adCta, true, adEditInstructions[concept.id]);
+                                      setEditingAdId(null);
+                                    }}
+                                    className="flex-1 py-2 bg-primary-color text-black text-[8px] font-black uppercase rounded-lg transition-all"
+                                  >
+                                    Aplicar Cambios
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex flex-wrap gap-2">
+                                <button
+                                  onClick={() => setEditingAdId(concept.id)}
+                                  className="flex-1 py-2 bg-white/5 hover:bg-white/10 border border-white/5 text-white text-[8px] font-black uppercase rounded-lg transition-all flex items-center justify-center gap-2"
+                                >
+                                  <FaMagic className="text-primary-color" /> Editar IA
+                                </button>
+                                <button
+                                  onClick={() => onGenerateAdImage?.(concept.id, concept.visualPrompt, currentAspect, concept.hook, concept.body, concept.adCta)}
+                                  className="flex-1 py-2 bg-white/5 hover:bg-white/10 border border-white/5 text-white text-[8px] font-black uppercase rounded-lg transition-all flex items-center justify-center gap-2"
+                                >
+                                  <FaRocket /> Volver a Generar
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setPreviewSectionId(concept.id);
+                                    onSelectSection?.(concept.id);
+                                  }}
+                                  className="flex-1 py-2 bg-white/5 hover:bg-white/10 border border-white/5 text-white text-[8px] font-black uppercase rounded-lg transition-all flex items-center justify-center gap-2"
+                                >
+                                  <FaImage /> Nueva Referencia
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
+
+                        <div className="pt-4 border-t border-white/5">
+                          <span className="text-[8px] text-white/30 uppercase font-black block mb-1">Cuerpo del Anuncio</span>
+                          <p className="text-xs text-white/80 leading-relaxed">{concept.body}</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* MOCKUP COLUMN */}
+              <div className="sticky top-24 flex flex-col items-center">
+                <div className="w-[300px] h-[600px] bg-black rounded-[50px] p-4 border-[6px] border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.8)] relative overflow-hidden group/mockup">
+                  {/* Speaker/Camera Notch */}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-black rounded-b-2xl z-30 border-x border-b border-white/5"></div>
+
+                  {/* Screen Content (Scrollable) */}
+                  <div className="w-full h-full bg-[#0a0a0a] rounded-[36px] overflow-y-auto v2-scrollbar-hidden relative">
+                    <div className="flex flex-col">
+                      {landingState.proposedStructure?.sections.map(s => {
+                        const generation = landingState.generations[s.sectionId];
+                        return (
+                          <div key={s.sectionId} className="w-full relative border-b border-white/5 last:border-0 overflow-hidden">
+                            {generation?.imageUrl ? (
+                              <img
+                                src={generation.imageUrl}
+                                alt={s.title}
+                                className="w-full h-auto object-cover min-h-[120px]"
+                              />
+                            ) : (
+                              <div className="w-full min-h-[140px] bg-white/[0.02] flex flex-col items-center justify-center p-6 text-center space-y-3">
+                                <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center mb-1">
+                                  <FaRocket className="text-xs text-white/20" />
+                                </div>
+                                <div>
+                                  <span className="text-[8px] font-black text-white/60 uppercase tracking-widest block mb-1">{s.title}</span>
+                                  <p className="text-[7px] text-white/30 uppercase tracking-[0.2em] font-bold line-clamp-2 px-4 italic leading-relaxed">
+                                    {s.reasoning}
+                                  </p>
+                                </div>
+                                <div className="flex gap-1">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-white/5 animate-pulse"></div>
+                                  <div className="w-1.5 h-1.5 rounded-full bg-white/5 animate-pulse delay-75"></div>
+                                  <div className="w-1.5 h-1.5 rounded-full bg-white/5 animate-pulse delay-150"></div>
+                                </div>
+                              </div>
+                            )}
+                            <div className="absolute top-3 left-3 px-2 py-1 bg-black/60 backdrop-blur-md rounded-md border border-white/10 text-[6px] font-black text-white/80 uppercase tracking-widest">
+                              {s.title}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Glass Reflection */}
+                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-white/5 to-transparent opacity-50"></div>
+                </div>
+                <p className="mt-6 text-[9px] font-black text-white/40 uppercase tracking-[0.3em]">Vista Previa Dispositivo</p>
+              </div>
             </div>
           </div>
         ) : creativePaths ? (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { CreativePath, ProductData, LandingLayoutProposal, LandingGenerationState } from '../types/image-pro';
+import { ProductData, CreativePath, LandingGenerationState, AspectRatio } from '../types/image-pro';
 
 export function useDiscovery() {
   const [productData, setProductData] = useState<ProductData | null>(null);
@@ -13,10 +13,13 @@ export function useDiscovery() {
 
   // Landing Generation State
   const [landingState, setLandingState] = useState<LandingGenerationState>({
+    phase: 'landing',
     proposedStructure: null,
     selectedSectionId: null,
     selectedReferenceUrl: null,
-    generations: {}
+    generations: {},
+    adGenerations: {},
+    adConcepts: []
   });
 
   // Auto-clear success after 4 seconds
@@ -31,10 +34,12 @@ export function useDiscovery() {
     setIsDiscovering(true);
     setCreativePaths(null);
     setLandingState({ 
+      phase: 'landing',
       proposedStructure: null, 
       selectedSectionId: null, 
       selectedReferenceUrl: null, 
       generations: {},
+      adGenerations: {},
       baseImageUrl: input.url || input.imageBase64 
     });
     setError(null);
@@ -147,8 +152,8 @@ export function useDiscovery() {
     });
   };
 
-  const generateSection = async (sectionId: string, sectionTitle: string, isCorrection: boolean = false, manualInstructions?: string) => {
-    console.log('[useDiscovery] generateSection CALLED:', { sectionId, sectionTitle, isCorrection, manualInstructions });
+  const generateSection = async (sectionId: string, sectionTitle: string, isCorrection: boolean = false, manualInstructions?: string, aspectRatio: AspectRatio = '9:16') => {
+    console.log('[useDiscovery] generateSection CALLED:', { sectionId, sectionTitle, isCorrection, manualInstructions, aspectRatio });
     
     if (!productData || !landingState.proposedStructure) {
       console.warn('[useDiscovery] generateSection ABORTED: Missing productData or proposedStructure');
@@ -165,7 +170,7 @@ export function useDiscovery() {
       ...prev,
       generations: {
         ...prev.generations,
-        [sectionId]: { copy: { headline: '', body: '' }, imageUrl: '', status: 'pending' }
+        [sectionId]: { copy: { headline: '', body: '' }, imageUrl: '', status: 'pending', aspectRatio }
       }
     }));
 
@@ -214,7 +219,8 @@ export function useDiscovery() {
           isCorrection, // New: Pass isCorrection flag
           referenceUrl: effectiveReferenceUrl,
           previousImageUrl: identityImageUrl, // Real Identity Anchor
-          continuityImage: continuityImageUrl // Style Reference
+          continuityImage: continuityImageUrl, // Style Reference
+          aspectRatio // New: selected formatting
         }),
       });
 
@@ -228,7 +234,8 @@ export function useDiscovery() {
             [sectionId]: { 
               status: 'completed', 
               imageUrl: result.data.imageUrl, 
-              copy: result.data.copy 
+              copy: result.data.copy,
+              aspectRatio
             }
           }
         }));
@@ -272,10 +279,116 @@ export function useDiscovery() {
     }
   };
 
+  const getAdConcepts = async () => {
+    if (!productData || !landingState.proposedStructure) return;
+    
+    setIsDesigning(true); // Re-using designing flag for loading state
+    setError(null);
+    try {
+      const response = await fetch('/api/v2/ads/concepts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productData, landingStructure: landingState.proposedStructure }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setLandingState(prev => ({ ...prev, adConcepts: result.data, phase: 'ads' }));
+      } else {
+        setError(result.error || 'Failed to generate ad concepts.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error connecting to ads specialist.');
+    } finally {
+      setIsDesigning(false);
+    }
+  };
+
+  const setPhase = (phase: 'landing' | 'ads') => {
+    setLandingState(prev => ({ ...prev, phase }));
+  };
+
+  const generateAdImage = async (
+    conceptId: string, 
+    visualPrompt: string, 
+    aspectRatio: AspectRatio = '1:1', 
+    adHook?: string, 
+    adBody?: string, 
+    adCta?: string,
+    isCorrection: boolean = false,
+    manualInstructions?: string,
+    referenceUrl?: string
+  ) => {
+    if (!productData) return;
+
+    setLandingState(prev => ({
+      ...prev,
+      adGenerations: {
+        ...prev.adGenerations,
+        [conceptId]: { imageUrl: '', status: 'pending', aspectRatio }
+      }
+    }));
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
+      const response = await fetch('/api/v2/ads/generate-image', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${authToken}` 
+        },
+        body: JSON.stringify({
+          productData,
+          conceptId,
+          visualPrompt: manualInstructions || visualPrompt,
+          adHook,
+          adBody,
+          adCta,
+          referenceUrl,
+          previousImageUrl: isCorrection ? landingState.adGenerations[conceptId]?.imageUrl || landingState.baseImageUrl : landingState.baseImageUrl,
+          isCorrection,
+          aspectRatio
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setLandingState(prev => ({
+          ...prev,
+          adGenerations: {
+            ...prev.adGenerations,
+            [conceptId]: { imageUrl: result.data.imageUrl, status: 'completed', aspectRatio }
+          }
+        }));
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (err: any) {
+      setLandingState(prev => ({
+        ...prev,
+        adGenerations: {
+          ...prev.adGenerations,
+          [conceptId]: { ...prev.adGenerations[conceptId], status: 'failed' }
+        }
+      }));
+      setError(err.message || 'Error generating ad image.');
+    }
+  };
+
   const resetDiscovery = () => {
     setProductData(null);
     setCreativePaths(null);
-    setLandingState({ proposedStructure: null, selectedSectionId: null, selectedReferenceUrl: null, generations: {} });
+    setLandingState({ 
+      phase: 'landing', 
+      proposedStructure: null, 
+      selectedSectionId: null, 
+      selectedReferenceUrl: null, 
+      generations: {},
+      adGenerations: {},
+      adConcepts: [] 
+    });
     setError(null);
   };
 
@@ -295,6 +408,9 @@ export function useDiscovery() {
     selectReference,
     updateSectionInstructions,
     generateSection,
+    generateAdImage,
+    getAdConcepts,
+    setPhase,
     resetDiscovery,
     setProductData,
     setError,

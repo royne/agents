@@ -48,15 +48,34 @@ export interface SectionGeneration {
   };
   imageUrl: string;
   status: 'pending' | 'completed' | 'failed';
+  aspectRatio?: AspectRatio; // New: selected aspect ratio
   extraInstructions?: string; // Persisted instructions
 }
 
+export interface AdConcept {
+  id: string; // Added id for tracking
+  title: string;
+  hook: string;
+  body: string;
+  adCta?: string;
+  visualPrompt: string;
+}
+
+export interface AdGeneration {
+  imageUrl: string;
+  status: 'pending' | 'completed' | 'failed';
+  aspectRatio: AspectRatio;
+}
+
 export interface LandingGenerationState {
+  phase: 'landing' | 'ads';
   proposedStructure: LandingLayoutProposal | null;
   selectedSectionId: string | null;
   selectedReferenceUrl: string | null;
   generations: Record<string, SectionGeneration>; // sectionId -> result
+  adGenerations: Record<string, AdGeneration>; // New: conceptId -> result
   baseImageUrl?: string;
+  adConcepts?: AdConcept[];
 }
 
 export interface LandingSection {

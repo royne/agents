@@ -27,7 +27,10 @@ const V2PrototypePage: React.FC = () => {
     resetDiscovery,
     setProductData,
     generateSection,
-    updateSectionInstructions
+    generateAdImage,
+    updateSectionInstructions,
+    getAdConcepts,
+    setPhase
   } = useDiscovery();
 
   return (
@@ -65,6 +68,9 @@ const V2PrototypePage: React.FC = () => {
               onSelectSection={selectSection}
               onSelectReference={selectReference}
               onGenerateSection={generateSection}
+              onGenerateAds={getAdConcepts}
+              onGenerateAdImage={generateAdImage}
+              setPhase={setPhase}
             />
           }
         />

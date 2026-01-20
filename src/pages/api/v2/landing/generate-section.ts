@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
   try {
-    const { productData, creativePath, sectionId, sectionTitle, referenceUrl, previousImageUrl, continuityImage, extraInstructions, isCorrection } = req.body;
+    const { productData, creativePath, sectionId, sectionTitle, referenceUrl, previousImageUrl, continuityImage, extraInstructions, isCorrection, aspectRatio } = req.body;
 
     // 1. Get User ID from headers (simpler version for now, ideally use supabase.auth.getUser)
     const authHeader = req.headers.authorization;
@@ -40,8 +40,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const userId = user.id;
 
     // 2. Credit Check
+    console.log(`[API/V2/GenerateSection] Checking credits for user: ${userId}`);
     const { can, balance } = await CreditService.canPerformAction(userId, 'IMAGE_GEN', supabaseAdmin);
+    console.log(`[API/V2/GenerateSection] Credit Check Result: can=${can}, current_balance=${balance}`);
+    
     if (!can) {
+      console.warn(`[API/V2/GenerateSection] Insufficient credits for user: ${userId}`);
       return res.status(402).json({ error: 'Insufficient credits', balance });
     }
 
@@ -58,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       isCorrection: isCorrection || false,
       productData,
       prompt: sectionPrompt,
-      aspectRatio: '9:16',
+      aspectRatio: aspectRatio || '9:16',
       referenceImage: referenceUrl,
       referenceType: 'layout',
       previousImageUrl: previousImageUrl,
@@ -120,11 +124,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .getPublicUrl(fileName);
 
     // 6. Consume Credits
-    await CreditService.consumeCredits(userId, 'IMAGE_GEN', { 
+    console.log(`[API/V2/GenerateSection] Attempting to consume credits for ${isCorrection ? 'CORRECTION' : 'NEW'} generation...`);
+    const consumptionResult = await CreditService.consumeCredits(userId, 'IMAGE_GEN', { 
       prompt: sectionPrompt.substring(0, 200), 
       generation_id: generationId, 
-      image_url: publicUrl 
+      image_url: publicUrl,
+      is_correction: isCorrection || false
     }, supabaseAdmin);
+    
+    if (consumptionResult.success) {
+      console.log(`[API/V2/GenerateSection] Credits consumed successfully. New balance: ${consumptionResult.balance}`);
+    } else {
+      console.error(`[API/V2/GenerateSection] CREDIT CONSUMPTION FAILED:`, consumptionResult.error);
+      // We still return the image since it was generated, but this log will tell us why it didn't subtract.
+    }
 
     // 7. Save generation record
     await supabaseAdmin.from('image_generations').insert({

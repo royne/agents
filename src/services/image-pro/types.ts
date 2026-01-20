@@ -13,13 +13,16 @@ export interface ImageProRequest {
   subMode?: string; // e.g., 'sencillo', 'completo', 'generar', 'cara', 'fondo', etc.
   prompt: string;
   referenceImage?: string;
-  referenceType: ImageProReferenceType;
+  referenceType?: ImageProReferenceType;
   productData: ImageProProductData;
   aspectRatio: ImageProAspectRatio;
   isCorrection: boolean;
   previousImageUrl?: string;
   continuityImage?: string;
   extraInstructions?: string;
+  adHook?: string;
+  adBody?: string;
+  adCta?: string;
   currentStep?: number;
   debug?: boolean;
 }

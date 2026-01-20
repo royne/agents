@@ -67,11 +67,14 @@ export class LandingServiceV2 extends BaseImageProService {
     - Replicate visual hierarchy and spacing with HIGH FIDELITY. Use it as a structural blueprint only. Do NOT copy its colors or generic style.
 
     3. PREVIOUS IMAGE (ITEM 1 - CORE PRODUCT):
-    - REPLICATE the product (shape, label, color) with absolute fidelity.
+    - MAINTAIN the product (shape, label, color) with absolute fidelity.
     
-    4. PREVIOUS IMAGE (ITEM 3 - CONTINUITY):
+    5. DESIGN CONTINUITY:
     - Maintain visual consistency in LIGHTING STYLE, COLOR TEMPERATURE, and MOOD.
-    - DO NOT REPLICATE THE SAME BACKGROUND OR SUBJECT POSE. Every image must feel like a new page or a new angle of the same brand world.`;
+    
+    6. FORMAT OPTIMIZATION (CRITICAL):
+    - ${aspectRatio === '1:1' ? '1:1 square' : '9:16 vertical'} orientation.
+    `;
     }
 
     const parts = this.buildBasePart(strategicPrompt);
