@@ -134,9 +134,15 @@ export function useDiscovery() {
     });
     setError(null);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
       const response = await fetch('/api/v2/discovery', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+        },
         body: JSON.stringify(input),
       });
 
@@ -144,6 +150,8 @@ export function useDiscovery() {
 
       if (result.success) {
         setProductData(result.data);
+        // Sync credits after project initialization
+        syncUserData();
       } else {
         setError(result.error || 'Failed to discover product.');
       }

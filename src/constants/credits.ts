@@ -4,6 +4,7 @@ export const CREDIT_COSTS = {
   EXCEL_ANALYSIS: 0,
   CALCULATOR: 0,
   VIDEO_GEN: 80,
+  V2_PROJECT: 10,
 };
 
 export const PLAN_LIMITS = {
