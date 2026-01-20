@@ -19,13 +19,14 @@
 
 /* Ensure full height for the split layout when nested */
 .v2-layout-container {
-  height: calc(100vh - 4rem); /* Adjust based on DashboardLayout padding/header if necessary */
+  height: calc(100vh - 4rem);
+  /* Adjust based on DashboardLayout padding/header if necessary */
   display: flex;
   overflow: hidden;
 }
 
 @media (min-width: 768px) {
   .v2-layout-container {
-    height: calc(100vh - 8rem); /* 2 * p-8 from DashboardLayout */
+    /* height: calc(100vh - 8rem);  2 * p-8 from DashboardLayout */
   }
 }

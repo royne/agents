@@ -15,7 +15,7 @@ const SplitLayout: React.FC<SplitLayoutProps> = ({ chatPanel, canvasPanel }) => 
 
       {/* Right Panel: Canvas (Artifacts) */}
       <main className="flex-1 relative overflow-auto bg-[#05070A] v2-scrollbar">
-        <div className="min-h-full w-full flex items-center justify-center p-8">
+        <div className="min-h-full w-full flex items-center justify-center px-2">
           {canvasPanel}
         </div>
       </main>

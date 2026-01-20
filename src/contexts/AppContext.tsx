@@ -42,6 +42,7 @@ type AppContextType = {
   updateTheme: (config: Partial<ThemeConfig>) => void;
   register: (email: string, password: string, phone: string, name: string, country: string, referralCode?: string) => Promise<{ success: boolean; error?: string }>;
   isSyncing: boolean;
+  syncUserData: () => Promise<void>;
 };
 
 const AppContext = createContext<AppContextType>({} as AppContextType);
@@ -467,6 +468,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateTheme,
       register,
       isSyncing,
+      syncUserData: checkSession,
     }}>
       {children}
     </AppContext.Provider>

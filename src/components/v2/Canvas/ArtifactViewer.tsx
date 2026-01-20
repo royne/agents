@@ -86,16 +86,13 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   }, [landingState.selectedSectionId]);
 
   return (
-    <div className="w-full max-w-5xl h-[80vh] bg-theme-component/30 backdrop-blur-3xl border border-white/10 rounded-[40px] shadow-2xl flex flex-col overflow-hidden group">
+    <div className="w-full max-w-5xl h-[80vh] bg-theme-component/30 backdrop-blur-3xl border border-white/10 rounded-[30px] shadow-2xl flex flex-col overflow-hidden group">
       {/* Canvas Header */}
-      <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
+      <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-white/5">
         <div className="flex items-center gap-4">
           <div className="flex gap-1.5 font-bold text-[10px] text-gray-500 bg-black/40 p-1 rounded-lg">
             <button className="p-1 px-3 bg-white/10 text-white rounded-md flex items-center gap-2 transition-all">
               <FaDesktop /> Desktop
-            </button>
-            <button className="p-1 px-3 hover:text-white transition-colors flex items-center gap-2">
-              <FaMobileAlt /> Mobile
             </button>
             <button
               onClick={() => setShowStrategyPanel(!showStrategyPanel)}

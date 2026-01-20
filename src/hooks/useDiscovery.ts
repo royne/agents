@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { ProductData, CreativePath, LandingGenerationState, AspectRatio } from '../types/image-pro';
+import { useAppContext } from '../contexts/AppContext';
 
 export function useDiscovery() {
   const [productData, setProductData] = useState<ProductData | null>(null);
@@ -10,6 +11,7 @@ export function useDiscovery() {
   const [isDesigning, setIsDesigning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const { syncUserData } = useAppContext();
 
   // Landing Generation State
   const [landingState, setLandingState] = useState<LandingGenerationState>({
@@ -61,6 +63,8 @@ export function useDiscovery() {
               }));
               // Clear instructions only on success
               updateSectionInstructions(id, '');
+              // Sync credits reactively
+              syncUserData();
             } else {
               setLandingState(prev => ({
                 ...prev,
@@ -69,6 +73,8 @@ export function useDiscovery() {
                   [id]: { imageUrl: result.imageUrl, status: 'completed', aspectRatio }
                 }
               }));
+              // Sync credits reactively
+              syncUserData();
             }
           } else {
             console.error(`[useDiscovery] Polling FAILED for ${type}:`, id, result.error);
