@@ -79,6 +79,13 @@ export class BoldService {
    * Verifica la firma de un webhook de Bold.
    */
   static verifySignature(body: string, signature: string): boolean {
+    console.log('[BoldService] Iniciando verificación de firma...');
+    
+    if (!signature) {
+      console.error('[BoldService] Error: Firma recibida está vacía');
+      return false;
+    }
+
     const keysToTry = [
       { name: 'SECRET_KEY', val: this.SECRET_KEY },
       { name: 'IDENTITY_KEY', val: this.IDENTITY_KEY },
@@ -89,22 +96,32 @@ export class BoldService {
 
     try {
       for (const { name, val } of keysToTry) {
+        if (!val && name !== 'EMPTY_STRING (Sandbox)') {
+          console.warn(`[BoldService] Advertencia: La llave ${name} está vacía en el entorno.`);
+          continue;
+        }
+
         // Opción A: Directo
         const sigA = crypto.createHmac('sha256', val).update(bodyBuffer).digest('hex');
         // Opción B: Base64 (Estándar de Bold)
         const bodyBase64 = bodyBuffer.toString('base64');
         const sigB = crypto.createHmac('sha256', val).update(bodyBase64).digest('hex');
 
+        console.log(`[BoldService] Probando ${name}:`);
+        console.log(` - Hash A (Directo): ${sigA.substring(0, 10)}...`);
+        console.log(` - Hash B (Base64): ${sigB.substring(0, 10)}...`);
+        console.log(` - Firma Recibida: ${signature.substring(0, 10)}...`);
+
         if (sigA.toLowerCase() === signature.toLowerCase() || sigB.toLowerCase() === signature.toLowerCase()) {
-          console.log(`[BoldService] ✅ Firma válida verified using ${name}`);
+          console.log(`[BoldService] ✅ Firma válida verificada usando ${name}`);
           return true;
         }
       }
 
-      console.error(`[BoldService] ❌ Error de validación de firma. Recibida: ${signature.substring(0, 16)}...`);
+      console.error(`[BoldService] ❌ No se pudo validar la firma con ninguna de las ${keysToTry.length} llaves.`);
       return false;
     } catch (error) {
-      console.error('Error verificando firma de Bold:', error);
+      console.error('[BoldService] Error excepcional verificando firma:', error);
       return false;
     }
   }
