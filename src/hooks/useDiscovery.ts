@@ -413,6 +413,14 @@ export function useDiscovery() {
       }
     }));
 
+    console.log('[useDiscovery] generateAdImage CALLED:', {
+      conceptId,
+      hasReference: !!referenceUrl,
+      referenceUrl,
+      isCorrection,
+      aspectRatio
+    });
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const authToken = session?.access_token;

@@ -22,6 +22,14 @@ export default async function handler(req: NextRequest, event: any) {
     const body = await req.json();
     const { productData, conceptId, visualPrompt, adHook, adBody, adCta, referenceUrl, previousImageUrl, isCorrection, aspectRatio } = body;
 
+    console.log('[API/V2/Ads/GenerateImage] Body received:', {
+      conceptId,
+      hasReference: !!referenceUrl,
+      referenceUrl: referenceUrl ? referenceUrl.substring(0, 50) : null,
+      isCorrection,
+      aspectRatio
+    });
+
     // 1. Get User ID from headers
     const userId = get_user_id_from_auth(req);
     if (!userId) {

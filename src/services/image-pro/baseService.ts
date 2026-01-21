@@ -59,29 +59,41 @@ export class BaseImageProService {
   ) {
     // 1. PRODUCTO (IDENTIDAD)
     if (previousImageUrl) {
+      console.log('[BaseService] Processing ITEM 1 (Product Identity)...');
       const imageData = await this.imageUrlToBase64(previousImageUrl);
       if (imageData) {
+        console.log('[BaseService] ITEM 1 Base64 size:', imageData.data.length);
         parts.push({ text: "ITEM 1: MAIN PRODUCT IDENTITY (Keep shape and labels exactly):" });
         parts.push({ inlineData: { data: imageData.data, mimeType: imageData.mimeType } });
+      } else {
+        console.warn('[BaseService] FAILED to get Base64 for ITEM 1');
       }
     }
 
     // 2. REFERENCIA (ESTILO/COMPOSICIÓN)
     if (referenceImage && referenceImage !== previousImageUrl) {
+      console.log(`[BaseService] Processing ITEM 2 (Reference: ${referenceType})...`);
       const imageData = await this.imageUrlToBase64(referenceImage);
       if (imageData) {
+        console.log('[BaseService] ITEM 2 Base64 size:', imageData.data.length);
         const refLabel = referenceType === 'layout' ? 'COMPOSITION & LAYOUT GUIDE' : 'VISUAL STYLE & MOOD GUIDE';
         parts.push({ text: `ITEM 2: ${refLabel}:` });
         parts.push({ inlineData: { data: imageData.data, mimeType: imageData.mimeType } });
+      } else {
+        console.warn('[BaseService] FAILED to get Base64 for ITEM 2');
       }
     }
 
     // 3. CONTINUIDAD
     if (continuityImage && continuityImage !== previousImageUrl && continuityImage !== referenceImage) {
+      console.log('[BaseService] Processing ITEM 3 (Continuity)...');
       const imageData = await this.imageUrlToBase64(continuityImage);
       if (imageData) {
+        console.log('[BaseService] ITEM 3 Base64 size:', imageData.data.length);
         parts.push({ text: "ITEM 3: DESIGN CONTINUITY REFERENCE (Follow style/vibes):" });
         parts.push({ inlineData: { data: imageData.data, mimeType: imageData.mimeType } });
+      } else {
+        console.warn('[BaseService] FAILED to get Base64 for ITEM 3');
       }
     }
   }

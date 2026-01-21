@@ -185,22 +185,52 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               <div className="flex flex-col items-center gap-6 pt-8">
                 {/* Aspect Ratio Selector for Landing */}
                 <div className="flex bg-white/5 p-1.5 rounded-2xl border border-white/10 backdrop-blur-md">
-                  {(['1:1', '9:16'] as AspectRatio[]).map(aspect => (
-                    <button
-                      key={aspect}
-                      onClick={() => setSelectedSectionAspect(prev => ({ ...prev, [landingState.selectedSectionId!]: aspect }))}
-                      className={`px-6 py-2 rounded-xl text-[10px] font-black transition-all flex items-center gap-2 ${(selectedSectionAspect[landingState.selectedSectionId!] || '9:16') === aspect ? 'bg-primary-color text-black shadow-lg shadow-primary-color/20' : 'text-white/40 hover:text-white'}`}
-                    >
-                      {aspect === '1:1' ? <div className="w-2 h-2 border border-current rounded-sm" /> : <div className="w-2 h-3.5 border border-current rounded-sm" />}
-                      {aspect}
-                    </button>
-                  ))}
+                  {(['1:1', '9:16'] as AspectRatio[]).map(aspect => {
+                    const defaultAspect = landingState.phase === 'ads' ? '1:1' : '9:16';
+                    const currentAspect = (landingState.phase === 'ads' ? selectedAdAspect[landingState.selectedSectionId!] : selectedSectionAspect[landingState.selectedSectionId!]) || defaultAspect;
+
+                    return (
+                      <button
+                        key={aspect}
+                        onClick={() => {
+                          if (landingState.phase === 'ads') {
+                            setSelectedAdAspect(prev => ({ ...prev, [landingState.selectedSectionId!]: aspect }));
+                          } else {
+                            setSelectedSectionAspect(prev => ({ ...prev, [landingState.selectedSectionId!]: aspect }));
+                          }
+                        }}
+                        className={`px-6 py-2 rounded-xl text-[10px] font-black transition-all flex items-center gap-2 ${currentAspect === aspect ? 'bg-primary-color text-black shadow-lg shadow-primary-color/20' : 'text-white/40 hover:text-white'}`}
+                      >
+                        {aspect === '1:1' ? <div className="w-2 h-2 border border-current rounded-sm" /> : <div className="w-2 h-3.5 border border-current rounded-sm" />}
+                        {aspect}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <button
                   onClick={() => {
-                    const section = landingState.proposedStructure?.sections.find(s => s.sectionId === landingState.selectedSectionId);
-                    if (section) onGenerateSection?.(section.sectionId, section.title, false, '', selectedSectionAspect[section.sectionId] || '9:16');
+                    const defaultAspect = landingState.phase === 'ads' ? '1:1' : '9:16';
+
+                    if (landingState.phase === 'ads') {
+                      const concept = landingState.adConcepts?.find(c => c.id === landingState.selectedSectionId);
+                      if (concept) {
+                        onGenerateAdImage?.(
+                          concept.id,
+                          concept.visualPrompt,
+                          selectedAdAspect[concept.id] || defaultAspect,
+                          concept.hook,
+                          concept.body,
+                          concept.adCta,
+                          false,
+                          '',
+                          landingState.selectedReferenceUrl || undefined
+                        );
+                      }
+                    } else {
+                      const section = landingState.proposedStructure?.sections.find(s => s.sectionId === landingState.selectedSectionId);
+                      if (section) onGenerateSection?.(section.sectionId, section.title, false, '', selectedSectionAspect[section.sectionId] || defaultAspect);
+                    }
                     onSelectSection?.(''); // Return to list after starting
                   }}
                   className="px-12 py-4 bg-primary-color text-black font-black rounded-2xl text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-2xl shadow-primary-color/20 translate-in-bottom"

@@ -68,7 +68,7 @@ class ImageAnalysisStrategy implements DiscoveryStrategy {
       IMPORTANT: Provide the VALUES in Spanish for the user, but keep the KEYS in English.
       {
         "name": "Nombre conciso del producto",
-        "angle": "Ángulo de venta ganador o propuesta de valor",
+        "angle": "Ángulo de venta ganador o propuesta de valor enfocado en los puntos de dolor, reptiles, beneficios del comprador ideal",
         "buyer": "Perfil psicográfico del comprador ideal",
         "details": "Puntos clave sobre materiales, colores y características visuales"
       }

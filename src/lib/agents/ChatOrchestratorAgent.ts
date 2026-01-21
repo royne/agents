@@ -102,8 +102,6 @@ ${contextPrompt}`;
       });
 
       clearTimeout(timeoutId);
-
-      clearTimeout(timeoutId);
       const result = await res.json();
       console.log('[ChatOrchestratorAgent] Gemini API Response Status:', res.status);
       

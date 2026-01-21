@@ -20,7 +20,7 @@ export class FacebookAdsAgent {
     
     CRITICAL STRATEGY: Target Awareness Levels 3 (Solution Aware) and 4 (Product Aware).
     - The audience already knows their problem/pain.
-    - Your copy must be authoritative, direct, and focused on the SPECIFIC solution/benefit of this product.
+    - Your copy must be authoritative, direct, and focused on the SPECIFIC solution/benefit of this product, max 7 lines.
     - Hooks should be sharp, stopping the scroll for someone already looking for a change.
 
     A good Facebook ad concept needs:
@@ -49,7 +49,7 @@ export class FacebookAdsAgent {
       },
       ...
     ]
-    Return exactly 3 conceptos. Be creative and strategically different between them (e.g., Direct Solution, Aspirational Authority, Comparison/Status).`;
+    Return exactly 3 conceptos. Be creative and strategically different between them (e.g., Direct Solution, Aspirational Authority, Comparison/Status, notice, etc...).`;
 
     const result = await model.generateContent(systemPrompt);
     const text = result.response.text();
