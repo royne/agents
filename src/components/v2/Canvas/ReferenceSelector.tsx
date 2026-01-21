@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaChevronRight, FaExpand, FaRocket } from 'react-icons/fa';
+import { FaChevronRight, FaExpand, FaRocket, FaMagic } from 'react-icons/fa';
 import { LandingGenerationState, AspectRatio, ProductData } from '../../../types/image-pro';
 
 interface ReferenceSelectorProps {
@@ -43,6 +43,8 @@ const ReferenceSelector: React.FC<ReferenceSelectorProps> = ({
   onGenerateAdImage,
   onGenerateSection
 }) => {
+  const [manualInstructions, setManualInstructions] = React.useState('');
+
   return (
     <div className="w-full max-w-4xl space-y-8 animate-in fade-in slide-in-from-bottom duration-700">
       <div className="flex items-center gap-4 mb-8">
@@ -68,8 +70,8 @@ const ReferenceSelector: React.FC<ReferenceSelectorProps> = ({
             <div
               key={idx}
               className={`relative aspect-video rounded-2xl overflow-hidden border-2 transition-all group/ref ${landingState.selectedReferenceUrl === ref.url
-                  ? 'border-primary-color shadow-[0_0_20px_rgba(18,216,250,0.3)]'
-                  : 'border-white/5 hover:border-white/20'
+                ? 'border-primary-color shadow-[0_0_20px_rgba(18,216,250,0.3)]'
+                : 'border-white/5 hover:border-white/20'
                 }`}
             >
               <img
@@ -120,8 +122,8 @@ const ReferenceSelector: React.FC<ReferenceSelectorProps> = ({
                     }
                   }}
                   className={`px-6 py-2 rounded-xl text-[10px] font-black transition-all flex items-center gap-2 ${currentAspect === aspect
-                      ? 'bg-primary-color text-black shadow-lg shadow-primary-color/20'
-                      : 'text-white/40 hover:text-white'
+                    ? 'bg-primary-color text-black shadow-lg shadow-primary-color/20'
+                    : 'text-white/40 hover:text-white'
                     }`}
                 >
                   {aspect === '1:1' ? <div className="w-2 h-2 border border-current rounded-sm" /> : <div className="w-2 h-3.5 border border-current rounded-sm" />}
@@ -130,6 +132,22 @@ const ReferenceSelector: React.FC<ReferenceSelectorProps> = ({
               );
             })}
           </div>
+
+          {/* Manual Instructions Field */}
+          <div className="w-full max-w-md space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black text-primary-color uppercase tracking-widest flex items-center gap-2">
+                <FaMagic className="text-[10px]" /> Instrucciones adicionales (opcional)
+              </span>
+            </div>
+            <textarea
+              value={manualInstructions}
+              onChange={(e) => setManualInstructions(e.target.value)}
+              placeholder="Ej: menciona que el envío es gratis, destaca el color rojo..."
+              className="w-full h-24 bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-white focus:border-primary-color outline-none resize-none transition-all v2-scrollbar placeholder:text-white/20"
+            />
+          </div>
+
           <button
             onClick={() => {
               if (isGeneratingAsset) return;
@@ -146,20 +164,20 @@ const ReferenceSelector: React.FC<ReferenceSelectorProps> = ({
                     concept.body,
                     concept.adCta,
                     false,
-                    '',
+                    manualInstructions,
                     landingState.selectedReferenceUrl || undefined
                   );
                 }
               } else {
                 const section = landingState.proposedStructure?.sections.find(s => s.sectionId === landingState.selectedSectionId);
-                if (section) onGenerateSection?.(section.sectionId, section.title, false, '', selectedSectionAspect[section.sectionId] || defaultAspect);
+                if (section) onGenerateSection?.(section.sectionId, section.title, false, manualInstructions, selectedSectionAspect[section.sectionId] || defaultAspect);
               }
               onSelectSection?.(''); // Return to list after starting
             }}
             disabled={isGeneratingAsset}
             className={`px-12 py-4 bg-primary-color text-black font-black rounded-2xl text-[10px] uppercase tracking-widest transition-all shadow-2xl translate-in-bottom ${isGeneratingAsset
-                ? 'opacity-50 cursor-not-allowed grayscale'
-                : 'hover:scale-105 shadow-primary-color/20'
+              ? 'opacity-50 cursor-not-allowed grayscale'
+              : 'hover:scale-105 shadow-primary-color/20'
               }`}
           >
             <FaRocket className={`inline mr-2 ${isGeneratingAsset ? 'animate-bounce' : ''}`} />
