@@ -74,7 +74,12 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   useEffect(() => {
     if (landingState.selectedSectionId) {
       setLoadingRefs(true);
-      fetch(`/api/v2/landing/references?sectionId=${landingState.selectedSectionId}`)
+
+      const endpoint = landingState.phase === 'ads'
+        ? '/api/v2/ads/references'
+        : `/api/v2/landing/references?sectionId=${landingState.selectedSectionId}`;
+
+      fetch(endpoint)
         .then(res => res.json())
         .then(res => {
           if (res.success) setReferences(res.data);
@@ -83,7 +88,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
         .catch(() => setReferences([]))
         .finally(() => setLoadingRefs(false));
     }
-  }, [landingState.selectedSectionId]);
+  }, [landingState.selectedSectionId, landingState.phase]);
 
   return (
     <div className="w-full max-w-5xl h-[80vh] bg-theme-component/30 backdrop-blur-3xl border border-white/10 rounded-[30px] shadow-2xl flex flex-col overflow-hidden group">
