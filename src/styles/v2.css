@@ -30,3 +30,14 @@
     /* height: calc(100vh - 8rem);  2 * p-8 from DashboardLayout */
   }
 }
+
+/* Hide scrollbar but keep functionality */
+.v2-scrollbar-hidden {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+  scroll-behavior: smooth;
+}
+
+.v2-scrollbar-hidden::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
