@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaMagic, FaRocket, FaImage } from 'react-icons/fa';
+import { FaMagic, FaRocket, FaImage, FaStop } from 'react-icons/fa';
 import { LandingGenerationState, AspectRatio } from '../../../types/image-pro';
 import PhoneMockup from './PhoneMockup';
 
@@ -27,6 +27,8 @@ interface AdsStrategyProps {
   setEditingAdId: (id: string | null) => void;
   adEditInstructions: Record<string, string>;
   setAdEditInstructions: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  onAutoGenerate?: () => void;
+  onStopAutoGenerate?: () => void;
 }
 
 const AdsStrategy: React.FC<AdsStrategyProps> = ({
@@ -42,14 +44,33 @@ const AdsStrategy: React.FC<AdsStrategyProps> = ({
   editingAdId,
   setEditingAdId,
   adEditInstructions,
-  setAdEditInstructions
+  setAdEditInstructions,
+  onAutoGenerate,
+  onStopAutoGenerate
 }) => {
   return (
     <div className="w-full mt-8 animate-in slide-in-from-bottom duration-700">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Estrategia de Pauta Publicitaria</h2>
-          <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold">3 Conceptos de Alto Desempeño para Facebook Ads</p>
+          <div className="flex items-center gap-3">
+            <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold">3 Conceptos de Alto Desempeño para Facebook Ads</p>
+            {landingState.isAutoMode ? (
+              <button
+                onClick={onStopAutoGenerate}
+                className="flex items-center gap-2 px-4 py-1.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all group"
+              >
+                <FaStop className="text-[10px] group-hover:scale-110 transition-transform" /> Detener Generación
+              </button>
+            ) : (
+              <button
+                onClick={onAutoGenerate}
+                className="flex items-center gap-2 px-4 py-1.5 bg-primary-color/10 border border-primary-color/20 text-primary-color rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-primary-color hover:text-black transition-all group"
+              >
+                <FaMagic className="text-[10px] group-hover:animate-pulse" /> Generar Todo con IA
+              </button>
+            )}
+          </div>
         </div>
         <button
           onClick={() => onGenerateAds && landingState.phase === 'ads' ? setPhase?.('landing') : null}

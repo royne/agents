@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaRocket, FaChevronRight } from 'react-icons/fa';
+import { FaRocket, FaChevronRight, FaMagic, FaStop } from 'react-icons/fa';
 import { LandingGenerationState } from '../../../types/image-pro';
 
 interface LandingStructureProps {
@@ -8,6 +8,8 @@ interface LandingStructureProps {
   onSelectSection?: (sectionId: string) => void;
   setPreviewSectionId: (id: string | null) => void;
   onGenerateAds?: () => void;
+  onAutoGenerate?: () => void;
+  onStopAutoGenerate?: () => void;
   previewSectionId: string | null;
 }
 
@@ -17,6 +19,8 @@ const LandingStructure: React.FC<LandingStructureProps> = ({
   onSelectSection,
   setPreviewSectionId,
   onGenerateAds,
+  onAutoGenerate,
+  onStopAutoGenerate,
   previewSectionId
 }) => {
   if (!landingState.proposedStructure) return null;
@@ -26,6 +30,26 @@ const LandingStructure: React.FC<LandingStructureProps> = ({
       <div className="text-center space-y-2 mb-8">
         <h2 className="text-2xl font-black text-white">Estructura Estratégica</h2>
         <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">He diseñado este flujo de conversión personalizado</p>
+
+        {landingState.isAutoMode ? (
+          <div className="pt-4 flex justify-center">
+            <button
+              onClick={onStopAutoGenerate}
+              className="flex items-center gap-2 px-8 py-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all group"
+            >
+              <FaStop className="text-xs group-hover:scale-110 transition-transform" /> Detener Generación Automática
+            </button>
+          </div>
+        ) : (
+          <div className="pt-4 flex justify-center">
+            <button
+              onClick={onAutoGenerate}
+              className="flex items-center gap-2 px-8 py-3 bg-primary-color border border-white/10 text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary-color/20 group"
+            >
+              <FaMagic className="text-xs group-hover:animate-pulse" /> Generar Todo con Inteligencia Artificial
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -43,10 +67,10 @@ const LandingStructure: React.FC<LandingStructureProps> = ({
                 else onSelectSection?.(section.sectionId);
               }}
               className={`bg-white/5 border rounded-[32px] overflow-hidden flex flex-col transition-all group/sec cursor-pointer hover:bg-white/[0.08] min-h-[160px] ${isPending
-                  ? 'border-primary-color/50 animate-pulse'
-                  : isCompleted
-                    ? 'border-green-500/30'
-                    : 'border-white/10 hover:border-primary-color/50'
+                ? 'border-primary-color/50 animate-pulse'
+                : isCompleted
+                  ? 'border-green-500/30'
+                  : 'border-white/10 hover:border-primary-color/50'
                 }`}
             >
               {isCompleted && generation.imageUrl ? (

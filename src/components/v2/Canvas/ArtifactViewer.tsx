@@ -40,6 +40,8 @@ interface ArtifactViewerProps {
     manualInstructions?: string,
     referenceUrl?: string
   ) => void;
+  onAutoGenerate?: () => void;
+  onStopAutoGenerate?: () => void;
   setPhase?: (phase: 'landing' | 'ads') => void;
 }
 
@@ -58,6 +60,8 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   onGenerateSection,
   onGenerateAds,
   onGenerateAdImage,
+  onAutoGenerate,
+  onStopAutoGenerate,
   setPhase
 }: ArtifactViewerProps) => {
   const [references, setReferences] = useState<any[]>([]);
@@ -147,6 +151,8 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             onSelectSection={onSelectSection}
             setPreviewSectionId={setPreviewSectionId}
             onGenerateAds={onGenerateAds}
+            onAutoGenerate={onAutoGenerate}
+            onStopAutoGenerate={onStopAutoGenerate}
             previewSectionId={previewSectionId}
           />
         ) : landingState.proposedStructure && landingState.phase === 'ads' ? (
@@ -160,6 +166,8 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             setPreviewSectionId={setPreviewSectionId}
             onSelectSection={onSelectSection}
             onGenerateAdImage={onGenerateAdImage}
+            onAutoGenerate={onAutoGenerate}
+            onStopAutoGenerate={onStopAutoGenerate}
             editingAdId={editingAdId}
             setEditingAdId={setEditingAdId}
             adEditInstructions={adEditInstructions}

@@ -31,7 +31,9 @@ const V2PrototypePage: React.FC = () => {
     generateAdImage,
     updateSectionInstructions,
     getAdConcepts,
-    setPhase
+    setPhase,
+    startAutoGeneration,
+    stopAutoGeneration
   } = useDiscovery();
 
   return (
@@ -80,6 +82,8 @@ const V2PrototypePage: React.FC = () => {
                 onGenerateSection={generateSection}
                 onGenerateAds={getAdConcepts}
                 onGenerateAdImage={generateAdImage}
+                onAutoGenerate={startAutoGeneration}
+                onStopAutoGenerate={stopAutoGeneration}
                 setPhase={setPhase}
               />
             }

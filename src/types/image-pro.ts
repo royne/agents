@@ -76,6 +76,8 @@ export interface LandingGenerationState {
   adGenerations: Record<string, AdGeneration>; // New: conceptId -> result
   baseImageUrl?: string;
   adConcepts?: AdConcept[];
+  isAutoMode?: boolean; // New: indicates if autopilot is active
+  autoModeQueue?: string[]; // New: queue of pending section/concept IDs
 }
 
 export interface LandingSection {

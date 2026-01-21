@@ -32,6 +32,36 @@ export function useDiscovery() {
     }
   }, [success]);
 
+  /**
+   * AUTOPILOT ORCHESTRATOR (Reactive)
+   * This effect watches the state and triggers the next queue item only when
+   * nothing is pending, ensuring strictly sequential execution.
+   */
+  useEffect(() => {
+    if (!landingState.isAutoMode || !landingState.autoModeQueue) return;
+
+    // Check if anything is currently pending
+    const isAnyPending = Object.values(landingState.generations).some(g => g.status === 'pending') ||
+                         Object.values(landingState.adGenerations).some(g => g.status === 'pending');
+    
+    if (isAnyPending) return; // Wait for the current task to finish
+
+    // If we have items in the queue, trigger next
+    if (landingState.autoModeQueue.length > 0) {
+      console.log('[Autopilot] Orchestrator: Ready for next task. Queue size:', landingState.autoModeQueue.length);
+      const timer = setTimeout(() => {
+        processAutoQueue(landingState);
+      }, 1000); // Small cooldown for stability
+      return () => clearTimeout(timer);
+    } 
+    
+    // If queue is empty, turn off auto mode
+    if (landingState.autoModeQueue.length === 0) {
+      console.log('[Autopilot] Orchestrator: Queue finished.');
+      setLandingState(prev => ({ ...prev, isAutoMode: false }));
+    }
+  }, [landingState.isAutoMode, landingState.autoModeQueue, landingState.generations, landingState.adGenerations]);
+
   // Polling helper
   const pollGenerationStatus = async (generationId: string, type: 'landing' | 'ad', id: string, aspectRatio: AspectRatio) => {
     console.log(`[useDiscovery] Starting polling for ${type}:`, id, 'generationId:', generationId);
@@ -48,34 +78,34 @@ export function useDiscovery() {
         if (result.done) {
           if (result.success) {
             console.log(`[useDiscovery] Polling SUCCESS for ${type}:`, id);
-            if (type === 'landing') {
-              setLandingState(prev => ({
-                ...prev,
-                generations: {
-                  ...prev.generations,
-                  [id]: { 
-                    status: 'completed', 
-                    imageUrl: result.imageUrl, 
-                    copy: result.metadata?.copy || { headline: '', body: '' },
-                    aspectRatio
-                  }
+          if (type === 'landing') {
+            setLandingState(prev => ({
+              ...prev,
+              generations: {
+                ...prev.generations,
+                [id]: { 
+                  status: 'completed' as const, 
+                  imageUrl: result.imageUrl, 
+                  copy: result.metadata?.copy || { headline: '', body: '' },
+                  aspectRatio
                 }
-              }));
-              // Clear instructions only on success
-              updateSectionInstructions(id, '');
-              // Sync credits reactively
-              syncUserData();
-            } else {
-              setLandingState(prev => ({
-                ...prev,
-                adGenerations: {
-                  ...prev.adGenerations,
-                  [id]: { imageUrl: result.imageUrl, status: 'completed', aspectRatio }
-                }
-              }));
-              // Sync credits reactively
-              syncUserData();
-            }
+              }
+            }));
+            // Clear instructions only on success
+            updateSectionInstructions(id, '');
+            // Sync credits reactively
+            syncUserData();
+          } else {
+            setLandingState(prev => ({
+              ...prev,
+              adGenerations: {
+                ...prev.adGenerations,
+                [id]: { imageUrl: result.imageUrl, status: 'completed' as const, aspectRatio }
+              }
+            }));
+            // Sync credits reactively
+            syncUserData();
+          }
           } else {
             console.error(`[useDiscovery] Polling FAILED for ${type}:`, id, result.error);
             setError(result.error || 'Generation failed');
@@ -250,16 +280,16 @@ export function useDiscovery() {
     });
   };
 
-  const generateSection = async (sectionId: string, sectionTitle: string, isCorrection: boolean = false, manualInstructions?: string, aspectRatio: AspectRatio = '9:16') => {
-    console.log('[useDiscovery] generateSection CALLED:', { sectionId, sectionTitle, isCorrection, manualInstructions, aspectRatio });
+  const generateSection = async (sectionId: string, sectionTitle: string, isCorrection: boolean = false, manualInstructions?: string, aspectRatio: AspectRatio = '9:16', referenceUrl?: string) => {
+    console.log('[useDiscovery] generateSection CALLED:', { sectionId, sectionTitle, isCorrection, manualInstructions, aspectRatio, referenceUrl });
     
     if (!productData || !landingState.proposedStructure) {
-      console.warn('[useDiscovery] generateSection ABORTED: Missing productData or proposedStructure');
+      console.warn('[useDiscovery] generateSection ABORTED: Missing productData or proposedStructure', { productData: !!productData, structure: !!landingState.proposedStructure });
       return;
     }
 
-    if (!landingState.selectedReferenceUrl && !isCorrection) {
-      console.warn('[useDiscovery] generateSection ABORTED: Missing selectedReferenceUrl (and not a correction)');
+    if (!landingState.selectedReferenceUrl && !isCorrection && !referenceUrl) {
+      console.warn('[useDiscovery] generateSection ABORTED: Missing selectedReferenceUrl (and not a correction or manual ref)');
       return;
     }
 
@@ -277,19 +307,29 @@ export function useDiscovery() {
 
     try {
       const creativePath = creativePaths?.[0]; // Defaulting to first for now, ideally pass selected
-      if (!creativePath) throw new Error('No creative path selected');
+      if (!creativePath) {
+        console.error('[useDiscovery] generateSection ERROR: No creative path available');
+        throw new Error('No creative path selected');
+      }
 
       // IDENTITY: Always use the original product photo
       const identityImageUrl = landingState.baseImageUrl;
       
-      // CONTINUITY: Use the immediately preceding generated section for style consistency
+      // CONTINUITY: Use the structurally preceding generated section for style consistency
       let continuityImageUrl = identityImageUrl;
-      const completedGenerations = Object.values(landingState.generations)
-        .filter(g => g.status === 'completed' && g.imageUrl)
-        .map(g => g.imageUrl);
-      
-      if (completedGenerations.length > 0) {
-        continuityImageUrl = completedGenerations[completedGenerations.length - 1];
+      if (landingState.proposedStructure) {
+        const sections = landingState.proposedStructure.sections;
+        const currentIndex = sections.findIndex(s => s.sectionId === sectionId);
+        // Look backwards from currentIndex in the structure
+        for (let i = currentIndex - 1; i >= 0; i--) {
+          const prevSectionId = sections[i].sectionId;
+          const prevGen = landingState.generations[prevSectionId];
+          if (prevGen?.status === 'completed' && prevGen.imageUrl) {
+            continuityImageUrl = prevGen.imageUrl;
+            console.log('[useDiscovery] Continuity reference found in previous structural section:', prevSectionId);
+            break;
+          }
+        }
       }
 
       const { data: { session } } = await supabase.auth.getSession();
@@ -298,9 +338,11 @@ export function useDiscovery() {
       // REFERENCE: If it's a correction, use the CURRENT image as structural reference.
       // If it's a new generation, use the selected reference URL from the catalog.
       const currentGeneration = landingState.generations[sectionId];
-      const effectiveReferenceUrl = (isCorrection && currentGeneration?.imageUrl) 
-        ? currentGeneration.imageUrl 
-        : landingState.selectedReferenceUrl;
+      const effectiveReferenceUrl = referenceUrl 
+        ? referenceUrl 
+        : (isCorrection && currentGeneration?.imageUrl) 
+          ? currentGeneration.imageUrl 
+          : landingState.selectedReferenceUrl;
 
       const response = await fetch('/api/v2/landing/generate-section', {
         method: 'POST',
@@ -464,6 +506,119 @@ export function useDiscovery() {
     }
   };
 
+  /**
+   * AUTOPILOT ORCHESTRATOR (Independent Extension)
+   */
+  const processAutoQueue = async (currentState: LandingGenerationState) => {
+    const { autoModeQueue, phase, isAutoMode } = currentState;
+    console.log('[Autopilot] Processing queue:', { isAutoMode, queueLength: autoModeQueue?.length, next: autoModeQueue?.[0] });
+    
+    if (!isAutoMode || !autoModeQueue || autoModeQueue.length === 0) {
+      console.log('[Autopilot] Queue empty or disabled. Stopping.');
+      setLandingState(prev => ({ ...prev, isAutoMode: false }));
+      return;
+    }
+
+    const nextId = autoModeQueue[0];
+    const remainingQueue = autoModeQueue.slice(1);
+
+    // Set pending status IMMEDIATELY for UI feedback
+    setLandingState(prev => ({ 
+      ...prev, 
+      autoModeQueue: remainingQueue,
+      [phase === 'landing' ? 'generations' : 'adGenerations']: {
+        ...prev[phase === 'landing' ? 'generations' : 'adGenerations'],
+        [nextId]: { 
+          status: 'pending', 
+          imageUrl: '', 
+          copy: { headline: 'Generando...', body: '' },
+          aspectRatio: phase === 'landing' ? '9:16' : '1:1'
+        }
+      }
+    }));
+
+    if (phase === 'landing') {
+      const section = currentState.proposedStructure?.sections.find(s => s.sectionId === nextId);
+      if (section) {
+        let referenceUrl = currentState.selectedReferenceUrl;
+        
+        if (!referenceUrl) {
+          console.log('[Autopilot] No reference selected, fetching random one for section:', nextId);
+          try {
+            const res = await fetch(`/api/v2/landing/references?sectionId=${nextId}`);
+            const data = await res.json();
+            if (data.success && data.data?.length) {
+              const randomIndex = Math.floor(Math.random() * data.data.length);
+              referenceUrl = data.data[randomIndex].url; // FIX: Was .imageUrl
+              console.log('[Autopilot] Smart Reference selected:', referenceUrl);
+            }
+          } catch (e) {
+            console.error('[Autopilot] Error fetching smart reference:', e);
+          }
+        }
+
+        console.log('[Autopilot] Triggering generation for section:', nextId);
+        setTimeout(() => {
+          generateSection(nextId, section.title, false, '', '9:16', referenceUrl || undefined);
+        }, 500);
+      } else {
+        console.warn('[Autopilot] Section not found in structure:', nextId);
+        // Skip if not found
+        setTimeout(() => processAutoQueue({ ...currentState, autoModeQueue: remainingQueue }), 500);
+      }
+    } else {
+      const concept = currentState.adConcepts?.find(c => c.id === nextId);
+      if (concept) {
+        console.log('[Autopilot] Triggering generation for ad:', nextId);
+        setTimeout(() => {
+          // In Autopilot mode for Ads, we generate "from scratch" (no referenceUrl)
+          // as per user request to maximize variety.
+          generateAdImage(concept.id, concept.visualPrompt, '1:1', concept.hook, concept.body, concept.adCta, false, '', undefined);
+        }, 500);
+      } else {
+        console.warn('[Autopilot] Ad concept not found:', nextId);
+        setTimeout(() => processAutoQueue({ ...currentState, autoModeQueue: remainingQueue }), 500);
+      }
+    }
+  };
+
+  const startAutoGeneration = async () => {
+    console.log('[Autopilot] Starting Autopilot...');
+    
+    if (!landingState.proposedStructure && landingState.phase === 'landing') {
+      console.error('[Autopilot] Cannot start: No proposed structure');
+      return;
+    }
+    if (landingState.phase === 'ads' && !landingState.adConcepts?.length) {
+      console.error('[Autopilot] Cannot start: No ad concepts');
+      return;
+    }
+
+    setError(null);
+    const queue = landingState.phase === 'landing'
+      ? (landingState.proposedStructure?.sections.map(s => s.sectionId) || [])
+      : (landingState.adConcepts?.map(c => c.id) || []);
+
+    console.log('[Autopilot] Queue built:', queue);
+
+    setLandingState({
+      ...landingState,
+      isAutoMode: true,
+      autoModeQueue: queue
+    });
+    
+    console.log('[Autopilot] Mode activated. Orchestrator useEffect will take over.');
+  };
+
+  const stopAutoGeneration = () => {
+    console.log('[Autopilot] Stopping generation manually...');
+    setLandingState(prev => ({
+      ...prev,
+      isAutoMode: false,
+      autoModeQueue: []
+    }));
+  };
+
   const resetDiscovery = () => {
     setProductData(null);
     setCreativePaths(null);
@@ -501,6 +656,8 @@ export function useDiscovery() {
     resetDiscovery,
     setProductData,
     setError,
-    setSuccess
+    setSuccess,
+    startAutoGeneration,
+    stopAutoGeneration
   };
 }
