@@ -58,6 +58,11 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const [selectedSectionAspect, setSelectedSectionAspect] = useState<Record<string, AspectRatio>>({});
   const [fullScreenImageUrl, setFullScreenImageUrl] = useState<string | null>(null);
 
+  // Global generation state check
+  const isGeneratingAsset = Object.values(landingState.generations).some(g => g.status === 'pending') ||
+    Object.values(landingState.adGenerations).some(g => g.status === 'pending');
+
+
   useEffect(() => {
     console.log('[ArtifactViewer] Data Prop Updated:', data?.name, data?.angle);
   }, [data]);
@@ -227,9 +232,9 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     );
                   })}
                 </div>
-
                 <button
                   onClick={() => {
+                    if (isGeneratingAsset) return;
                     const defaultAspect = landingState.phase === 'ads' ? '1:1' : '9:16';
 
                     if (landingState.phase === 'ads') {
@@ -253,9 +258,11 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     }
                     onSelectSection?.(''); // Return to list after starting
                   }}
-                  className="px-12 py-4 bg-primary-color text-black font-black rounded-2xl text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-2xl shadow-primary-color/20 translate-in-bottom"
+                  disabled={isGeneratingAsset}
+                  className={`px-12 py-4 bg-primary-color text-black font-black rounded-2xl text-[10px] uppercase tracking-widest transition-all shadow-2xl translate-in-bottom ${isGeneratingAsset ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:scale-105 shadow-primary-color/20'}`}
                 >
-                  <FaRocket className="inline mr-2" /> Iniciar Generación de Assets
+                  <FaRocket className={`inline mr-2 ${isGeneratingAsset ? 'animate-bounce' : ''}`} />
+                  {isGeneratingAsset ? 'Procesando otros assets...' : 'Iniciar Generación de Assets'}
                 </button>
               </div>
             )}
@@ -340,10 +347,10 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                           setEditInstructions('');
                           // setPreviewSectionId(null); 
                         }}
-                        disabled={!editInstructions.trim()}
-                        className="flex-1 py-2 bg-primary-color text-black font-black rounded-xl text-[9px] uppercase tracking-widest disabled:opacity-50"
+                        disabled={!editInstructions.trim() || isGeneratingAsset}
+                        className="flex-1 py-2 bg-primary-color text-black font-black rounded-xl text-[9px] uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Aplicar
+                        {isGeneratingAsset ? 'Esperando...' : 'Aplicar'}
                       </button>
                       <button
                         onClick={() => {
@@ -371,12 +378,14 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
 
               <button
                 onClick={() => {
+                  if (isGeneratingAsset) return;
                   setPreviewSectionId(null);
                   onSelectSection?.(previewSectionId);
                 }}
-                className="w-full py-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold text-[10px] uppercase tracking-widest rounded-2xl transition-all"
+                disabled={isGeneratingAsset}
+                className={`w-full py-4 bg-white/5 text-white border border-white/10 font-bold text-[10px] uppercase tracking-widest rounded-2xl transition-all ${isGeneratingAsset ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10'}`}
               >
-                Regenerar con otro estilo
+                {isGeneratingAsset ? 'Generación en curso...' : 'Regenerar con otro estilo'}
               </button>
             </div>
           </div>
@@ -529,18 +538,25 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                           <div className="flex gap-2 pt-2">
                             <button
                               onClick={() => {
+                                if (isGeneratingAsset) return;
                                 setPreviewSectionId(concept.id); // Reference selection mode
                                 onSelectSection?.(concept.id);
                               }}
-                              className="flex-1 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2"
+                              disabled={isGeneratingAsset}
+                              className={`flex-1 py-3 bg-white/5 border border-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 ${isGeneratingAsset ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10'}`}
                             >
                               <FaMagic /> Con Referencia
                             </button>
                             <button
-                              onClick={() => onGenerateAdImage?.(concept.id, concept.visualPrompt, currentAspect, concept.hook, concept.body, concept.adCta)}
-                              className="flex-1 py-3 bg-primary-color text-black text-[9px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-primary-color/10 flex items-center justify-center gap-2"
+                              onClick={() => {
+                                if (isGeneratingAsset) return;
+                                onGenerateAdImage?.(concept.id, concept.visualPrompt, currentAspect, concept.hook, concept.body, concept.adCta);
+                              }}
+                              disabled={isGeneratingAsset}
+                              className={`flex-1 py-3 bg-primary-color text-black text-[9px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 ${isGeneratingAsset ? 'opacity-50 cursor-not-allowed' : 'shadow-primary-color/10'}`}
                             >
-                              <FaRocket /> Generar de 0
+                              <FaRocket className={isGeneratingAsset ? 'animate-bounce' : ''} />
+                              {isGeneratingAsset ? 'Procesando...' : 'Generar de 0'}
                             </button>
                           </div>
                         ) : generation.status === 'completed' ? (
@@ -562,35 +578,47 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                                   </button>
                                   <button
                                     onClick={() => {
+                                      if (isGeneratingAsset) return;
                                       onGenerateAdImage?.(concept.id, concept.visualPrompt, currentAspect, concept.hook, concept.body, concept.adCta, true, adEditInstructions[concept.id]);
                                       setEditingAdId(null);
                                     }}
-                                    className="flex-1 py-2 bg-primary-color text-black text-[8px] font-black uppercase rounded-lg transition-all"
+                                    disabled={isGeneratingAsset}
+                                    className={`flex-1 py-2 bg-primary-color text-black text-[8px] font-black uppercase rounded-lg transition-all ${isGeneratingAsset ? 'opacity-50 cursor-not-allowed' : ''}`}
                                   >
-                                    Aplicar Cambios
+                                    {isGeneratingAsset ? 'Procesando...' : 'Aplicar Cambios'}
                                   </button>
                                 </div>
                               </div>
                             ) : (
                               <div className="flex flex-wrap gap-2">
                                 <button
-                                  onClick={() => setEditingAdId(concept.id)}
-                                  className="flex-1 py-2 bg-white/5 hover:bg-white/10 border border-white/5 text-white text-[8px] font-black uppercase rounded-lg transition-all flex items-center justify-center gap-2"
+                                  onClick={() => {
+                                    if (isGeneratingAsset) return;
+                                    setEditingAdId(concept.id);
+                                  }}
+                                  disabled={isGeneratingAsset}
+                                  className={`flex-1 py-2 bg-white/5 border border-white/5 text-white text-[8px] font-black uppercase rounded-lg transition-all flex items-center justify-center gap-2 ${isGeneratingAsset ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10'}`}
                                 >
                                   <FaMagic className="text-primary-color" /> Editar IA
                                 </button>
                                 <button
-                                  onClick={() => onGenerateAdImage?.(concept.id, concept.visualPrompt, currentAspect, concept.hook, concept.body, concept.adCta)}
-                                  className="flex-1 py-2 bg-white/5 hover:bg-white/10 border border-white/5 text-white text-[8px] font-black uppercase rounded-lg transition-all flex items-center justify-center gap-2"
+                                  onClick={() => {
+                                    if (isGeneratingAsset) return;
+                                    onGenerateAdImage?.(concept.id, concept.visualPrompt, currentAspect, concept.hook, concept.body, concept.adCta);
+                                  }}
+                                  disabled={isGeneratingAsset}
+                                  className={`flex-1 py-2 bg-white/5 border border-white/5 text-white text-[8px] font-black uppercase rounded-lg transition-all flex items-center justify-center gap-2 ${isGeneratingAsset ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10'}`}
                                 >
-                                  <FaRocket /> Volver a Generar
+                                  <FaRocket className={isGeneratingAsset ? 'animate-bounce' : ''} /> Volver a Generar
                                 </button>
                                 <button
                                   onClick={() => {
+                                    if (isGeneratingAsset) return;
                                     setPreviewSectionId(concept.id);
                                     onSelectSection?.(concept.id);
                                   }}
-                                  className="flex-1 py-2 bg-white/5 hover:bg-white/10 border border-white/5 text-white text-[8px] font-black uppercase rounded-lg transition-all flex items-center justify-center gap-2"
+                                  disabled={isGeneratingAsset}
+                                  className={`flex-1 py-2 bg-white/5 border border-white/5 text-white text-[8px] font-black uppercase rounded-lg transition-all flex items-center justify-center gap-2 ${isGeneratingAsset ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10'}`}
                                 >
                                   <FaImage /> Nueva Referencia
                                 </button>
@@ -880,7 +908,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 };
 
