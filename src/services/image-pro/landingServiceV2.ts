@@ -14,7 +14,6 @@ export class LandingServiceV2 extends BaseImageProService {
       extraInstructions,
       subMode 
     } = req;
-    
     let strategicPrompt = "";
     
     // Combine base prompt with chat instructions if any
@@ -23,12 +22,20 @@ export class LandingServiceV2 extends BaseImageProService {
       : prompt;
     
     if (isCorrection) {
-      strategicPrompt = `IMAGE REFINEMENT & CORE ALIGNMENT:
-      Maintain the product's physical identity (label, shape, color) from ITEM 1.
+      strategicPrompt = `IMAGE EDITING & REFINEMENT MODE:
+      1. BASE IMAGE (ITEM 2): Use ITEM 2 as the absolute source of truth for photo composition, lighting, background, and object placement.
+      2. PRODUCT IDENTITY (ITEM 1): Ensure the product's physical identity (label, shape, color) matches ITEM 1 perfectly.
+      3. STRATEGIC CONTEXT (DO NOT AUTOMATICALLY RENDER): ${prompt}
       
-      MODIFICATION TASK (PRIORITY 1): ${finalPrompt}
+      MODIFICATION TASK (PRIORITY 1): ${extraInstructions || 'Apply visual refinements based on context.'}
       
-      INSTRUCTION: Apply the requested change with HIGH IMPACT. If the user asks for a price change, a color change, or a text change, make it CLEARLY VISIBLE and PRIMARY. Do not be subtle. Preserve the overall lighting and product model, but execute the user command with priority.`;
+      CRITICAL INSTRUCTIONS:
+      - Apply ONLY the change requested in the MODIFICATION TASK.
+      - DO NOT add new text, labels, or objects unless explicitly requested in the MODIFICATION TASK.
+      - If the MODIFICATION TASK involves a price change, change only the number.
+      - Keep EVERYTHING ELSE from ITEM 2 exactly as it is (composition, lighting, environment, text placement).
+      - Do not re-imagine the scene. Perform a precise, surgical edit on the existing visual.
+      - Format: ${aspectRatio === '1:1' ? '1:1 square' : '9:16 vertical'} orientation.`;
     } else {
       strategicPrompt = `PREMIUM COMMERCIAL PHOTOGRAPHY & MARKETING DESIGN
     PRODUCT IDENTITY: ${productData.name}
