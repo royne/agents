@@ -187,10 +187,10 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               </div>
               <div className="absolute inset-0 border-2 border-primary-color/20 border-dashed rounded-full animate-[spin_10s_linear_infinite]"></div>
             </div>
-            <div className="space-y-2 text-center">
-              <h3 className="text-xl font-bold tracking-tight text-white">Tu Mesa de Trabajo</h3>
-              <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto">
-                Los activos generados aparecerán aquí. Inicia pegando una URL o subiendo una imagen del producto en el chat.
+            <div className="space-y-4 text-center">
+              <h3 className="text-3xl font-black tracking-tighter text-white">Tu Mesa de Trabajo</h3>
+              <p className="text-base text-gray-400 mt-4 max-w-sm mx-auto leading-relaxed">
+                Los activos generados aparecerán aquí. Inicia subiendo una <span className="text-primary-color font-bold">Imagen</span> de tu producto en el chat de la izquierda.
               </p>
             </div>
           </div>

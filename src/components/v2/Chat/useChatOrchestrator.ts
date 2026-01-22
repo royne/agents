@@ -26,7 +26,7 @@ export function useChatOrchestrator({
   setSuccess
 }: UseChatOrchestratorProps) {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: '¡Hola! Soy tu Estratega de Marketing de DropApp. ¿Qué producto vamos a lanzar hoy?' }
+    { role: 'assistant', content: '¡Hola! Soy tu Estratega de Marketing de DropApp. Para comenzar, por favor sube una imagen del producto que vamos a lanzar.' }
   ]);
   const [isThinking, setIsThinking] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
