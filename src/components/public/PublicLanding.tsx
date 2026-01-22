@@ -145,8 +145,8 @@ const PublicLanding: React.FC = () => {
 
       {/* New Section 1: Landing Showcase (Zig-Zag) */}
       <section className="py-24 px-6 relative overflow-hidden bg-gradient-to-b from-transparent via-white/[0.01] to-transparent">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-16">
-          <div className="order-2 lg:order-1">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-16 lg:gap-24">
+          <div className="order-2 lg:order-1 lg:pr-12">
             <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-8 bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent italic">
               Landings que <br />
               <span className="text-primary-color not-italic">venden solas.</span>
@@ -166,7 +166,7 @@ const PublicLanding: React.FC = () => {
             </div>
           </div>
 
-          <div className="order-1 lg:order-2 flex justify-center lg:justify-end relative group">
+          <div className="order-1 lg:order-2 flex justify-center relative group">
             <div className="relative z-10 transition-transform duration-700 -rotate-3 group-hover:rotate-0 group-hover:scale-105">
               <PhoneMockup landingState={landingState} />
             </div>
@@ -178,8 +178,8 @@ const PublicLanding: React.FC = () => {
 
       {/* New Section 2: Video Showcase (Zig-Zag Reversed) */}
       <section className="py-24 px-6 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-16">
-          <div className="flex justify-center lg:justify-start relative group">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-16 lg:gap-24">
+          <div className="flex justify-center relative group">
             <div className="relative z-10 transition-transform duration-700 rotate-3 group-hover:rotate-0 group-hover:scale-105">
               {/* Video mockup con YouTube Reel real */}
               <div className="w-[300px] h-[600px] bg-black rounded-[50px] p-2 border-[6px] border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.8)] relative overflow-hidden">
@@ -200,7 +200,7 @@ const PublicLanding: React.FC = () => {
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-600/10 blur-[120px] rounded-full pointer-events-none group-hover:bg-purple-600/20"></div>
           </div>
 
-          <div>
+          <div className="lg:pl-12">
             <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-8 bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent italic">
               Videos que <br />
               <span className="text-purple-500 not-italic">detienen el scroll.</span>
