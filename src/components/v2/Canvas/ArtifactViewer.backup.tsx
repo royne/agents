@@ -727,11 +727,11 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               ))}
             </div>
 
-            <div className="flex justify-center pt-8">
+            {/* <div className="flex justify-center pt-8">
               <button onClick={() => window.location.reload()} className="text-[10px] text-gray-500 hover:text-white uppercase tracking-widest font-bold flex items-center gap-2">
                 <FaMagic /> Probar otros ángulos
               </button>
-            </div>
+            </div> */}
           </div>
         ) : data ? (
           <div className="w-full max-w-3xl space-y-10 animate-in fade-in slide-in-from-bottom duration-1000">

@@ -30,7 +30,7 @@ export default async function handler(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 2. Credit Check & Consumption (10 credits for V2 project start)
+    // 2. Credit Check (Pre-check only)
     console.log(`[API/V2/Discovery] Checking credits for user: ${userId}`);
     const { can, balance } = await CreditService.canPerformAction(userId, 'V2_PROJECT', supabaseAdmin);
     
@@ -39,18 +39,19 @@ export default async function handler(req: NextRequest) {
       return NextResponse.json({ error: 'Insufficient credits', balance }, { status: 402 });
     }
 
-    // Consume the credits
+    // 3. Perform AI Analysis (BEFORE consumption)
+    const productData = await DiscoveryService.discover({ url, imageBase64 });
+
+    // 4. Consume the credits (ONLY after successful analysis)
     const consumption = await CreditService.consumeCredits(userId, 'V2_PROJECT', { 
       type: 'discovery',
-      input: url ? 'url' : 'image'
+      input: url ? 'url' : 'image',
+      productName: productData.name
     }, supabaseAdmin);
 
     if (!consumption.success) {
       return NextResponse.json({ error: consumption.error || 'Failed to consume credits.' }, { status: 402 });
     }
-
-    // 3. Perform AI Analysis
-    const productData = await DiscoveryService.discover({ url, imageBase64 });
 
     return NextResponse.json({
       success: true,
@@ -59,9 +60,17 @@ export default async function handler(req: NextRequest) {
 
   } catch (error: any) {
     console.error('[API Discovery Error]:', error.message);
+    
+    // Si es un error de sobrecarga de Google (503), reportarlo claramente
+    const isOverloaded = error.message.includes('503') || error.message.toLowerCase().includes('overloaded');
+    const userMessage = isOverloaded 
+      ? 'La IA de Google está sobrecargada actualmente. Por favor, reintenta en unos momentos. No se han descontado créditos.'
+      : 'Error al analizar el producto. Por favor intenta de nuevo o ingresa los datos manualmente.';
+
     return NextResponse.json({ 
-      error: 'Failed to analyze product. Please try again or provide details manually.',
-      details: error.message 
+      error: userMessage,
+      details: error.message,
+      isOverloaded
     }, { status: 500 });
   }
 }

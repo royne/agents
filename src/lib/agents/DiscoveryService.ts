@@ -139,12 +139,7 @@ class ImageAnalysisStrategy implements DiscoveryStrategy {
 
     } catch (error: any) {
       console.error('[Discovery] Image Analysis Error Detail:', error);
-      return {
-        name: 'Unidentified Product',
-        angle: 'Generic marketing angle',
-        buyer: 'General audience',
-        details: 'Visual analysis failed, please provide details manually.'
-      };
+      throw error; // Rethrow to be handled by the API route and prevent credit consumption
     }
   }
 }

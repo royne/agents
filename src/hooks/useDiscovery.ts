@@ -67,8 +67,8 @@ export function useDiscovery() {
     console.log(`[useDiscovery] Starting polling for ${type}:`, id, 'generationId:', generationId);
     
     let attempts = 0;
-    const maxAttempts = 20; // 5 minutes (reasonable for AI)
-    const interval = 15000; // 15 seconds (match V1)
+    const maxAttempts = 7; // Total 70 seconds
+    const interval = 10000; // 10 seconds
 
     const check = async () => {
       try {
@@ -126,18 +126,18 @@ export function useDiscovery() {
     };
 
     const runPolling = async () => {
-      // First check deferred by interval as per V1 strategy to avoid server saturation
-      await new Promise(r => setTimeout(r, interval));
+      // Small initial delay before first check
+      await new Promise(r => setTimeout(r, 10000));
       
       while (attempts < maxAttempts) {
         attempts++;
         const isDone = await check();
         if (isDone) return;
-        await new Promise(r => setTimeout(r, interval));
+        if (attempts < maxAttempts) await new Promise(r => setTimeout(r, interval));
       }
       
-      console.error(`[useDiscovery] Polling TIMEOUT for ${type}:`, id);
-      setError('Generation timed out. Please try again.');
+      console.error(`[useDiscovery] Polling TIMEOUT (60s limit) for ${type}:`, id);
+      setError('La generación está tardando más de lo esperado. Por favor reintenta en unos momentos.');
       setLandingState(prev => ({
         ...prev,
         [type === 'landing' ? 'generations' : 'adGenerations']: {

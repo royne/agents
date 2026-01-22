@@ -72,10 +72,19 @@ export class LandingDesignerAgent {
         })
       });
 
+      console.log('[LandingDesignerAgent] Response status:', response.status);
       const result = await response.json();
+      
+      if (response.status !== 200) {
+        console.error('[LandingDesignerAgent] API Error Result:', JSON.stringify(result, null, 2));
+      }
+
       const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
       
-      if (!text) throw new Error('Landing Designer failed to generate structure.');
+      if (!text) {
+        console.error('[LandingDesignerAgent] No text in candidate. Full result:', JSON.stringify(result, null, 2));
+        throw new Error('Landing Designer failed to generate structure.');
+      }
 
       const jsonStr = text.replace(/```json|```/g, '').trim();
       return JSON.parse(jsonStr) as LandingLayoutProposal;

@@ -45,11 +45,11 @@ const PathSelector: React.FC<PathSelectorProps> = ({ creativePaths, onSelectPath
         ))}
       </div>
 
-      <div className="flex justify-center pt-8">
+      {/* <div className="flex justify-center pt-8">
         <button onClick={() => window.location.reload()} className="text-[10px] text-gray-500 hover:text-white uppercase tracking-widest font-bold flex items-center gap-2">
           <FaMagic /> Probar otros ángulos
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };
