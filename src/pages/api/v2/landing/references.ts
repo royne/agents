@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .eq('base_category', category)
       // Remove strict template filter for now as local images are 'inspiration'
       .order('created_at', { ascending: false })
-      .limit(6);
+      .limit(12);
 
     if (error) throw error;
 
