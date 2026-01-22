@@ -3,8 +3,79 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { FaRocket, FaMagic, FaFilm, FaComments, FaArrowRight, FaCheckCircle, FaChartLine, FaRobot, FaPlayCircle, FaFileExcel, FaFacebook, FaInstagram, FaYoutube, FaDiscord, FaEnvelope } from 'react-icons/fa';
 import PlanPricing from '../profile/PlanPricing';
+import AdsCarousel from '../v2/Dashboard/AdsCarousel';
+import PhoneMockup from '../v2/Canvas/PhoneMockup';
+import { LandingGenerationState } from '../../types/image-pro';
 
 const PublicLanding: React.FC = () => {
+  const [adReferences, setAdReferences] = React.useState<any[]>([]);
+  const [landingState, setLandingState] = React.useState<LandingGenerationState>({
+    phase: 'landing',
+    proposedStructure: {
+      sections: [
+        { sectionId: 'hero', title: 'HERO', reasoning: '...' },
+        { sectionId: 'beneficios', title: 'BENEFICIOS', reasoning: '...' },
+        { sectionId: 'testimonios', title: 'TESTIMONIOS', reasoning: '...' },
+        { sectionId: 'cierre', title: 'OFERTA', reasoning: '...' }
+      ]
+    },
+    selectedSectionId: null,
+    selectedReferenceUrl: null,
+    generations: {},
+    adGenerations: {},
+    adConcepts: []
+  });
+
+  React.useEffect(() => {
+    const fetchReferences = async () => {
+      try {
+        // Ads
+        const adsRes = await fetch('/api/v2/ads/references');
+        const adsData = await adsRes.json();
+        if (adsData.success) {
+          const ads = adsData.data.map((ref: any, index: number) => ({
+            id: `ad-${ref.id}`,
+            title: ref.name || `Concepto ${index + 1}`,
+            imageUrl: ref.url,
+            hook: "Optimiza tu conversión con el poder de la Inteligencia Artificial.",
+            adCta: "COMPRAR AHORA"
+          }));
+          setAdReferences(ads.sort(() => Math.random() - 0.5));
+        }
+
+        // Landing for Mockup
+        const categories = ['hero', 'beneficios', 'testimonios', 'cierre'];
+        const gens: Record<string, any> = {};
+        const sections: any[] = [];
+
+        await Promise.all(categories.map(async (cat) => {
+          const res = await fetch(`/api/v2/landing/references?sectionId=${cat}`);
+          const data = await res.json();
+          if (data.success && data.data.length > 0) {
+            const ref = data.data[Math.floor(Math.random() * data.data.length)];
+            sections.push({ sectionId: cat, title: cat.toUpperCase(), reasoning: "Diseño optimizado." });
+            gens[cat] = {
+              status: 'completed',
+              imageUrl: ref.url,
+              copy: { headline: 'Diseño Pro', body: '...' }
+            };
+          }
+        }));
+
+        if (sections.length > 0) {
+          setLandingState(prev => ({
+            ...prev,
+            proposedStructure: { sections },
+            generations: gens
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching ads for public landing:", error);
+      }
+    };
+    fetchReferences();
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#050608] text-white selection:bg-primary-color/30 overflow-x-hidden">
       {/* Background Glows */}
@@ -36,7 +107,7 @@ const PublicLanding: React.FC = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-40 pb-20 px-6 overflow-hidden">
+      <section className="relative pt-40 pb-10 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto flex flex-col items-center relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-color/10 border border-primary-color/20 text-primary-color text-[10px] font-black uppercase tracking-widest mb-8 animate-fade-in">
             <FaRobot className="animate-pulse" /> IA Generativa & Control de Negocios
@@ -51,7 +122,7 @@ const PublicLanding: React.FC = () => {
             Domina el E-commerce con la suite más potente de IA. Desde creatividades virales hasta auditorías de rentabilidad en segundos.
           </p>
 
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-20">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-16">
             <Link href="/auth/register" className="w-full md:w-auto px-10 py-5 bg-primary-color text-white rounded-2xl font-black text-sm tracking-wide shadow-[0_0_40px_rgba(18,216,250,0.3)] hover:scale-105 transition-all flex items-center justify-center gap-3 border border-white/10">
               INICIAR AHORA <FaArrowRight />
             </Link>
@@ -60,24 +131,93 @@ const PublicLanding: React.FC = () => {
             </Link>
           </div>
 
-          {/* Bento Grid Dashboard Preview - Simplified Skeleton until user provides image */}
-          <div className="w-full max-w-6xl mx-auto relative group">
-            <div className="relative z-10 p-2 md:p-4 bg-white/[0.02] border border-white/10 rounded-[2.5rem] shadow-2xl backdrop-blur-sm overflow-hidden transform hover:-translate-y-2 transition-all duration-700">
-              <div className="relative h-[300px] md:h-[600px] w-full rounded-3xl overflow-hidden border border-white/5">
-                <Image
-                  src="/dashboard-hero.png"
-                  alt="DROPAPP Dashboard"
-                  layout="fill"
-                  objectFit="cover"
-                  className="opacity-90 group-hover:opacity-100 transition-opacity"
-                />
-                {/* Overlay gradient for depth */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#050608] via-transparent to-transparent opacity-60"></div>
+          {/* Dynamic Ads Showcase Preview */}
+          <div className="w-full max-w-7xl mx-auto relative group">
+            <div className="relative z-10 p-0 md:p-0 bg-transparent rounded-[2.5rem] overflow-hidden transition-all duration-700">
+              <AdsCarousel customAds={adReferences} minimal={true} />
+            </div>
+
+            {/* Ambient Glows */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary-color/5 blur-[120px] rounded-full pointer-events-none group-hover:bg-primary-color/10 transition-all"></div>
+          </div>
+        </div>
+      </section>
+
+      {/* New Section 1: Landing Showcase (Zig-Zag) */}
+      <section className="py-24 px-6 relative overflow-hidden bg-gradient-to-b from-transparent via-white/[0.01] to-transparent">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-16">
+          <div className="order-2 lg:order-1">
+            <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-8 bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent italic">
+              Landings que <br />
+              <span className="text-primary-color not-italic">venden solas.</span>
+            </h2>
+            <p className="text-lg text-gray-400 font-medium mb-10 leading-relaxed max-w-xl">
+              Nuestra IA no solo diseña, aplica psicología de ventas y estructuras de alta conversión para que tu único problema sea gestionar los pedidos.
+            </p>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4 p-4 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/5 transition-all">
+                <div className="w-10 h-10 rounded-2xl bg-primary-color/10 flex items-center justify-center text-primary-color font-black italic">H</div>
+                <span className="text-sm font-bold text-gray-300">Héroes impactantes que disparan el CTR.</span>
+              </div>
+              <div className="flex items-center gap-4 p-4 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/5 transition-all">
+                <div className="w-10 h-10 rounded-2xl bg-primary-color/10 flex items-center justify-center text-primary-color font-black italic">P</div>
+                <span className="text-sm font-bold text-gray-300">Prueba social y beneficios ubicados estratégicamente.</span>
               </div>
             </div>
-            {/* Ambient Glows */}
-            <div className="absolute -top-20 -left-20 w-64 h-64 bg-primary-color/20 blur-[100px] rounded-full pointer-events-none group-hover:bg-primary-color/30 transition-all"></div>
-            <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-purple-600/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-purple-600/20 transition-all"></div>
+          </div>
+
+          <div className="order-1 lg:order-2 flex justify-center lg:justify-end relative group">
+            <div className="relative z-10 transition-transform duration-700 -rotate-3 group-hover:rotate-0 group-hover:scale-105">
+              <PhoneMockup landingState={landingState} />
+            </div>
+            {/* Decorative Background for Mockup */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary-color/10 blur-[120px] rounded-full pointer-events-none group-hover:bg-primary-color/15"></div>
+          </div>
+        </div>
+      </section>
+
+      {/* New Section 2: Video Showcase (Zig-Zag Reversed) */}
+      <section className="py-24 px-6 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-16">
+          <div className="flex justify-center lg:justify-start relative group">
+            <div className="relative z-10 transition-transform duration-700 rotate-3 group-hover:rotate-0 group-hover:scale-105">
+              {/* Video mockup con YouTube Reel real */}
+              <div className="w-[300px] h-[600px] bg-black rounded-[50px] p-2 border-[6px] border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.8)] relative overflow-hidden">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-black rounded-b-2xl z-30 border-x border-b border-white/5"></div>
+                <div className="w-full h-full bg-[#0a0a0a] rounded-[36px] overflow-hidden relative">
+                  <iframe
+                    src="https://www.youtube.com/embed/qe7MetYHIPk?autoplay=1&mute=1&loop=1&playlist=qe7MetYHIPk&controls=0&modestbranding=1"
+                    title="YouTube video player"
+                    className="w-full h-full border-0 scale-[1.05]"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                  {/* Overlay sutil para integrarlo mejor */}
+                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/20 to-transparent"></div>
+                </div>
+              </div>
+            </div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-600/10 blur-[120px] rounded-full pointer-events-none group-hover:bg-purple-600/20"></div>
+          </div>
+
+          <div>
+            <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-8 bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent italic">
+              Videos que <br />
+              <span className="text-purple-500 not-italic">detienen el scroll.</span>
+            </h2>
+            <p className="text-lg text-gray-400 font-medium mb-10 leading-relaxed max-w-xl">
+              Olvídate de editar por horas. Nuestra IA genera ganchos visuales y narrativos diseñados para retener la atención en TikTok, Reels e Instagram.
+            </p>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/5 transition-all text-center">
+                <span className="text-3xl font-black text-purple-400 mb-2 block tracking-tighter">80%</span>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Mayor Retención</span>
+              </div>
+              <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/5 transition-all text-center">
+                <span className="text-3xl font-black text-purple-400 mb-2 block tracking-tighter">10x</span>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Más Rápido</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>

@@ -6,9 +6,10 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 interface AdsCarouselProps {
   landingState?: LandingGenerationState;
   customAds?: any[];
+  minimal?: boolean;
 }
 
-const AdsCarousel: React.FC<AdsCarouselProps> = ({ landingState, customAds }) => {
+const AdsCarousel: React.FC<AdsCarouselProps> = ({ landingState, customAds, minimal = false }) => {
   const adConcepts = customAds || landingState?.adConcepts || [];
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -40,11 +41,21 @@ const AdsCarousel: React.FC<AdsCarouselProps> = ({ landingState, customAds }) =>
   }, [adConcepts]);
 
   return (
-    <div className="w-full relative py-4 group/carousel">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-1 h-6 bg-primary-color rounded-full"></div>
-        <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">Conceptos Creativos de Ads</h3>
-      </div>
+    <div className={`w-full relative group/carousel ${minimal ? '' : 'py-4'}`}>
+      {!minimal && (
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-1 h-6 bg-primary-color rounded-full"></div>
+          <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">Conceptos Creativos de Ads</h3>
+        </div>
+      )}
+
+      {/* Side Gradients for "Free" look */}
+      {minimal && (
+        <>
+          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#050608] to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#050608] to-transparent z-10 pointer-events-none"></div>
+        </>
+      )}
 
       {/* Navigation Arrows */}
       {adConcepts.length > 1 && (
