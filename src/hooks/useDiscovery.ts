@@ -596,8 +596,12 @@ export function useDiscovery() {
 
     setError(null);
     const queue = landingState.phase === 'landing'
-      ? (landingState.proposedStructure?.sections.map(s => s.sectionId) || [])
-      : (landingState.adConcepts?.map(c => c.id) || []);
+      ? (landingState.proposedStructure?.sections
+          .map(s => s.sectionId)
+          .filter(id => landingState.generations[id]?.status !== 'completed') || [])
+      : (landingState.adConcepts
+          ?.map(c => c.id)
+          .filter(id => landingState.adGenerations[id]?.status !== 'completed') || []);
 
     console.log('[Autopilot] Queue built:', queue);
 
