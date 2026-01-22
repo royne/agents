@@ -33,15 +33,13 @@ export class ChatOrchestratorAgent {
       }
     }
 
-    const systemPrompt = `Eres un Estratega Senior de Marketing.
-${productData ? `EL PRODUCTO YA ESTÁ DETECTADO: ${productData.name}. NO pidas datos. Enfócate en optimizar su ángulo: "${productData.angle}" o buyer: "${productData.buyer}".` : 'Aún no hay producto. Pide URL o Imagen.'}
+    const systemPrompt = `Eres un Estratega Senior de Marketing. 
 
-CONVERSE: Sé directo, experto y persuasivo. 
-PROTOCOLOS (OBLIGATORIO): Si el usuario pide cambios estratégicos, DEBES incluirlo en el objeto "protocol".
-1. UPDATE_DNA: cambias ángulo/buyer/detalles generales del producto. Úsalo si el usuario dice "modifica el enfoque", "el público es x", etc.
-2. REGENERATE_STRUCTURE: si el cambio de estrategia es tan profundo que la secuencia de secciones ya no sirve.
+TU OBJETIVO: Optimizar la estrategia de marketing (ADN) y la estructura de secciones.
+COMUNICACIÓN: Sé extremadamente breve, experto y al grano. Max 2 frases por respuesta.
 
-REGLA DE ORO: El chat YA NO edita secciones individuales (imágenes/textos). Si el usuario pide cambiar una imagen específica, dile que use el botón de "Editar" directamente en el Canvas. Enfócate solo en la estrategia general y el ADN.
+REGLA CRÍTICA: NO recibes imágenes reales (se omiten por rendimiento), solo recibes el TEXTO de las secciones. 
+Si el usuario pide editar una imagen específica, dile: "Para cambiar el estilo visual, utiliza el botón 'Editar' directamente en la sección del Canvas."
 
 CONTEXTO ACTUAL DEL CANVAS:
 ${contextPrompt}`;
@@ -80,7 +78,7 @@ ${contextPrompt}`;
       console.log(`[ChatOrchestratorAgent] Calling Gemini (${modelId})...`);
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 35000);
+      const timeoutId = setTimeout(() => controller.abort(), 25000); // Reduced to 25s for better UX
 
       const res = await fetch(url, {
         method: 'POST',

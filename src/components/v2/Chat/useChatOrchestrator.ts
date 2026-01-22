@@ -71,6 +71,25 @@ export function useChatOrchestrator({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
 
+      // DATA DIET: Strip heavy base64 images from state before sending to AI
+      // We only need the text structure and status, not the actual pixels.
+      const leanLandingState = landingState ? {
+        ...landingState,
+        baseImageUrl: undefined, // Remove original photo
+        generations: Object.fromEntries(
+          Object.entries(landingState.generations).map(([id, gen]) => [
+            id, 
+            { ...gen, imageUrl: undefined } // Remove generated section pixels
+          ])
+        ),
+        adGenerations: Object.fromEntries(
+          Object.entries(landingState.adGenerations).map(([id, gen]) => [
+            id,
+            { ...gen, imageUrl: undefined } // Remove generated ad pixels
+          ])
+        )
+      } : null;
+
       const response = await fetch('/api/v2/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -78,7 +97,7 @@ export function useChatOrchestrator({
           messages: [...messages, userMessage],
           productData,
           creativePaths,
-          landingState
+          landingState: leanLandingState
         }),
         signal: controller.signal
       });
