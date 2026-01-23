@@ -74,9 +74,9 @@ const CreationSelectorModal: React.FC<CreationSelectorModalProps> = ({ isOpen, o
                     <h3 className="text-[11px] font-black text-white uppercase tracking-[0.2em]">Herramientas Manuales (V1)</h3>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <Link href="/image-pro">
-                      <button className="p-3 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.08] transition-all flex flex-col items-center gap-2 group text-center h-full">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <Link href="/image-pro" className="h-full">
+                      <button className="w-full p-3 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.08] transition-all flex flex-col items-center gap-2 group text-center h-full justify-center">
                         <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/60 group-hover:text-primary-color transition-colors">
                           <FaImage className="text-sm" />
                         </div>
@@ -87,8 +87,8 @@ const CreationSelectorModal: React.FC<CreationSelectorModalProps> = ({ isOpen, o
                       </button>
                     </Link>
 
-                    <Link href="/video-pro">
-                      <button className="p-3 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.08] transition-all flex flex-col items-center gap-2 group text-center h-full">
+                    <Link href="/video-pro" className="h-full">
+                      <button className="w-full p-3 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.08] transition-all flex flex-col items-center gap-2 group text-center h-full justify-center">
                         <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/60 group-hover:text-primary-color transition-colors">
                           <FaFilm className="text-sm" />
                         </div>
@@ -99,8 +99,8 @@ const CreationSelectorModal: React.FC<CreationSelectorModalProps> = ({ isOpen, o
                       </button>
                     </Link>
 
-                    <Link href="/landing-pro">
-                      <button className="p-3 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.08] transition-all flex flex-col items-center gap-2 group text-center h-full">
+                    <Link href="/landing-pro" className="h-full col-span-2 sm:col-span-1">
+                      <button className="w-full p-3 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.08] transition-all flex flex-col items-center gap-2 group text-center h-full justify-center">
                         <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/60 group-hover:text-primary-color transition-colors">
                           <FaFileAlt className="text-sm" />
                         </div>

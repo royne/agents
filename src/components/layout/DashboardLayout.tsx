@@ -18,10 +18,10 @@ const menuSections: MenuSection[] = [
   {
     title: 'CREACIÓN',
     items: [
+      { name: 'DropApp V2 (Beta)', icon: FaRocket, path: '/v2', adminOnly: true, showForAllAdmins: true, moduleKey: 'admin' },
       { name: 'Imagen Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
       { name: 'Landing PRO', icon: FaAd, path: '/landing-pro', moduleKey: 'landing-pro' },
-      { name: 'Video PRO', icon: FaFilm, path: '/video-pro', moduleKey: 'video-pro' },
-      { name: 'DropApp V2 (Beta)', icon: FaRocket, path: '/v2', adminOnly: true, showForAllAdmins: true, moduleKey: 'admin' },
+      { name: 'Video PRO', icon: FaFilm, path: '/video-pro', moduleKey: 'video-pro' }
     ]
   },
   {
@@ -50,21 +50,7 @@ const menuSections: MenuSection[] = [
   }
 ];
 
-// Elementos que se mostrarán en la barra de navegación móvil
-type MobileMenuItem = { name: string; icon: any; path: string; moduleKey?: ModuleKey };
-const mobileMenuItems: MobileMenuItem[] = [
-  {
-    name: 'Dashboard', icon: () => (
-      <div className="w-5 h-5 rounded-full overflow-hidden relative">
-        <Image src="/droplab.png" alt="DROPAPP" fill className="object-cover" />
-      </div>
-    ), path: '/'
-  },
-  { name: 'Imagen Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
-  { name: 'Agentes', icon: FaComments, path: '/agents', moduleKey: 'agents' },
-  { name: 'Rentabilidad', icon: FaBrain, path: '/data-analysis/analysis', moduleKey: 'data-analysis' },
-  { name: 'Admin', icon: FaUsersCog, path: '/admin', moduleKey: 'admin' },
-];
+import MobileNavigation from './MobileNavigation';
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
@@ -252,35 +238,14 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
         </div>
       </div>
 
-      {/* Barra de navegación inferior para móviles */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0A0C10]/95 backdrop-blur-xl border-t border-white/5 z-50 h-16 safe-area-bottom">
-        <div className="flex justify-around items-center h-full max-w-lg mx-auto px-2">
-          {mobileMenuItems.map((item) => {
-            if (item.moduleKey && !canAccessModule(item.moduleKey)) {
-              return null;
-            }
-            const isActive = router.pathname === item.path;
-            return (
-              <Link key={item.path} href={item.path} className="flex-1 flex flex-col items-center justify-center relative h-full group">
-                <div className={`p-2 rounded-xl transition-all duration-300 ${isActive ? 'text-primary-color' : 'text-gray-500'}`}>
-                  <item.icon className="text-xl" />
-                </div>
-                {isActive && (
-                  <div className="absolute top-0 w-8 h-0.5 bg-primary-color rounded-full shadow-[0_0_10px_rgba(18,216,250,0.5)]"></div>
-                )}
-              </Link>
-            );
-          })}
-          <div
-            className="flex-1 flex flex-col items-center justify-center text-rose-500/70 active:scale-95 transition-transform h-full"
-            onClick={logout}
-          >
-            <div className="p-2">
-              <FaSignOutAlt className="text-xl" />
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Navigation for Mobile */}
+      <MobileNavigation
+        menuSections={menuSections}
+        canAccessModule={canAccessModule}
+        isAdmin={isAdmin}
+        authData={authData}
+        logout={logout}
+      />
 
       {/* Main Content - Ajustado para móviles */}
       <main
