@@ -7,6 +7,7 @@ import PhoneMockup from '../components/v2/Canvas/PhoneMockup';
 import { FaRocket, FaInstagram, FaMobileAlt } from 'react-icons/fa';
 import { LandingGenerationState, SectionGeneration } from '../types/image-pro';
 import CreationSelectorModal from '../components/v2/Dashboard/CreationSelectorModal';
+import DashboardTour from '../components/tours/DashboardTour';
 
 import { SHOWCASE_ADS, SHOWCASE_LANDING_SECTIONS } from '../config/v2-showcase';
 
@@ -53,6 +54,7 @@ const V2DashboardPage: React.FC = () => {
           <HeaderCredits className="flex-1" />
           <div className="pt-2">
             <button
+              id="tour-v2-create-btn"
               onClick={() => setIsCreationModalOpen(true)}
               className="px-6 py-3 bg-primary-color text-black font-black rounded-xl text-[10px] uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-[0_10px_30px_rgba(18,216,250,0.2)] flex items-center gap-2"
             >
@@ -95,6 +97,7 @@ const V2DashboardPage: React.FC = () => {
           </div>
         </div>
       </div>
+      <DashboardTour />
     </DashboardLayout>
   );
 };

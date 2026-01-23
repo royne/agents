@@ -48,7 +48,7 @@ const ChatOrchestrator: React.FC<ChatOrchestratorProps> = ({
   });
 
   return (
-    <div className="flex flex-col h-full bg-[#0A0C10] shadow-2xl relative">
+    <div id="tour-v2-chat" className="flex flex-col h-full bg-[#0A0C10] shadow-2xl relative">
       <ChatHeader onReset={onReset} />
 
       <ChatMessages

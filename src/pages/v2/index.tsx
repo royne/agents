@@ -10,6 +10,8 @@ import HeaderCredits from '../../components/dashboard/HeaderCredits';
 import { FaInfoCircle } from 'react-icons/fa';
 import Tooltip from '../../components/v2/UI/Tooltip';
 
+import V2Tour from '../../components/tours/V2Tour';
+
 const V2PrototypePage: React.FC = () => {
   const {
     productData,
@@ -49,7 +51,7 @@ const V2PrototypePage: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-6">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold border-l-4 border-primary-color pl-4 tracking-tight text-white">Estratega Pro</h1>
+              <h1 id="tour-v2-title" className="text-xl font-bold border-l-4 border-primary-color pl-4 tracking-tight text-white">Estratega Pro</h1>
               <Tooltip
                 content={
                   <div className="flex flex-col gap-1">
@@ -107,6 +109,8 @@ const V2PrototypePage: React.FC = () => {
             }
           />
         </div>
+
+        <V2Tour />
 
         {error && (
           <Notification

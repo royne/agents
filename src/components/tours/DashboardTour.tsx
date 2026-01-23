@@ -4,38 +4,38 @@ import AppTour from '../common/AppTour';
 const DashboardTour: React.FC = () => {
   return (
     <AppTour
-      tourId="dashboard_v1"
+      tourId="dashboard_v2"
       steps={[
         {
           element: '#tour-welcome',
           popover: {
             title: '¡Bienvenido a DROPAPP!',
-            description: 'Este es tu centro de comando para escalar tu e-commerce con Inteligencia Artificial.',
+            description: 'Este es tu centro de estrategia para escalar tu e-commerce con Inteligencia Artificial.',
             side: 'bottom'
           }
         },
         {
-          element: '#tour-credits',
+          element: '#tour-v2-create-btn',
           popover: {
-            title: 'Tus Créditos',
-            description: 'Aquí puedes ver tus créditos disponibles y tu plan actual. Los créditos se consumen al generar contenido con IA.',
-            side: 'bottom'
+            title: 'Inicia un Proyecto',
+            description: 'Haz clic aquí para lanzar una estrategia completa con IA o usar nuestras herramientas individuales.',
+            side: 'left'
           }
         },
         {
-          element: '#tour-landing-card',
+          element: '#tour-sidebar',
           popover: {
-            title: 'Crea Landings de Impacto',
-            description: 'Usa nuestra IA para generar páginas de aterrizaje optimizadas para conversión en minutos.',
+            title: 'Navegación Inteligente',
+            description: 'Desde aquí puedes acceder a todas las potentes herramientas de DropApp.',
             side: 'right'
           }
         },
         {
-          element: '#tour-tutorials',
+          element: '#tour-tutorials-step',
           popover: {
-            title: '¿Tienes dudas?',
-            description: 'En la sección de tutoriales encontrarás guías paso a paso para dominar todas las herramientas de la plataforma.',
-            side: 'top'
+            title: 'Domina la Plataforma',
+            description: '¿Necesitas ayuda? En la sección de tutoriales encontrarás guías detalladas para cada módulo.',
+            side: 'right'
           }
         }
       ]}

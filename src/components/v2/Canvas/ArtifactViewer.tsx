@@ -102,7 +102,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   }, [landingState.selectedSectionId, landingState.phase]);
 
   return (
-    <div className="w-full max-w-5xl h-[80vh] bg-theme-component/30 backdrop-blur-3xl border border-white/10 rounded-[30px] shadow-2xl flex flex-col overflow-hidden group">
+    <div id="tour-v2-canvas" className="w-full max-w-5xl h-[80vh] bg-theme-component/30 backdrop-blur-3xl border border-white/10 rounded-[30px] shadow-2xl flex flex-col overflow-hidden group">
       <CanvasHeader
         data={data}
         creativePaths={creativePaths}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain, FaUsersCog, FaAd, FaChevronLeft, FaChevronRight, FaMagic, FaFilm, FaRocket, FaUsers, FaCrown } from 'react-icons/fa';
+import { FaComments, FaChartLine, FaTruck, FaCog, FaRobot, FaSignOutAlt, FaDatabase, FaDollarSign, FaBrain, FaUsersCog, FaAd, FaChevronLeft, FaChevronRight, FaMagic, FaFilm, FaRocket, FaUsers, FaCrown, FaPlayCircle } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { useAppContext } from '../../contexts/AppContext';
 import type { ModuleKey } from '../../constants/plans';
@@ -43,6 +43,7 @@ const menuSections: MenuSection[] = [
     title: 'SISTEMA',
     items: [
       { name: 'Referidos', icon: FaUsers, path: '/referrals', moduleKey: 'settings' }, // Usamos settings como key base accesible
+      { name: 'Tutoriales', icon: FaPlayCircle, path: '/tutorials', moduleKey: 'settings' },
       { name: 'Configuración', icon: FaCog, path: '/settings', moduleKey: 'settings' },
       { name: 'Pagos', icon: FaDollarSign, path: '/admin/payments', adminOnly: true, showForAllAdmins: true, moduleKey: 'admin' },
       { name: 'Administración', icon: FaUsersCog, path: '/admin', adminOnly: true, showForAllAdmins: true, moduleKey: 'admin' },
@@ -146,7 +147,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
               </Link>
             </div>
 
-            <nav className="flex-1 px-3 space-y-6 overflow-y-auto custom-scrollbar pb-10">
+            <nav id="tour-sidebar" className="flex-1 px-3 space-y-6 overflow-y-auto custom-scrollbar pb-10">
               {menuSections.map((section) => {
                 // Filtrar los items de la sección según permisos
                 const visibleItems = section.items.filter(item => {
@@ -174,6 +175,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
                         return (
                           <Link key={item.path} href={item.path}>
                             <div
+                              id={item.path === '/tutorials' ? 'tour-tutorials-step' : undefined}
                               className={`flex items-center py-2.5 rounded-xl transition-all duration-300 cursor-pointer group/item relative ${isSidebarOpen ? 'px-3' : 'px-1 justify-center'} ${isActive ? 'bg-primary-color/10 ring-1 ring-primary-color/20 text-white' : 'hover:bg-white/5 text-gray-500'}`}
                             >
                               {isActive && isSidebarOpen && (
