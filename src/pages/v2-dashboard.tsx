@@ -7,10 +7,12 @@ import PhoneMockup from '../components/v2/Canvas/PhoneMockup';
 import { FaRocket, FaInstagram, FaMobileAlt } from 'react-icons/fa';
 import Link from 'next/link';
 import { LandingGenerationState, SectionGeneration } from '../types/image-pro';
+import CreationSelectorModal from '../components/v2/Dashboard/CreationSelectorModal';
 
 import { SHOWCASE_ADS, SHOWCASE_LANDING_SECTIONS } from '../config/v2-showcase';
 
 const V2DashboardPage: React.FC = () => {
+  const [isCreationModalOpen, setIsCreationModalOpen] = useState(false);
   const [adReferences] = useState<any[]>(SHOWCASE_ADS);
   const [landingGenerations] = useState<Record<string, SectionGeneration>>(() => {
     const gens: Record<string, SectionGeneration> = {};
@@ -51,13 +53,19 @@ const V2DashboardPage: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
           <HeaderCredits className="flex-1" />
           <div className="pt-2">
-            <Link href="/v2">
-              <button className="px-6 py-3 bg-primary-color text-black font-black rounded-xl text-[10px] uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-[0_10px_30px_rgba(18,216,250,0.2)] flex items-center gap-2">
-                <FaRocket /> Nuevo Proyecto
-              </button>
-            </Link>
+            <button
+              onClick={() => setIsCreationModalOpen(true)}
+              className="px-6 py-3 bg-primary-color text-black font-black rounded-xl text-[10px] uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-[0_10px_30px_rgba(18,216,250,0.2)] flex items-center gap-2"
+            >
+              <FaRocket /> ¿Que quieres Crear?
+            </button>
           </div>
         </div>
+
+        <CreationSelectorModal
+          isOpen={isCreationModalOpen}
+          onClose={() => setIsCreationModalOpen(false)}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Columna Izquierda: Redes Sociales (8/12) */}
