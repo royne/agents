@@ -30,6 +30,7 @@ interface AdsStrategyProps {
   setAdEditInstructions: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   onAutoGenerate?: () => void;
   onStopAutoGenerate?: () => void;
+  onRefineAdConcept?: (conceptId: string, feedback?: string) => void;
 }
 
 const AdsStrategy: React.FC<AdsStrategyProps> = ({
@@ -47,8 +48,21 @@ const AdsStrategy: React.FC<AdsStrategyProps> = ({
   adEditInstructions,
   setAdEditInstructions,
   onAutoGenerate,
-  onStopAutoGenerate
+  onStopAutoGenerate,
+  onRefineAdConcept
 }) => {
+  const [refiningAdId, setRefiningAdId] = React.useState<string | null>(null);
+
+  const handleRefineCopy = async (conceptId: string) => {
+    if (!onRefineAdConcept || isGeneratingAsset || refiningAdId) return;
+    setRefiningAdId(conceptId);
+    try {
+      await onRefineAdConcept(conceptId);
+    } finally {
+      setRefiningAdId(null);
+    }
+  };
+
   return (
     <div className="w-full mt-8 animate-in slide-in-from-bottom duration-700">
       <div className="flex items-center justify-between mb-8">
@@ -87,15 +101,32 @@ const AdsStrategy: React.FC<AdsStrategyProps> = ({
           {landingState.adConcepts?.map((concept, idx) => {
             const generation = landingState.adGenerations[concept.id];
             const currentAspect = selectedAdAspect[concept.id] || '1:1';
+            const isRefining = refiningAdId === concept.id;
 
             return (
-              <div key={concept.id} className="p-6 bg-white/5 rounded-[32px] border border-white/5 hover:border-primary-color/40 transition-all group/ad">
+              <div key={concept.id} className={`p-6 bg-white/5 rounded-[32px] border transition-all group/ad relative overflow-hidden ${isRefining ? 'border-primary-color animate-pulse' : 'border-white/5 hover:border-primary-color/40'}`}>
+                {isRefining && (
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-10 flex flex-col items-center justify-center space-y-2">
+                    <div className="w-6 h-6 border-2 border-primary-color border-t-transparent animate-spin rounded-full"></div>
+                    <span className="text-[8px] font-black text-primary-color uppercase tracking-widest">Refinando Copy...</span>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-primary-color/20 flex items-center justify-center text-primary-color font-black text-xs">
                       {idx + 1}
                     </div>
-                    <h3 className="text-white font-black uppercase text-xs tracking-widest">{concept.title}</h3>
+                    <div className="flex flex-col">
+                      <h3 className="text-white font-black uppercase text-xs tracking-widest">{concept.title}</h3>
+                      <button
+                        onClick={() => handleRefineCopy(concept.id)}
+                        disabled={isGeneratingAsset || isRefining}
+                        className="text-[8px] text-primary-color font-black uppercase tracking-widest flex items-center gap-1.5 hover:opacity-100 opacity-60 transition-all mt-1"
+                      >
+                        <FaMagic className="text-[8px]" /> Regenerar Copy
+                      </button>
+                    </div>
                   </div>
 
                   <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
@@ -126,11 +157,11 @@ const AdsStrategy: React.FC<AdsStrategyProps> = ({
                   )}
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 bg-black/40 rounded-xl border border-white/5">
+                    <div className="p-3 bg-black/40 rounded-xl border border-white/5 relative group/item">
                       <span className="text-[8px] text-primary-color uppercase font-black block mb-1">Gancho (Hook)</span>
                       <p className="text-sm text-white font-medium italic">"{concept.hook}"</p>
                     </div>
-                    <div className="p-3 bg-black/40 rounded-xl border border-white/5 border-dashed border-primary-color/20">
+                    <div className="p-3 bg-black/40 rounded-xl border border-white/5 border-dashed border-primary-color/20 relative group/item">
                       <span className="text-[8px] text-primary-color uppercase font-black block mb-1">Etiqueta Visual (CTA)</span>
                       <p className="text-[10px] text-white font-black uppercase tracking-wider">{concept.adCta || 'SALE'}</p>
                     </div>

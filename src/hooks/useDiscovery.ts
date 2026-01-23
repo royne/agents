@@ -631,6 +631,39 @@ export function useDiscovery() {
     }));
   };
 
+  const refineAdConcept = async (conceptId: string, feedback?: string) => {
+    if (!productData || !landingState.adConcepts) return;
+    
+    // Set a local refining state if needed, but for now we update the concept object
+    setError(null);
+    try {
+      const currentConcept = landingState.adConcepts.find(c => c.id === conceptId);
+      if (!currentConcept) throw new Error('Concept not found');
+
+      console.log('[useDiscovery] Refining concept:', conceptId, 'current title:', currentConcept.title);
+
+      const response = await fetch('/api/v2/ads/refine-concept', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productData, currentConcept, feedback }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        console.log('[useDiscovery] Refinement success. Preserving ID:', conceptId);
+        setLandingState(prev => ({
+          ...prev,
+          adConcepts: prev.adConcepts?.map(c => c.id === conceptId ? { ...result.data, id: conceptId } : c) || []
+        }));
+        setSuccess('Concepto de ad refinado correctamente.');
+      } else {
+        setError(result.error || 'Failed to refine ad concept.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error refining ad concept.');
+    }
+  };
+
   const resetDiscovery = () => {
     setProductData(null);
     setCreativePaths(null);
@@ -670,6 +703,7 @@ export function useDiscovery() {
     setError,
     setSuccess,
     startAutoGeneration,
-    stopAutoGeneration
+    stopAutoGeneration,
+    refineAdConcept
   };
 }

@@ -73,14 +73,72 @@ export class FacebookAdsAgent {
       const cleanText = jsonMatch ? jsonMatch[0] : text.replace(/```json|```/g, "").trim();
       
       const concepts = JSON.parse(cleanText);
-      // Ensure IDs exist if the model failed to generate them properly
       return concepts.map((c: any, i: number) => ({
         ...c,
-        id: c.id || `ad-concept-${Date.now()}-${i}`
+        id: `ad-concept-${i + 1}-${Math.random().toString(36).substr(2, 9)}`
       }));
     } catch (e: any) {
       console.error("[FacebookAdsAgent] Error:", e.message);
       throw new Error("Invalid response from Ads Agent: " + e.message);
+    }
+  }
+
+  static async refineAdConcept(productData: any, currentConcept: AdConcept, feedback?: string): Promise<AdConcept> {
+    const googleKey = process.env.GOOGLE_AI_KEY;
+    if (!googleKey) throw new Error('Google AI Key is missing.');
+
+    const systemPrompt = `You are a Facebook Ads expert. Your goal is to REFINE or GENERATE AN ALTERNATIVE for an existing ad concept based on user feedback or strategic improvement.
+    
+    PRODUCT CONTEXT:
+    - Name: ${productData.name}
+    - Angle: ${productData.angle}
+    - Buyer: ${productData.buyer}
+    
+    CURRENT CONCEPT:
+    - Hook: ${currentConcept.hook}
+    - Body: ${currentConcept.body}
+    - CTA: ${currentConcept.adCta}
+    - Visual: ${currentConcept.visualPrompt}
+    
+    USER FEEDBACK/INSTRUCTION: ${feedback || "Generate a better, higher-converting alternative."}
+    
+    OUTPUT FORMAT (JSON ONLY):
+    {
+      "id": "${currentConcept.id}",
+      "title": "Refined: ${currentConcept.title}",
+      "hook": "The new scroll-stopper",
+      "body": "The new ad copy",
+      "adCta": "The new visual sticker text",
+      "visualPrompt": "The new visual description (keep similar if feedback doesn't ask for visual changes)"
+    }`;
+
+    try {
+      const modelId = 'gemini-3-flash-preview';
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${googleKey}`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            role: 'user',
+            parts: [{ text: systemPrompt }]
+          }]
+        })
+      });
+
+      const result = await response.json();
+      const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      if (!text) throw new Error('Refinement failed.');
+      
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      const cleanText = jsonMatch ? jsonMatch[0] : text.replace(/```json|```/g, "").trim();
+      
+      return JSON.parse(cleanText);
+    } catch (e: any) {
+      console.error("[FacebookAdsAgent] Refine Error:", e.message);
+      throw new Error("Invalid response during refinement: " + e.message);
     }
   }
 }
