@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaRocket, FaImage, FaFilm, FaFileAlt, FaTimes, FaGlobe } from 'react-icons/fa';
+import { FaRocket, FaImage, FaFilm, FaFileAlt, FaTimes } from 'react-icons/fa';
 import Link from 'next/link';
 
 interface CreationSelectorModalProps {

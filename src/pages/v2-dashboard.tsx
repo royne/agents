@@ -5,7 +5,6 @@ import HeaderCredits from '../components/dashboard/HeaderCredits';
 import AdsCarousel from '../components/v2/Dashboard/AdsCarousel';
 import PhoneMockup from '../components/v2/Canvas/PhoneMockup';
 import { FaRocket, FaInstagram, FaMobileAlt } from 'react-icons/fa';
-import Link from 'next/link';
 import { LandingGenerationState, SectionGeneration } from '../types/image-pro';
 import CreationSelectorModal from '../components/v2/Dashboard/CreationSelectorModal';
 
