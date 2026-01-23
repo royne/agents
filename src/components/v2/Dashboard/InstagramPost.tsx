@@ -21,7 +21,7 @@ const InstagramPost: React.FC<InstagramPostProps> = ({
   className = ""
 }) => {
   return (
-    <div className={`w-full max-w-[400px] bg-[#0A0A0A] border border-white/10 rounded-xl overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in duration-500 ${className}`}>
+    <div className={`w-full max-w-[400px] bg-[#0A0A0A] border border-white/10 rounded-xl overflow-hidden flex flex-col shadow-2xl animate-in fade-in duration-500 group/igpost ${className}`}>
       {/* Header */}
       <div className="p-3 flex items-center justify-between border-b border-white/5">
         <div className="flex items-center gap-2">
@@ -39,7 +39,7 @@ const InstagramPost: React.FC<InstagramPostProps> = ({
       </div>
 
       {/* Image Container */}
-      <div className={`w-full bg-black/40 relative overflow-hidden group ${aspectRatio === '1:1' ? 'aspect-square' : 'aspect-[9/16]'}`}>
+      <div className={`w-full bg-black/40 relative overflow-hidden ${aspectRatio === '1:1' ? 'aspect-square' : 'aspect-[9/16]'}`}>
         {isLoading ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center space-y-3">
             <div className="w-8 h-8 border-2 border-primary-color border-t-transparent animate-spin rounded-full"></div>
@@ -49,7 +49,7 @@ const InstagramPost: React.FC<InstagramPostProps> = ({
           <img
             src={imageUrl || "https://via.placeholder.com/400x400?text=Cargando+Referencia..."}
             alt={title}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            className="w-full h-full object-cover transition-all duration-700 group-hover/igpost:scale-110"
           />
         )}
 
