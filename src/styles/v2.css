@@ -19,25 +19,28 @@
 
 /* Ensure full height for the split layout when nested */
 .v2-layout-container {
-  height: calc(100vh - 4rem);
-  /* Adjust based on DashboardLayout padding/header if necessary */
+  min-height: calc(100vh - 4rem);
   display: flex;
-  overflow: hidden;
+  flex-direction: column;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .v2-layout-container {
-    /* height: calc(100vh - 8rem);  2 * p-8 from DashboardLayout */
+    height: calc(100vh - 4rem);
+    overflow: hidden;
   }
 }
 
 /* Hide scrollbar but keep functionality */
 .v2-scrollbar-hidden {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
   scroll-behavior: smooth;
 }
 
 .v2-scrollbar-hidden::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
+  display: none;
+  /* Chrome, Safari and Opera */
 }

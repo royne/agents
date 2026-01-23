@@ -42,7 +42,7 @@ const V2PrototypePage: React.FC = () => {
         <title>DropApp V2 | Invisible Engineering</title>
       </Head>
 
-      <div className="v2-layout-container flex flex-col gap-6 overflow-hidden">
+      <div className="v2-layout-container flex flex-col gap-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-6">
           <div className="flex flex-col gap-1">
             <h1 className="text-xl font-bold border-l-4 border-primary-color pl-4 tracking-tight text-white">DropApp V2 <span className="text-primary-color/50 text-sm ml-2 font-black uppercase tracking-widest">BETA</span></h1>
@@ -51,7 +51,7 @@ const V2PrototypePage: React.FC = () => {
           <HeaderCredits showWelcome={false} className="md:min-w-[320px]" />
         </div>
 
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="flex-1 min-h-0">
           <SplitLayout
             chatPanel={
               <ChatOrchestrator
