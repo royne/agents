@@ -45,8 +45,10 @@ const V2PrototypePage: React.FC = () => {
       <div className="v2-layout-container flex flex-col gap-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-6">
           <div className="flex flex-col gap-1">
-            <h1 className="text-xl font-bold border-l-4 border-primary-color pl-4 tracking-tight text-white">DropApp V2 <span className="text-primary-color/50 text-sm ml-2 font-black uppercase tracking-widest">BETA</span></h1>
-            <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.3em] pl-5 opacity-70">Ingeniería invisible para tu e-commerce</p>
+            <h1 className="text-xl font-bold border-l-4 border-primary-color pl-4 tracking-tight text-white">Estratega Pro</h1>
+            <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.3em] pl-5 opacity-70">Tu director creativo y de marketing 24/7.</p>
+            <p className="text-gray-500 text-[8px] font-black uppercase tracking-[0.3em] pl-5 opacity-70">Análisis y Estrategia Inicial: 10 créditos, generacion de imágenes: 10 crédito por imagen.</p>
+            <p className="text-gray-500 text-[8px] font-black uppercase tracking-[0.3em] pl-5 opacity-70">Análisis de producto, ángulos de venta, cliente ideal, estructura de landing page, copys persuasivos y estructura de creativos.</p>
           </div>
           <HeaderCredits showWelcome={false} className="md:min-w-[320px]" />
         </div>

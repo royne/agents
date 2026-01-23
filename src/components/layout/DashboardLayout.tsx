@@ -18,7 +18,7 @@ const menuSections: MenuSection[] = [
   {
     title: 'CREACIÓN',
     items: [
-      { name: 'DropApp V2 (Beta)', icon: FaRocket, path: '/v2', adminOnly: true, showForAllAdmins: true, moduleKey: 'admin' },
+      { name: 'Estratega Pro', icon: FaRocket, path: '/v2', adminOnly: true, showForAllAdmins: true, moduleKey: 'admin' },
       { name: 'Imagen Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
       { name: 'Landing PRO', icon: FaAd, path: '/landing-pro', moduleKey: 'landing-pro' },
       { name: 'Video PRO', icon: FaFilm, path: '/video-pro', moduleKey: 'video-pro' }

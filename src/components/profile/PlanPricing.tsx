@@ -178,17 +178,19 @@ const PlanPricing: React.FC<PlanPricingProps> = ({ isPublic = false }) => {
   return (
     <div className="space-y-8">
       {/* Aviso Pasarela de Pago */}
-      <div className="max-w-4xl mx-auto bg-primary-color/5 border border-primary-color/20 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-center gap-4 text-center md:text-left transition-all hover:bg-primary-color/10">
-        <div className="w-10 h-10 rounded-full bg-primary-color/10 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(18,216,250,0.2)]">
-          <FaShieldAlt className="text-primary-color text-xl" />
+      {!isPublic && (
+        <div className="max-w-4xl mx-auto bg-primary-color/5 border border-primary-color/20 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-center gap-4 text-center md:text-left transition-all hover:bg-primary-color/10">
+          <div className="w-10 h-10 rounded-full bg-primary-color/10 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(18,216,250,0.2)]">
+            <FaShieldAlt className="text-primary-color text-xl" />
+          </div>
+          <div>
+            <h4 className="text-white font-black text-xs uppercase tracking-widest mb-1">Pago 100% Seguro y Activación Inmediata</h4>
+            <p className="text-gray-500 text-[11px] font-medium leading-relaxed">
+              Al seleccionar un plan, serás redirigido a nuestra pasarela de pago segura. Tus créditos y beneficios se activarán <span className="text-primary-color font-bold italic">automáticamente</span> tras completar la transacción.
+            </p>
+          </div>
         </div>
-        <div>
-          <h4 className="text-white font-black text-xs uppercase tracking-widest mb-1">Pago 100% Seguro y Activación Inmediata</h4>
-          <p className="text-gray-500 text-[11px] font-medium leading-relaxed">
-            Al seleccionar un plan, serás redirigido a nuestra pasarela de pago segura. Tus créditos y beneficios se activarán <span className="text-primary-color font-bold italic">automáticamente</span> tras completar la transacción.
-          </p>
-        </div>
-      </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-end pt-2">
         {plans.map((plan) => {
