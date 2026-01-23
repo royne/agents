@@ -6,75 +6,37 @@ import PlanPricing from '../profile/PlanPricing';
 import AdsCarousel from '../v2/Dashboard/AdsCarousel';
 import PhoneMockup from '../v2/Canvas/PhoneMockup';
 import { LandingGenerationState } from '../../types/image-pro';
+import { SHOWCASE_ADS, SHOWCASE_LANDING_SECTIONS } from '../../config/v2-showcase';
 
 const PublicLanding: React.FC = () => {
-  const [adReferences, setAdReferences] = React.useState<any[]>([]);
-  const [landingState, setLandingState] = React.useState<LandingGenerationState>({
-    phase: 'landing',
-    proposedStructure: {
-      sections: [
-        { sectionId: 'hero', title: 'HERO', reasoning: '...' },
-        { sectionId: 'beneficios', title: 'BENEFICIOS', reasoning: '...' },
-        { sectionId: 'testimonios', title: 'TESTIMONIOS', reasoning: '...' },
-        { sectionId: 'cierre', title: 'OFERTA', reasoning: '...' }
-      ]
-    },
-    selectedSectionId: null,
-    selectedReferenceUrl: null,
-    generations: {},
-    adGenerations: {},
-    adConcepts: []
-  });
+  const [adReferences] = React.useState<any[]>(SHOWCASE_ADS);
+  const [landingState] = React.useState<LandingGenerationState>(() => {
+    const gens: Record<string, any> = {};
+    const sections: any[] = [];
 
-  React.useEffect(() => {
-    const fetchReferences = async () => {
-      try {
-        // Ads
-        const adsRes = await fetch('/api/v2/ads/references');
-        const adsData = await adsRes.json();
-        if (adsData.success) {
-          const ads = adsData.data.map((ref: any, index: number) => ({
-            id: `ad-${ref.id}`,
-            title: ref.name || `Concepto ${index + 1}`,
-            imageUrl: ref.url,
-            hook: "Optimiza tu conversión con el poder de la Inteligencia Artificial.",
-            adCta: "COMPRAR AHORA"
-          }));
-          setAdReferences(ads.sort(() => Math.random() - 0.5));
-        }
+    SHOWCASE_LANDING_SECTIONS.forEach(s => {
+      sections.push({
+        sectionId: s.sectionId,
+        title: s.title,
+        reasoning: "Diseño optimizado para conversión."
+      });
+      gens[s.sectionId] = {
+        status: 'completed',
+        imageUrl: s.imageUrl,
+        copy: { headline: s.headline, body: s.body }
+      };
+    });
 
-        // Landing for Mockup
-        const categories = ['hero', 'beneficios', 'testimonios', 'cierre'];
-        const gens: Record<string, any> = {};
-        const sections: any[] = [];
-
-        await Promise.all(categories.map(async (cat) => {
-          const res = await fetch(`/api/v2/landing/references?sectionId=${cat}`);
-          const data = await res.json();
-          if (data.success && data.data.length > 0) {
-            const ref = data.data[Math.floor(Math.random() * data.data.length)];
-            sections.push({ sectionId: cat, title: cat.toUpperCase(), reasoning: "Diseño optimizado." });
-            gens[cat] = {
-              status: 'completed',
-              imageUrl: ref.url,
-              copy: { headline: 'Diseño Pro', body: '...' }
-            };
-          }
-        }));
-
-        if (sections.length > 0) {
-          setLandingState(prev => ({
-            ...prev,
-            proposedStructure: { sections },
-            generations: gens
-          }));
-        }
-      } catch (error) {
-        console.error("Error fetching ads for public landing:", error);
-      }
+    return {
+      phase: 'landing',
+      proposedStructure: { sections },
+      selectedSectionId: null,
+      selectedReferenceUrl: null,
+      generations: gens,
+      adGenerations: {},
+      adConcepts: []
     };
-    fetchReferences();
-  }, []);
+  });
 
   return (
     <div className="min-h-screen bg-[#050608] text-white selection:bg-primary-color/30 overflow-x-hidden">

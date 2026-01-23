@@ -8,106 +8,34 @@ import { FaRocket, FaInstagram, FaMobileAlt } from 'react-icons/fa';
 import Link from 'next/link';
 import { LandingGenerationState, SectionGeneration } from '../types/image-pro';
 
+import { SHOWCASE_ADS, SHOWCASE_LANDING_SECTIONS } from '../config/v2-showcase';
+
 const V2DashboardPage: React.FC = () => {
-  const [adReferences, setAdReferences] = useState<any[]>([]);
-  const [landingSections, setLandingSections] = useState<any[]>([]);
-  const [landingGenerations, setLandingGenerations] = useState<Record<string, SectionGeneration>>({});
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchReferences = async () => {
-      try {
-        setIsLoading(true);
-        // Fetch Ads References
-        const adsRes = await fetch('/api/v2/ads/references');
-        const adsData = await adsRes.json();
-        if (adsData.success) {
-          const ads = adsData.data.map((ref: any, index: number) => ({
-            id: `ad-${ref.id}`,
-            title: ref.name || `Concepto ${index + 1}`,
-            imageUrl: ref.url,
-            hook: "Optimiza tu conversión con el poder de la Inteligencia Artificial.",
-            adCta: "COMPRAR AHORA"
-          }));
-
-          // Mezclar aleatoriamente los anuncios
-          const shuffledAds = ads.sort(() => Math.random() - 0.5);
-          setAdReferences(shuffledAds.slice(0, 8));
-        }
-
-        // Mapeo de categorías del showcase a categorías reales en la DB
-        const categoryMapping: Record<string, string> = {
-          'hero': 'hero',
-          'beneficios': 'beneficios',
-          'testimonios': 'testimonios',
-          'autoridad': 'autoridad',
-          'cierre': 'cierre'
-        };
-
-        const categories = Object.keys(categoryMapping);
-        const allSections: any[] = [];
-        const allGenerations: Record<string, SectionGeneration> = {};
-
-        await Promise.all(categories.map(async (cat) => {
-          const dbCat = categoryMapping[cat];
-          const res = await fetch(`/api/v2/landing/references?sectionId=${dbCat}`);
-          const data = await res.json();
-          if (data.success && data.data.length > 0) {
-            // Mezclar las referencias de esta categoría y tomar 4 al azar
-            const shuffledRefs = data.data.sort(() => Math.random() - 0.5).slice(0, 4);
-
-            shuffledRefs.forEach((ref: any) => {
-              const sectionId = `${cat}-${ref.id}`;
-              allSections.push({
-                sectionId: sectionId,
-                title: `${cat.toUpperCase()}`,
-                reasoning: `Referencia táctica de ${cat}.`
-              });
-
-              allGenerations[sectionId] = {
-                status: 'completed',
-                imageUrl: ref.url,
-                copy: {
-                  headline: ref.name || "Diseño de Alto Impacto",
-                  body: "Optimizado para conversión máxima."
-                }
-              };
-            });
-          }
-        }));
-
-        // Ordenar según el flujo típico de una landing
-        const sortedSections = allSections.sort((a, b) => {
-          const order = ['hero', 'beneficios', 'testimonios', 'autoridad', 'cierre'];
-          const aType = a.sectionId.split('-')[0];
-          const bType = b.sectionId.split('-')[0];
-          return order.indexOf(aType) - order.indexOf(bType);
-        });
-
-        setLandingSections(sortedSections);
-        setLandingGenerations(allGenerations);
-      } catch (error) {
-        console.error("Error fetching references:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchReferences();
-  }, []);
+  const [adReferences] = useState<any[]>(SHOWCASE_ADS);
+  const [landingGenerations] = useState<Record<string, SectionGeneration>>(() => {
+    const gens: Record<string, SectionGeneration> = {};
+    SHOWCASE_LANDING_SECTIONS.forEach(s => {
+      gens[s.sectionId] = {
+        status: 'completed',
+        imageUrl: s.imageUrl,
+        copy: { headline: s.headline, body: s.body }
+      };
+    });
+    return gens;
+  });
 
   const MOCK_LANDING_STATE: LandingGenerationState = {
     phase: 'landing',
     proposedStructure: {
-      sections: landingSections.length > 0 ? landingSections : [
-        { sectionId: 'hero', title: 'Impacto Visual Hero', reasoning: '...' },
-        { sectionId: 'social', title: 'Prueba Social', reasoning: '...' },
-        { sectionId: 'benefits', title: 'Beneficios Clave', reasoning: '...' }
-      ]
+      sections: SHOWCASE_LANDING_SECTIONS.map(s => ({
+        sectionId: s.sectionId,
+        title: s.title,
+        reasoning: "Referencia de alta conversión."
+      }))
     },
     selectedSectionId: null,
     selectedReferenceUrl: null,
-    generations: Object.keys(landingGenerations).length > 0 ? landingGenerations : {},
+    generations: landingGenerations,
     adGenerations: {},
     adConcepts: []
   };
