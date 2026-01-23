@@ -1,27 +1,49 @@
-import React from 'react';
-import DashboardLayout from '../components/layout/DashboardLayout';
-import {
-  FaMagic, FaRocket, FaFilm, FaPlayCircle, FaFileExcel,
-  FaPercentage, FaBoxOpen, FaLightbulb, FaChartArea
-} from 'react-icons/fa';
-import { useAppContext } from '../contexts/AppContext';
-import type { ModuleKey, Plan } from '../constants/plans';
-import { PLAN_CREDITS } from '../constants/plans';
-import DashboardSection from '../components/dashboard/DashboardSection';
-import ModuleCard from '../components/dashboard/ModuleCard';
+import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
-import PublicLanding from '../components/public/PublicLanding';
-import { useRouter } from 'next/router';
-import WhatsAppButton from '../components/common/WhatsAppButton';
-import DashboardTour from '../components/tours/DashboardTour';
+import DashboardLayout from '../components/layout/DashboardLayout';
 import HeaderCredits from '../components/dashboard/HeaderCredits';
+import AdsCarousel from '../components/v2/Dashboard/AdsCarousel';
+import PhoneMockup from '../components/v2/Canvas/PhoneMockup';
+import { FaRocket, FaInstagram, FaMobileAlt } from 'react-icons/fa';
+import { LandingGenerationState, SectionGeneration } from '../types/image-pro';
+import CreationSelectorModal from '../components/v2/Dashboard/CreationSelectorModal';
+import DashboardTour from '../components/tours/DashboardTour';
+import { useAppContext } from '../contexts/AppContext';
+import PublicLanding from '../components/public/PublicLanding';
+import WhatsAppButton from '../components/common/WhatsAppButton';
+
+import { SHOWCASE_ADS, SHOWCASE_LANDING_SECTIONS } from '../config/v2-showcase';
 
 export default function Dashboard() {
-  const { authData, isAdmin, canAccessModule, isSyncing } = useAppContext();
-  const router = useRouter();
+  const { authData } = useAppContext();
+  const [isCreationModalOpen, setIsCreationModalOpen] = useState(false);
+  const [adReferences] = useState<any[]>(SHOWCASE_ADS);
+  const [landingGenerations] = useState<Record<string, SectionGeneration>>(() => {
+    const gens: Record<string, SectionGeneration> = {};
+    SHOWCASE_LANDING_SECTIONS.forEach(s => {
+      gens[s.sectionId] = {
+        status: 'completed',
+        imageUrl: s.imageUrl,
+        copy: { headline: s.headline, body: s.body }
+      };
+    });
+    return gens;
+  });
 
-  const getModuleStatus = (key: ModuleKey) => {
-    return canAccessModule(key);
+  const MOCK_LANDING_STATE: LandingGenerationState = {
+    phase: 'landing',
+    proposedStructure: {
+      sections: SHOWCASE_LANDING_SECTIONS.map(s => ({
+        sectionId: s.sectionId,
+        title: s.title,
+        reasoning: "Referencia de alta conversión."
+      }))
+    },
+    selectedSectionId: null,
+    selectedReferenceUrl: null,
+    generations: landingGenerations,
+    adGenerations: {},
+    adConcepts: []
   };
 
   // Si authData es null (está cargando o verificando), mostramos un fondo oscuro mientras se decide
@@ -46,122 +68,57 @@ export default function Dashboard() {
       <Head>
         <title>DROPAPP - Dashboard</title>
       </Head>
-      <div className="w-full px-8 py-4 space-y-6">
-        {/* Sección de Perfil Minimalista */}
-        <HeaderCredits className="mx-2" />
 
-        {/* Sección 1: ¿Qué quieres hacer hoy? */}
-        <DashboardSection title="¿Qué quieres hacer hoy?">
-          <ModuleCard
-            name="Imagen PRO"
-            description="Imágenes, Banners & Catálogos publicitarios en segundos"
-            icon={FaMagic}
-            path="/image-pro"
-            gradientClass="gradient-strategy"
-            buttonText="Crear Creatividades"
-            buttonClass="btn-premium-blue"
-            badge="Creativos"
-            disabled={!getModuleStatus('image-pro')}
-            isLarge={true}
-          />
-          <ModuleCard
-            name="Landing PRO"
-            description="Crea una landing optimizada para vender hoy con IA de alto impacto"
-            icon={FaRocket}
-            path="/landing-pro"
-            gradientClass="gradient-creative"
-            buttonText="Generar Landing"
-            buttonClass="btn-premium-green"
-            badge="Estrategia"
-            disabled={!getModuleStatus('landing-pro')}
-            isLarge={true}
-            containerId="tour-landing-card"
-          />
-          <ModuleCard
-            name="Video Generator"
-            description="Videos listos para Ads Sociales con ganchos virales"
-            icon={FaFilm}
-            path="/video-pro"
-            gradientClass="gradient-video"
-            buttonText="Generar Video Ad"
-            buttonClass="btn-premium-purple"
-            disabled={!getModuleStatus('video-pro')}
-            isLarge={true}
-          />
-        </DashboardSection>
+      <div className="v2-layout-container flex flex-col gap-8">
+        {/* Header Replicado del Dashboard 1 */}
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+          <HeaderCredits className="flex-1" />
+          <div className="pt-2">
+            <button
+              id="tour-v2-create-btn"
+              onClick={() => setIsCreationModalOpen(true)}
+              className="px-6 py-3 bg-primary-color text-black font-black rounded-xl text-[10px] uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-[0_10px_30px_rgba(18,216,250,0.2)] flex items-center gap-2"
+            >
+              <FaRocket /> ¿Que quieres Crear?
+            </button>
+          </div>
+        </div>
 
-        {/* Sección 2: Control & Decisión */}
-        <DashboardSection title="Control & Decisión">
-          <ModuleCard
-            name="Análisis de Rentabilidad"
-            description="Análisis de ventas y ganancias"
-            icon={FaFileExcel}
-            path="/data-analysis/analysis"
-            gradientClass="gradient-subtle-blue"
-            buttonText="Analizar Archivo"
-            buttonClass="btn-premium-gray"
-            disabled={!getModuleStatus('data-analysis')}
-          />
-          <ModuleCard
-            name="Calculadora de Precios"
-            description="Simula márgenes de beneficio"
-            icon={FaPercentage}
-            path="/calculator"
-            gradientClass="gradient-subtle-blue"
-            buttonText="Calcular Precio"
-            buttonClass="btn-premium-gray"
-            disabled={!getModuleStatus('calculator')}
-          />
-          <ModuleCard
-            name="Gestión Logística"
-            description="Monitorea tus envíos"
-            icon={FaBoxOpen}
-            path="/logistic"
-            gradientClass="gradient-subtle-blue"
-            buttonText="Ver Transportes"
-            buttonClass="btn-premium-gray"
-            disabled={!getModuleStatus('logistic')}
-          />
-        </DashboardSection>
+        <CreationSelectorModal
+          isOpen={isCreationModalOpen}
+          onClose={() => setIsCreationModalOpen(false)}
+        />
 
-        {/* Sección 3: Flujos Inteligentes */}
-        <DashboardSection title="Flujos Inteligentes">
-          <ModuleCard
-            name="Agentes"
-            description="Lanza y optimiza un nuevo producto"
-            icon={FaLightbulb}
-            path="/agents"
-            gradientClass="gradient-subtle-purple"
-            buttonText="Iniciar Flujo"
-            buttonClass="btn-premium-gray"
-            disabled={!getModuleStatus('agents')}
-          />
-          <ModuleCard
-            name="Master Chat"
-            description="Mejora el rendimiento de tus Ads"
-            icon={FaChartArea}
-            path="/chat"
-            gradientClass="gradient-subtle-orange"
-            buttonText="Optimizar Ahora"
-            buttonClass="btn-premium-gray"
-            disabled={!getModuleStatus('chat')}
-          />
-          <ModuleCard
-            name="Tutoriales"
-            description="Domina todas las herramientas"
-            icon={FaPlayCircle}
-            path="/tutorials"
-            gradientClass="gradient-subtle-orange"
-            buttonText="Ver Tutoriales"
-            buttonClass="btn-premium-gray"
-            disabled={false}
-            containerId="tour-tutorials"
-          />
-        </DashboardSection>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Columna Izquierda: Redes Sociales (8/12) */}
+          <div className="lg:col-span-8">
+            <div className="bg-white/[0.02] border border-white/5 rounded-[32px] px-4 py-2 backdrop-blur-3xl relative overflow-hidden h-fit">
+              <div className="relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary-color/5 blur-[60px] rounded-full pointer-events-none"></div>
+                <AdsCarousel customAds={adReferences.length > 0 ? adReferences : undefined} />
+              </div>
+            </div>
+          </div>
+
+          {/* Columna Derecha: Mobile View (4/12) */}
+          <div className="lg:col-span-4 flex flex-col items-center gap-4">
+            <div className="w-full bg-white/[0.02] border border-white/5 rounded-[32px] px-4 py-4 flex flex-col items-center gap-3 h-fit">
+              <div className="flex items-center gap-3 px-4 py-1.5 bg-white/5 rounded-full border border-white/10">
+                <FaMobileAlt className="text-primary-color text-[10px]" />
+                <span className="text-[9px] font-black text-white uppercase tracking-widest">Gama de Landings</span>
+              </div>
+
+              <div className="w-full flex justify-center py-2 h-[670px] overflow-hidden">
+                <PhoneMockup
+                  landingState={MOCK_LANDING_STATE}
+                  className="flex flex-col items-center"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-
       <DashboardTour />
-
       <WhatsAppButton />
     </DashboardLayout>
   );
