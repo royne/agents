@@ -55,9 +55,9 @@ const DiscoveryPanel: React.FC<DiscoveryPanelProps> = ({ data, onConfirmDiscover
           >
             Confirmar y Crear Lanzamiento
           </button>
-          <button className="px-6 py-4 bg-white/5 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest border border-white/10 hover:bg-white/10 transition-all">
+          {/*<button className="px-6 py-4 bg-white/5 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest border border-white/10 hover:bg-white/10 transition-all">
             Ajustar
-          </button>
+          </button>*/}
         </div>
       </div>
     </div>

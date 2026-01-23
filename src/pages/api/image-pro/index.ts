@@ -94,6 +94,13 @@ export default async function handler(req: NextRequest, event: any) {
       console.log(`[BG] Respuesta de Google AI recibida para ${generationId}. Status: ${geminiRes.status}`);
 
       const result = await geminiRes.json();
+      
+      // Log clean token consumption metadata
+      const usage = result.usageMetadata || {};
+      console.log(`[BG/V1] Tokens for ${generationId}:`, 
+        usage.candidatesTokensDetails?.map((d: any) => `Modality: ${d.modality}, Count: ${d.tokenCount}`).join(' | ') || 'No candidate details'
+      );
+
       const imagePart = result.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
 
       if (!imagePart) {

@@ -7,9 +7,10 @@ interface ChatInputProps {
   disabled: boolean;
   onAddUserMessage: (content: string) => void;
   onAddAssistantMessage: (content: string) => void;
+  onError?: (msg: string) => void;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSend, onUpload, disabled, onAddUserMessage, onAddAssistantMessage }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSend, onUpload, disabled, onAddUserMessage, onAddAssistantMessage, onError }) => {
   const [input, setInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -22,6 +23,16 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, onUpload, disabled, onAdd
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validar tamaño (1MB = 1048576 bytes)
+    if (file.size > 1024 * 1024) {
+      const errorMsg = 'La imagen es demasiado pesada. El límite es de 1MB para asegurar un procesamiento rápido.';
+      if (onError) onError(errorMsg);
+      else alert(errorMsg);
+
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = () => {

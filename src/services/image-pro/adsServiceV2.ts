@@ -64,9 +64,9 @@ export class AdsServiceV2 extends BaseImageProService {
     1. PRODUCT FIDELITY: ITEM 1 is the absolute referent. Label and shape must be perfect.
     2. TYPOGRAPHY: High-impact, professional font matching the layout's scale in ITEM 2.
     3. VISUAL CTA: Render the sticker/badge precisely where it appears in ITEM 2 using the text "${adCta || ''}".
-    ${extraInstructions ? `- USER SPECIFIC OVERRIDE: ${extraInstructions}` : ''}
+    - USER SPECIFIC OVERRIDE: ${extraInstructions ? extraInstructions : 'None'}
     
-    FORMAT: ${aspectRatio === '1:1' ? '1:1 square' : '9:16 vertical'} orientation. 2k resolution.`;
+    FORMAT: ${aspectRatio === '1:1' ? '1:1 square' : '9:16 vertical'} orientation. 2k resolution (max 2000px). Cinematic high quality.`;
     } else {
       console.log('[AdsServiceV2] Mode: Native (de 0)');
       // RESTORE ORIGINAL NATIVE PROMPT (DE 0)
@@ -91,7 +91,7 @@ export class AdsServiceV2 extends BaseImageProService {
     
     FORMAT OPTIMIZATION:
     - ${aspectRatio === '1:1' ? '1: square' : '9:16 vertical'}.
-    - image generetion in 2k resolution`;
+    - IMAGE QUALITY: 2k resolution (max 2000px), professional studio finish.`;
     }
 
     const parts = this.buildBasePart(strategicPrompt);

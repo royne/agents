@@ -23,6 +23,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelect, label = 'I
 
   const handleFile = (file: File) => {
     if (file.type.startsWith('image/')) {
+      // Validar tamaño (1MB = 1048576 bytes)
+      if (file.size > 1024 * 1024) {
+        alert('La imagen es demasiado pesada. El límite es de 1MB para asegurar un procesamiento rápido.');
+        return;
+      }
+
       setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {

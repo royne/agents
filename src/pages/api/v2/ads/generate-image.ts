@@ -96,6 +96,13 @@ export default async function handler(req: NextRequest, event: any) {
         }
 
         const aiData = await aiRes!.json();
+        
+        // Log clean token consumption metadata
+        const usage = aiData.usageMetadata || {};
+        console.log(`[BG/AdsV2] Tokens for ${generationId}:`, 
+          usage.candidatesTokensDetails?.map((d: any) => `Modality: ${d.modality}, Count: ${d.tokenCount}`).join(' | ') || 'No candidate details'
+        );
+
         const imagePart = aiData.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
         if (!imagePart) throw new Error('AI failed to generate image');
 

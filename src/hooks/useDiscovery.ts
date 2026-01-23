@@ -32,6 +32,14 @@ export function useDiscovery() {
     }
   }, [success]);
 
+  // Auto-clear error after 6 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
   /**
    * AUTOPILOT ORCHESTRATOR (Reactive)
    * This effect watches the state and triggers the next queue item only when

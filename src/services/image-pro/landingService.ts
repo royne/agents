@@ -76,7 +76,8 @@ export class LandingService extends BaseImageProService {
         ? "RENDER professional, clean, and legible typography ONLY when explicitly required by the section objective. Text must be minimal, conversion-focused, and NEVER instructional or generic."
         : "KEEP IT PURELY VISUAL. No text or watermarks in the scene."
     }
-    - Focus on visual storytelling and high commercial production value (2k, studio lighting).
+    - Focus on visual storytelling and high commercial production value. 
+    - IMAGE QUALITY: Ultra-high definition, 2k resolution (max 2000px on the longest side), studio lighting.
     - BRANDING PRIORITY: Color palette, mood, and visual tone must be derived from the product itself (packaging, category, buyer persona), NOT from the reference image.
       • EXCEPTION: If the reference is a MOCKUP, use it ONLY to understand layout and hierarchy, NEVER as a source of branding or color.
     

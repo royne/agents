@@ -15,6 +15,7 @@ interface ChatOrchestratorProps {
   landingState?: LandingGenerationState | null;
   onUpdateSection?: (sectionId: string, extraInstructions: string) => void;
   setSuccess?: (msg: string | null) => void;
+  setError?: (msg: string | null) => void;
 }
 
 const ChatOrchestrator: React.FC<ChatOrchestratorProps> = ({
@@ -26,7 +27,8 @@ const ChatOrchestrator: React.FC<ChatOrchestratorProps> = ({
   creativePaths,
   landingState,
   onUpdateSection,
-  setSuccess
+  setSuccess,
+  setError
 }) => {
   const {
     messages,
@@ -61,6 +63,7 @@ const ChatOrchestrator: React.FC<ChatOrchestratorProps> = ({
         disabled={isThinking || isDiscovering}
         onAddUserMessage={addUserMessage}
         onAddAssistantMessage={addAssistantMessage}
+        onError={setError}
       />
     </div>
   );

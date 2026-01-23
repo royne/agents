@@ -96,6 +96,13 @@ export default async function handler(req: NextRequest, event: any) {
         }
 
         const result = await geminiRes!.json();
+        
+        // Log clean token consumption metadata
+        const usage = result.usageMetadata || {};
+        console.log(`[BG/LandingV2] Tokens for ${generationId}:`, 
+          usage.candidatesTokensDetails?.map((d: any) => `Modality: ${d.modality}, Count: ${d.tokenCount}`).join(' | ') || 'No candidate details'
+        );
+
         const imagePart = result.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
         if (!imagePart) throw new Error('AI failed to generate image');
 

@@ -79,6 +79,7 @@ const V2PrototypePage: React.FC = () => {
                 landingState={landingState}
                 onUpdateSection={updateSectionInstructions}
                 setSuccess={setSuccess}
+                setError={setError}
               />
             }
             canvasPanel={

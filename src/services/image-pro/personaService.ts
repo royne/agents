@@ -51,7 +51,8 @@ export class PersonaService extends BaseImageProService {
       
       CORE DIRECTIVES:
       ${fidelityDirectives}
-      - Aesthetics: Cinematic, 2k, ultra-realistic skin textures, professional studio lighting.
+      - Aesthetics: Cinematic, ultra-realistic skin textures, professional studio lighting.
+      - IMAGE QUALITY: 2k resolution (max 2000px on the longest side), high definition finish.
       - NO TEXT, GRAPHICS, OR WATERMARKS.
       - ASPECT RATIO: ${aspectRatio}`;
     }
