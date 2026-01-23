@@ -78,10 +78,18 @@ export const ReferenceLibraryModal: React.FC<ReferenceLibraryModalProps> = ({ is
           <div className="flex items-center gap-4">
             {currentCategory && (
               <button
-                onClick={() => setCurrentCategory(undefined)}
+                onClick={() => {
+                  if (currentCategory.startsWith('landing-')) {
+                    setCurrentCategory('landing');
+                  } else if (currentCategory.startsWith('ads-')) {
+                    setCurrentCategory('ads');
+                  } else {
+                    setCurrentCategory(undefined);
+                  }
+                }}
                 className="text-[10px] bg-white/5 px-2 py-1 rounded text-theme-tertiary hover:text-white transition-colors"
               >
-                Ver Todo
+                Ver Todo {currentCategory.startsWith('landing-') ? '(Landing)' : currentCategory.startsWith('ads-') ? '(Ads)' : ''}
               </button>
             )}
             <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors">

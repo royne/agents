@@ -124,7 +124,7 @@ export default function LandingProPage() {
         <ReferenceLibraryModal
           isOpen={state.isLibraryOpen}
           onClose={() => actions.setIsLibraryOpen(false)}
-          category="landing"
+          category={`landing-${state.currentSection.id}`}
           onSelect={(url) => {
             actions.setStyleImageBase64(url);
             actions.setIsLibraryOpen(false);
