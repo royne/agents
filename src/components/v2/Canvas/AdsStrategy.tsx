@@ -2,6 +2,7 @@ import React from 'react';
 import { FaMagic, FaRocket, FaImage, FaStop } from 'react-icons/fa';
 import { LandingGenerationState, AspectRatio } from '../../../types/image-pro';
 import PhoneMockup from './PhoneMockup';
+import InstagramPost from '../Dashboard/InstagramPost';
 
 interface AdsStrategyProps {
   landingState: LandingGenerationState;
@@ -111,17 +112,17 @@ const AdsStrategy: React.FC<AdsStrategyProps> = ({
                 </div>
 
                 <div className="space-y-4">
-                  {generation?.status === 'completed' && (
-                    <div className={`w-full overflow-hidden rounded-2xl border border-white/10 ${generation.aspectRatio === '1:1' ? 'aspect-square' : 'aspect-[9/16]'}`}>
-                      <img src={generation.imageUrl} className="w-full h-full object-cover" alt="Generated Ad" />
-                    </div>
-                  )}
-
-                  {generation?.status === 'pending' && (
-                    <div className="w-full aspect-square bg-black/40 rounded-2xl flex flex-col items-center justify-center space-y-3 animate-pulse">
-                      <div className="w-8 h-8 border-2 border-primary-color border-t-transparent animate-spin rounded-full"></div>
-                      <span className="text-[8px] font-black text-primary-color uppercase tracking-widest">Generando Asset...</span>
-                    </div>
+                  {/* Instagram Mockup Wrapper */}
+                  {(generation?.status === 'completed' || generation?.status === 'pending') && (
+                    <InstagramPost
+                      imageUrl={generation?.imageUrl || ""}
+                      hook={concept.hook}
+                      cta={concept.adCta}
+                      title={concept.title}
+                      aspectRatio={currentAspect}
+                      isLoading={generation?.status === 'pending'}
+                      className="!max-w-full"
+                    />
                   )}
 
                   <div className="grid grid-cols-2 gap-3">

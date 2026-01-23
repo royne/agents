@@ -91,6 +91,7 @@ const AdsCarousel: React.FC<AdsCarouselProps> = ({ landingState, customAds, mini
                   hook={concept.hook}
                   cta={concept.adCta}
                   title={concept.title}
+                  aspectRatio={generation?.aspectRatio as any || '1:1'}
                   isLoading={generation?.status === 'pending'}
                 />
               </div>

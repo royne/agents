@@ -7,6 +7,8 @@ interface InstagramPostProps {
   cta?: string;
   title?: string;
   isLoading?: boolean;
+  aspectRatio?: '1:1' | '9:16';
+  className?: string;
 }
 
 const InstagramPost: React.FC<InstagramPostProps> = ({
@@ -14,10 +16,12 @@ const InstagramPost: React.FC<InstagramPostProps> = ({
   hook = "Descubre la nueva forma de escalar tu e-commerce con DropApp.",
   cta = "SHOP NOW",
   title = "Concepto de Ad",
-  isLoading = false
+  isLoading = false,
+  aspectRatio = '1:1',
+  className = ""
 }) => {
   return (
-    <div className="w-full max-w-[400px] bg-[#0A0A0A] border border-white/10 rounded-xl overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in duration-500">
+    <div className={`w-full max-w-[400px] bg-[#0A0A0A] border border-white/10 rounded-xl overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in duration-500 ${className}`}>
       {/* Header */}
       <div className="p-3 flex items-center justify-between border-b border-white/5">
         <div className="flex items-center gap-2">
@@ -35,7 +39,7 @@ const InstagramPost: React.FC<InstagramPostProps> = ({
       </div>
 
       {/* Image Container */}
-      <div className="aspect-square w-full bg-black/40 relative overflow-hidden group">
+      <div className={`w-full bg-black/40 relative overflow-hidden group ${aspectRatio === '1:1' ? 'aspect-square' : 'aspect-[9/16]'}`}>
         {isLoading ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center space-y-3">
             <div className="w-8 h-8 border-2 border-primary-color border-t-transparent animate-spin rounded-full"></div>
@@ -52,7 +56,7 @@ const InstagramPost: React.FC<InstagramPostProps> = ({
         {/* CTA Button Overlay (Instagram style) */}
         {!isLoading && (
           <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-            <div className="flex items-center justify-between bg-white text-black px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-tight">
+            <div className="flex items-center justify-between bg-white/10 backdrop-blur-lg border border-white/20 text-white px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-tight">
               <span>{cta}</span>
               <span className="text-[10px]">›</span>
             </div>
@@ -77,7 +81,7 @@ const InstagramPost: React.FC<InstagramPostProps> = ({
         </div>
         <div className="text-[11px] leading-relaxed">
           <span className="font-bold text-white mr-2">dropapp.lat</span>
-          <span className="text-white/80">{hook}</span>
+          <span className="text-white/80 line-clamp-2">{hook}</span>
         </div>
         <div className="text-[10px] text-white/40 pt-1 uppercase font-bold tracking-tighter">
           Ver los 42 comentarios
