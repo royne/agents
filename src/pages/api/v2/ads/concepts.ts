@@ -1,31 +1,35 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import { FacebookAdsAgent } from '../../../../lib/agents/FacebookAdsAgent';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export const config = {
+  runtime: 'edge',
+};
+
+export default async function handler(req: NextRequest) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
   }
 
   try {
-    const { productData, landingStructure } = req.body;
+    const { productData, landingStructure } = await req.json();
 
     if (!productData || !landingStructure) {
-      return res.status(400).json({ success: false, error: 'Product data and landing structure are required.' });
+      return NextResponse.json({ success: false, error: 'Product data and landing structure are required.' }, { status: 400 });
     }
 
     console.log('[API/V2/Ads/Concepts] Generating concepts for:', productData.name);
     const concepts = await FacebookAdsAgent.generateAdConcepts(productData, landingStructure);
 
-    return res.status(200).json({
+    return NextResponse.json({
       success: true,
       data: concepts
     });
 
   } catch (error: any) {
     console.error('[API/V2/Ads/Concepts] Error:', error.message);
-    return res.status(500).json({
+    return NextResponse.json({
       success: false,
       error: error.message || 'Internal server error'
-    });
+    }, { status: 500 });
   }
 }

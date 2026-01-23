@@ -1,38 +1,34 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import { ChatOrchestratorAgent } from '../../../../lib/agents/ChatOrchestratorAgent';
 
 export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-  },
+  runtime: 'edge',
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextRequest) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
   }
 
   try {
-    const { messages, productData, creativePaths, landingState } = req.body;
+    const { messages, productData, creativePaths, landingState } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: 'Messages are required and must be an array.' });
+      return NextResponse.json({ error: 'Messages are required and must be an array.' }, { status: 400 });
     }
 
     const response = await ChatOrchestratorAgent.chat(messages, productData, creativePaths, landingState);
 
-    return res.status(200).json({
+    return NextResponse.json({
       success: true,
       data: response
     });
 
   } catch (error: any) {
     console.error('[API/V2/Chat] Error:', error.message);
-    return res.status(500).json({
+    return NextResponse.json({
       success: false,
       error: error.message || 'Internal server error'
-    });
+    }, { status: 500 });
   }
 }

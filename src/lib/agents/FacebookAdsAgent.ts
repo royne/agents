@@ -1,5 +1,3 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
 export interface AdConcept {
   id: string;
   title: string;
@@ -10,10 +8,9 @@ export interface AdConcept {
 }
 
 export class FacebookAdsAgent {
-  private static genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_KEY || "");
-
   static async generateAdConcepts(productData: any, landingStructure: any): Promise<AdConcept[]> {
-    const model = this.genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const googleKey = process.env.GOOGLE_AI_KEY;
+    if (!googleKey) throw new Error('Google AI Key is missing.');
 
     const systemPrompt = `You are a Facebook Ads expert specialized in Direct Response Marketing and Consumer Psychology. 
     Your goal is to generate 3 HIGH-CONVERSION ad concepts based on a product's DNA and its landing page structure.
@@ -51,23 +48,39 @@ export class FacebookAdsAgent {
     ]
     Return exactly 3 conceptos. Be creative and strategically different between them (e.g., Direct Solution, Aspirational Authority, Comparison/Status, notice, etc...).`;
 
-    const result = await model.generateContent(systemPrompt);
-    const text = result.response.text();
-    
-    // Clean JSON from markdown and any extra text
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    const cleanText = jsonMatch ? jsonMatch[0] : text.replace(/```json|```/g, "").trim();
-    
     try {
+      const modelId = 'gemini-3-flash-preview';
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${googleKey}`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            role: 'user',
+            parts: [{ text: systemPrompt }]
+          }]
+        })
+      });
+
+      const result = await response.json();
+      const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      if (!text) throw new Error('Facebook Ads Agent failed to generate concepts.');
+      
+      // Clean JSON from markdown and any extra text
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      const cleanText = jsonMatch ? jsonMatch[0] : text.replace(/```json|```/g, "").trim();
+      
       const concepts = JSON.parse(cleanText);
       // Ensure IDs exist if the model failed to generate them properly
       return concepts.map((c: any, i: number) => ({
         ...c,
         id: c.id || `ad-concept-${Date.now()}-${i}`
       }));
-    } catch (e) {
-      console.error("Failed to parse Ad Concepts JSON:", cleanText);
-      throw new Error("Invalid response from Ads Agent");
+    } catch (e: any) {
+      console.error("[FacebookAdsAgent] Error:", e.message);
+      throw new Error("Invalid response from Ads Agent: " + e.message);
     }
   }
 }

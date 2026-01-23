@@ -1,30 +1,34 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import { CreativeDirector } from '../../../../lib/agents/CreativeDirector';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export const config = {
+  runtime: 'edge',
+};
+
+export default async function handler(req: NextRequest) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
   }
 
   try {
-    const { productData } = req.body;
+    const { productData } = await req.json();
 
     if (!productData) {
-      return res.status(400).json({ error: 'Missing product data' });
+      return NextResponse.json({ error: 'Missing product data' }, { status: 400 });
     }
 
     const paths = await CreativeDirector.recommend(productData);
 
-    return res.status(200).json({
+    return NextResponse.json({
       success: true,
       data: paths
     });
 
   } catch (error: any) {
     console.error('[API/Creative/Recommend] Error:', error.message);
-    return res.status(500).json({
+    return NextResponse.json({
       success: false,
       error: error.message || 'Internal server error'
-    });
+    }, { status: 500 });
   }
 }
