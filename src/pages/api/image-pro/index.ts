@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '../../../lib/supabaseAdmin';
 import { CreditService } from '../../../lib/creditService';
 import { ImageProRequest, StrategicPromptResponse } from '../../../services/image-pro/types';
 import { AdsService } from '../../../services/image-pro/adsService';
@@ -14,8 +14,6 @@ export const config = {
 export default async function handler(req: NextRequest, event: any) {
   if (req.method !== 'POST') return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
   const googleKey = process.env.GOOGLE_AI_KEY || '';
 
   // 1. Extraer el usuario REAL del token (crítico para créditos)
@@ -23,8 +21,6 @@ export default async function handler(req: NextRequest, event: any) {
   if (!userId) {
     return NextResponse.json({ error: 'No autorizado o token inválido' }, { status: 401 });
   }
-
-  const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
   const body = await req.json() as ImageProRequest;
   const { mode, subMode, prompt } = body;
 

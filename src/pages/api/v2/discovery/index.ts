@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { DiscoveryService } from '../../../../lib/agents/DiscoveryService';
 import { CreditService } from '../../../../lib/creditService';
+import { LaunchService } from '../../../../services/launches/launchService';
+import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
 
 export const config = {
   runtime: 'edge',
@@ -11,10 +12,6 @@ export default async function handler(req: NextRequest) {
   if (req.method !== 'POST') {
     return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
   }
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-  const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
   try {
     const body = await req.json();
@@ -53,9 +50,20 @@ export default async function handler(req: NextRequest) {
       return NextResponse.json({ error: consumption.error || 'Failed to consume credits.' }, { status: 402 });
     }
 
+    // 5. Create a Launch record (Automatic)
+    const launchService = LaunchService.createWithAdmin();
+    const launch = await launchService.create(userId, {
+      name: `Lanzamiento: ${productData.name}`,
+      product_dna: productData,
+      status: 'active'
+    });
+
     return NextResponse.json({
       success: true,
-      data: productData
+      data: {
+        ...productData,
+        launchId: launch.id
+      }
     });
 
   } catch (error: any) {

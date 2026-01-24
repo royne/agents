@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LandingDesignerAgent } from '../../../../lib/agents/LandingDesignerAgent';
+import { LaunchService } from '../../../../services/launches/launchService';
+import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
 
 export const config = {
   runtime: 'edge',
@@ -11,13 +13,22 @@ export default async function handler(req: NextRequest) {
   }
 
   try {
-    const { productData, creativePath } = await req.json();
+    const { productData, creativePath, launchId } = await req.json();
 
     if (!productData || !creativePath) {
       return NextResponse.json({ error: 'productData and creativePath are required.' }, { status: 400 });
     }
 
     const structure = await LandingDesignerAgent.suggestStructure(productData, creativePath);
+
+    // Update Launch record if launchId is provided
+    if (launchId) {
+      const launchService = LaunchService.createWithAdmin();
+      await launchService.update(launchId, { 
+        landing_structure: structure,
+        creative_strategy: creativePath
+      });
+    }
 
     return NextResponse.json({
       success: true,

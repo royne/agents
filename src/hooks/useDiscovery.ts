@@ -32,7 +32,6 @@ export function useDiscovery() {
     }
   }, [success]);
 
-  // Auto-clear error after 6 seconds
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => setError(null), 6000);
@@ -188,6 +187,7 @@ export function useDiscovery() {
 
       if (result.success) {
         setProductData(result.data);
+        setLandingState(prev => ({ ...prev, launchId: result.data.launchId }));
         // Sync credits after project initialization
         syncUserData();
       } else {
@@ -234,7 +234,7 @@ export function useDiscovery() {
       const response = await fetch('/api/v2/landing/design', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productData, creativePath }),
+        body: JSON.stringify({ productData, creativePath, launchId: landingState.launchId }),
       });
       const result = await response.json();
       if (result.success) {
@@ -368,7 +368,8 @@ export function useDiscovery() {
           referenceUrl: effectiveReferenceUrl,
           previousImageUrl: identityImageUrl, // Real Identity Anchor
           continuityImage: continuityImageUrl, // Style Reference
-          aspectRatio // New: selected formatting
+          aspectRatio, // New: selected formatting
+          launchId: landingState.launchId
         }),
       });
 
@@ -422,7 +423,11 @@ export function useDiscovery() {
       const response = await fetch('/api/v2/ads/concepts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productData, landingStructure: landingState.proposedStructure }),
+        body: JSON.stringify({ 
+          productData, 
+          landingStructure: landingState.proposedStructure,
+          launchId: landingState.launchId
+        }),
       });
 
       const result = await response.json();
@@ -491,7 +496,8 @@ export function useDiscovery() {
           referenceUrl,
           previousImageUrl: isCorrection ? landingState.adGenerations[conceptId]?.imageUrl || landingState.baseImageUrl : landingState.baseImageUrl,
           isCorrection,
-          aspectRatio
+          aspectRatio,
+          launchId: landingState.launchId
         }),
       });
 

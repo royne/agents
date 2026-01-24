@@ -78,6 +78,7 @@ export interface LandingGenerationState {
   adConcepts?: AdConcept[];
   isAutoMode?: boolean; // New: indicates if autopilot is active
   autoModeQueue?: string[]; // New: queue of pending section/concept IDs
+  launchId?: string; // New: linking everything to a commercial launch
 }
 
 export interface LandingSection {

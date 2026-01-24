@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '../../../lib/supabaseAdmin';
 import { CreditService } from '../../../lib/creditService';
 
 export const config = {
@@ -24,7 +24,6 @@ export default async function handler(req: NextRequest) {
 
     if (operation.error) {
       // REGISTRAR FALLO EN HISTORIAL
-      const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || '');
       await supabaseAdmin.from('image_generations')
         .update({ status: 'failed', error_message: operation.error.message })
         .eq('operation_name', operationName);
@@ -68,7 +67,6 @@ export default async function handler(req: NextRequest) {
         const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
         
         if (token) {
-          const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || '');
           const { data: { user } } = await supabaseAdmin.auth.getUser(token);
           if (user) {
             await CreditService.consumeCredits(user.id, 'VIDEO_GEN', { operation: operationName }, supabaseAdmin);

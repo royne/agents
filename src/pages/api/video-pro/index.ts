@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '../../../lib/supabaseAdmin';
 import { CreditService } from '../../../lib/creditService';
 import { VideoProService, VideoProRequest } from '../../../services/image-pro/videoService';
 
@@ -11,11 +11,6 @@ export default async function handler(req: NextRequest) {
   if (req.method !== 'POST') {
     return NextResponse.json({ error: 'Método no permitido' }, { status: 405 });
   }
-
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-  );
 
   const authHeader = req.headers.get('authorization');
   const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
@@ -55,6 +50,10 @@ export default async function handler(req: NextRequest) {
     const operation = await response.json();
 
     if (operation.error) {
+      // REGISTRAR FALLO EN HISTORIAL
+      await supabaseAdmin.from('image_generations')
+        .update({ status: 'failed', error_message: operation.error.message })
+        .eq('operation_name', operation.name); // Assuming operation.name would be available even on error for tracking
       throw new Error(operation.error.message || 'Error en la API de Google');
     }
 

@@ -4,6 +4,7 @@ import { CreditService } from '../../../../lib/creditService';
 import { CopywriterAgent } from '../../../../lib/agents/CopywriterAgent';
 import { LandingServiceV2 } from '../../../../services/image-pro/landingServiceV2';
 import { BaseImageProService } from '../../../../services/image-pro/baseService';
+import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
 
 export const config = {
   runtime: 'edge',
@@ -14,15 +15,11 @@ export default async function handler(req: NextRequest, event: any) {
     return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
   const googleKey = process.env.GOOGLE_AI_KEY || '';
-
-  const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
   try {
     const body = await req.json();
-    const { productData, creativePath, sectionId, sectionTitle, referenceUrl, previousImageUrl, continuityImage, extraInstructions, isCorrection, aspectRatio } = body;
+    const { productData, creativePath, sectionId, sectionTitle, referenceUrl, previousImageUrl, continuityImage, extraInstructions, isCorrection, aspectRatio, launchId } = body;
 
     // 1. Get User ID from headers
     const userId = get_user_id_from_auth(req);
@@ -47,7 +44,8 @@ export default async function handler(req: NextRequest, event: any) {
       status: 'pending',
       prompt: sectionTitle.substring(0, 500),
       mode: 'landing',
-      sub_mode: sectionId
+      sub_mode: sectionId,
+      launch_id: launchId || null
     });
 
     // 4. Background Process

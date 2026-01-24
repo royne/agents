@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { CreditService } from '../../../../lib/creditService';
 import { AdsServiceV2 } from '../../../../services/image-pro/adsServiceV2';
+import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
 
 export const config = {
   runtime: 'edge',
@@ -12,15 +13,11 @@ export default async function handler(req: NextRequest, event: any) {
     return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
   const googleKey = process.env.GOOGLE_AI_KEY || '';
-
-  const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
   try {
     const body = await req.json();
-    const { productData, conceptId, visualPrompt, adHook, adBody, adCta, referenceUrl, previousImageUrl, isCorrection, aspectRatio } = body;
+    const { productData, conceptId, visualPrompt, adHook, adBody, adCta, referenceUrl, previousImageUrl, isCorrection, aspectRatio, launchId } = body;
 
     console.log('[API/V2/Ads/GenerateImage] Body received:', {
       conceptId,
@@ -50,7 +47,8 @@ export default async function handler(req: NextRequest, event: any) {
       status: 'pending',
       prompt: visualPrompt.substring(0, 500),
       mode: 'ads',
-      sub_mode: conceptId
+      sub_mode: conceptId,
+      launch_id: launchId || null
     });
 
     // 4. Background Process
