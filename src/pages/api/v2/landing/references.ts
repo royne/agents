@@ -15,19 +15,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const category = `landing-${sectionId.toString().toLowerCase()}`;
 
-    const { data, error } = await supabase
+    const { data: rawData, error } = await supabase
       .from('visual_references')
       .select('id, name, url, base_category')
       .eq('base_category', category)
       // Remove strict template filter for now as local images are 'inspiration'
-      .order('created_at', { ascending: false })
-      .limit(12);
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
 
+    // Aleatorizar los resultados
+    const shuffledData = (rawData || []).sort(() => Math.random() - 0.5);
+
     return res.status(200).json({
       success: true,
-      data: data || []
+      data: shuffledData
     });
 
   } catch (error: any) {

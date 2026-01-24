@@ -10,18 +10,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Para Ads, por ahora usaremos una categoría general o específica si se requiere en el futuro
     const category = 'ads-mockup';
 
-    const { data, error } = await supabase
+    const { data: rawData, error } = await supabase
       .from('visual_references')
       .select('id, name, url, base_category')
       .eq('base_category', category)
-      .order('created_at', { ascending: false })
-      .limit(12); // Aumentamos un poco el límite para ads
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
 
+    // Aleatorizar los resultados
+    const shuffledData = (rawData || []).sort(() => Math.random() - 0.5);
+
     return res.status(200).json({
       success: true,
-      data: data || []
+      data: shuffledData
     });
 
   } catch (error: any) {
