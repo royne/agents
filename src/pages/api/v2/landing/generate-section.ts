@@ -107,7 +107,7 @@ export default async function handler(req: NextRequest, event: any) {
         if (!imagePart) throw new Error('AI failed to generate image');
 
         // D. Upload to Storage (Edge compatible)
-        const fileName = `${generationId}.png`;
+        const fileName = `v2_landing/${userId}/${generationId}.png`;
         const binaryData = await fetch(`data:image/png;base64,${imagePart.inlineData.data}`).then(r => r.arrayBuffer());
 
         const { error: uploadError } = await supabaseAdmin.storage
