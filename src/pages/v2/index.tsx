@@ -12,6 +12,7 @@ import { FaInfoCircle } from 'react-icons/fa';
 import Tooltip from '../../components/v2/UI/Tooltip';
 
 import V2Tour from '../../components/tours/V2Tour';
+import CreditsExhaustedModal from '../../components/v2/UI/CreditsExhaustedModal';
 
 const V2PrototypePage: React.FC = () => {
   const {
@@ -43,6 +44,7 @@ const V2PrototypePage: React.FC = () => {
     loadLaunch
   } = useDiscovery();
   const router = useRouter(); // We need router to read query params
+  const [showCreditsModal, setShowCreditsModal] = React.useState(false);
 
   React.useEffect(() => {
     const launchId = router.query.load as string;
@@ -51,6 +53,13 @@ const V2PrototypePage: React.FC = () => {
       loadLaunch(launchId);
     }
   }, [router.query.load]);
+
+  // Detect credit error to show modal
+  React.useEffect(() => {
+    if (error && (error.toLowerCase().includes('insufficient credits') || error.toLowerCase().includes('créditos insuficientes'))) {
+      setShowCreditsModal(true);
+    }
+  }, [error]);
 
   return (
     <DashboardLayout>
@@ -123,6 +132,12 @@ const V2PrototypePage: React.FC = () => {
 
         <V2Tour />
 
+        <CreditsExhaustedModal
+          isOpen={showCreditsModal}
+          onClose={() => setShowCreditsModal(false)}
+          landingState={landingState}
+        />
+
         {error && (
           <Notification
             message={error}
@@ -141,5 +156,6 @@ const V2PrototypePage: React.FC = () => {
     </DashboardLayout>
   );
 };
+
 
 export default V2PrototypePage;

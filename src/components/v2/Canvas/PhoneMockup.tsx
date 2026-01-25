@@ -8,9 +8,10 @@ interface PhoneMockupProps {
   landingState: LandingGenerationState;
   className?: string;
   viewMode?: 'landing' | 'ads';
+  showConversionBlur?: boolean;
 }
 
-const PhoneMockup: React.FC<PhoneMockupProps> = ({ landingState, className, viewMode = 'landing' }) => {
+const PhoneMockup: React.FC<PhoneMockupProps> = ({ landingState, className, viewMode = 'landing', showConversionBlur = false }) => {
   const [hasScrolled, setHasScrolled] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -47,8 +48,10 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ landingState, className, view
         >
           {viewMode === 'landing' ? (
             <div className="flex flex-col">
-              {landingState.proposedStructure?.sections.map(s => {
+              {landingState.proposedStructure?.sections.map((s, idx) => {
                 const generation = landingState.generations[s.sectionId];
+                const isPlaceholder = !generation?.imageUrl;
+
                 return (
                   <div key={s.sectionId} className="w-full relative border-b border-white/5 last:border-0 overflow-hidden group/section">
                     {generation?.imageUrl ? (
@@ -58,7 +61,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ landingState, className, view
                         className="w-full h-full object-cover min-h-[120px] transition-transform duration-700 group-hover/section:scale-110"
                       />
                     ) : (
-                      <div className="w-full min-h-[140px] bg-white/[0.02] flex flex-col items-center justify-center p-6 text-center space-y-3">
+                      <div className={`w-full ${showConversionBlur ? 'min-h-[220px]' : 'min-h-[140px]'} bg-white/[0.02] flex flex-col items-center justify-center p-6 text-center space-y-3 relative overflow-hidden ${showConversionBlur ? 'blur-[8px] opacity-70 grayscale' : ''}`}>
                         <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center mb-1">
                           <FaRocket className="text-xs text-white/20" />
                         </div>
@@ -67,6 +70,22 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ landingState, className, view
                           <p className="text-[7px] text-white/30 uppercase tracking-[0.2em] font-bold line-clamp-2 px-4 italic leading-relaxed">
                             {s.reasoning}
                           </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Premium/Lock Overlay for Conversion Blur */}
+                    {showConversionBlur && isPlaceholder && (
+                      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 p-4">
+                        <div className="w-10 h-10 rounded-full bg-primary-color/20 border border-primary-color/40 flex items-center justify-center shadow-[0_0_15px_rgba(18,216,250,0.5)] mb-4 animate-bounce">
+                          <span className="text-sm">💎</span>
+                        </div>
+                        <div className="text-center space-y-2">
+                          <p className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Contenido Bloqueado</p>
+                          <p className="text-[8px] text-white/60 font-medium leading-tight px-4">Actualiza tu plan profesional para desbloquear esta sección optimizada por IA</p>
+                          <div className="mt-4 px-4 py-2 bg-primary-color text-black rounded-full shadow-[0_5px_15px_rgba(18,216,250,0.3)] hover:scale-105 transition-transform cursor-pointer">
+                            <span className="text-[8px] font-black uppercase tracking-widest">Ver Planes</span>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -81,15 +100,27 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ landingState, className, view
               </div>
               {landingState.adConcepts?.map(concept => {
                 const generation = landingState.adGenerations[concept.id];
+                const isPlaceholder = !generation?.imageUrl;
+
                 return (
-                  <InstagramPost
-                    key={concept.id}
-                    imageUrl={generation?.imageUrl || ""}
-                    hook={concept.hook}
-                    cta={concept.adCta}
-                    title={concept.title}
-                    className="!max-w-full !rounded-2xl border-white/5"
-                  />
+                  <div key={concept.id} className="relative">
+                    <div className={showConversionBlur && isPlaceholder ? 'blur-[8px] opacity-50 grayscale pointer-events-none' : ''}>
+                      <InstagramPost
+                        imageUrl={generation?.imageUrl || ""}
+                        hook={concept.hook}
+                        cta={concept.adCta}
+                        title={concept.title}
+                        className="!max-w-full !rounded-2xl border-white/5"
+                      />
+                    </div>
+                    {showConversionBlur && isPlaceholder && (
+                      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
+                        <div className="px-3 py-1 bg-primary-color text-black text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg">
+                          Contenido Premium
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
