@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { FaPaperPlane, FaImage } from 'react-icons/fa';
+import { processImageForUpload } from '../../../utils/imageProcessor';
 
 interface ChatInputProps {
   onSend: (text: string) => void;
@@ -20,28 +21,34 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, onUpload, disabled, onAdd
     setInput('');
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validar tamaño (1MB = 1048576 bytes)
-    if (file.size > 1024 * 1024) {
-      const errorMsg = 'La imagen es demasiado pesada. El límite es de 1MB para asegurar un procesamiento rápido.';
+    onAddUserMessage('He subido una imagen del producto.');
+    onAddAssistantMessage('Optimizando y analizando imagen...');
+
+    try {
+      // 1. Procesar imagen en el cliente (WebP + Redimensión) -> Máximo 800px para sostenibilidad
+      const optimizedBlob = await processImageForUpload(file, 800);
+
+      // 2. Convertir a Base64 para envío ligero a la API (Evita payloads gigantes en Vercel)
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result as string;
+        // 3. Iniciar descubrimiento con el base64 optimizado (~80KB)
+        onUpload({ imageBase64: base64 });
+      };
+      reader.readAsDataURL(optimizedBlob);
+
+    } catch (err: any) {
+      console.error('[ChatInput] Error en procesamiento local:', err);
+      const errorMsg = err.message || 'Error al procesar la imagen.';
       if (onError) onError(errorMsg);
       else alert(errorMsg);
-
+    } finally {
       if (fileInputRef.current) fileInputRef.current.value = '';
-      return;
     }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result as string;
-      onAddUserMessage('He subido una imagen del producto.');
-      onAddAssistantMessage('Analizando imagen para extraer estrategia...');
-      onUpload({ imageBase64: base64 });
-    };
-    reader.readAsDataURL(file);
   };
 
   return (

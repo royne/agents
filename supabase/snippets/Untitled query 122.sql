@@ -54,3 +54,5 @@ CREATE TRIGGER update_launches_updated_at
     BEFORE UPDATE ON launches
     FOR EACH ROW
     EXECUTE PROCEDURE update_updated_at_column();
+
+ALTER TABLE launches ADD COLUMN thumbnail_url TEXT;

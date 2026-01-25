@@ -19,6 +19,7 @@ export class LaunchService implements ILaunchService {
         creative_strategy: data.creative_strategy || {},
         landing_structure: data.landing_structure || { sections: [] },
         ad_concepts: data.ad_concepts || [],
+        thumbnail_url: data.thumbnail_url,
         status: data.status || 'draft'
       })
       .select()
@@ -98,5 +99,43 @@ export class LaunchService implements ILaunchService {
 
     if (error) throw error;
     return data || [];
+  }
+
+  /**
+   * Sube una imagen en base64 al bucket de almacenamiento centralizado.
+   * Utilizado en el servidor tras el análisis exitoso de la IA.
+   */
+  async uploadImageFromBase64(userId: string, imageBase64: string): Promise<string> {
+    try {
+      // 1. Limpiar el prefijo data:image/webp;base64, si existe
+      const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+      
+      // 2. Convertir a Uint8Array compatible con Edge/Node
+      const binaryData = Buffer.from(base64Data, 'base64');
+      
+      // 3. Generar ruta única
+      const timestamp = Date.now();
+      const filePath = `uploads/${userId}/${timestamp}.webp`;
+
+      // 4. Subir a Supabase Storage
+      const { error: uploadError } = await this.supabase.storage
+        .from('temp-generations')
+        .upload(filePath, binaryData, {
+          contentType: 'image/webp',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      // 5. Obtener URL pública
+      const { data: { publicUrl } } = this.supabase.storage
+        .from('temp-generations')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('[LaunchService] Error subiendo imagen:', error);
+      throw error;
+    }
   }
 }

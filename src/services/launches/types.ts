@@ -15,6 +15,7 @@ export interface Launch {
   } | null;
   ad_concepts: AdConcept[];
   status: 'draft' | 'active' | 'archived';
+  thumbnail_url?: string; // New: original product image
   created_at: string;
   updated_at: string;
 }
@@ -25,4 +26,5 @@ export interface ILaunchService {
   getByUser(userId: string): Promise<Launch[]>;
   update(id: string, data: Partial<Launch>): Promise<Launch>;
   delete(id: string): Promise<void>;
+  uploadImageFromBase64(userId: string, imageBase64: string): Promise<string>;
 }

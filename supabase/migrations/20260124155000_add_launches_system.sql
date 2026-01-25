@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS launches (
     landing_structure JSONB DEFAULT '{}'::jsonb,
     ad_concepts JSONB DEFAULT '[]'::jsonb,
     status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'archived')),
+    thumbnail_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

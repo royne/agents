@@ -50,11 +50,25 @@ export default async function handler(req: NextRequest) {
       return NextResponse.json({ error: consumption.error || 'Failed to consume credits.' }, { status: 402 });
     }
 
-    // 5. Create a Launch record (Automatic)
+    // 5. Persist original image to Bucket (ONLY for uploaded images)
     const launchService = LaunchService.createWithAdmin();
+    let finalThumbnailUrl = url;
+
+    if (imageBase64 && !url) {
+      console.log(`[API/V2/Discovery] Persisting upload for user: ${userId}`);
+      try {
+        finalThumbnailUrl = await launchService.uploadImageFromBase64(userId, imageBase64);
+      } catch (uploadError) {
+        console.warn(`[API/V2/Discovery] Failed to persist image to bucket, using base64 fallback in record.`);
+        finalThumbnailUrl = imageBase64;
+      }
+    }
+
+    // 6. Create a Launch record (Automatic)
     const launch = await launchService.create(userId, {
       name: `Lanzamiento: ${productData.name}`,
       product_dna: productData,
+      thumbnail_url: finalThumbnailUrl,
       status: 'active'
     });
 
