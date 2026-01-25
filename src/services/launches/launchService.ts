@@ -85,4 +85,18 @@ export class LaunchService implements ILaunchService {
 
     if (error) throw error;
   }
+
+  /**
+   * Obtiene todas las generaciones asociadas a un lanzamiento
+   */
+  async getGenerationsByLaunchId(launchId: string): Promise<any[]> {
+    const { data, error } = await this.supabase
+      .from('image_generations')
+      .select('*')
+      .eq('launch_id', launchId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  }
 }
