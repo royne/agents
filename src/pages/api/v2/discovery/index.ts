@@ -66,7 +66,7 @@ export default async function handler(req: NextRequest) {
 
     // 6. Create a Launch record (Automatic)
     const launch = await launchService.create(userId, {
-      name: `Lanzamiento: ${productData.name}`,
+      name: `Producto: ${productData.name}`,
       product_dna: productData,
       thumbnail_url: finalThumbnailUrl,
       status: 'active'

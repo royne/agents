@@ -62,7 +62,7 @@ const LaunchCard: React.FC<LaunchCardProps> = ({ launch }) => {
 
         <p className="text-[10px] text-white/40 line-clamp-2 leading-tight mb-4 font-medium italic">
           {launch.is_virtual
-            ? `${launch.orphan_count} activos detectados fuera de lanzamientos.`
+            ? `${launch.orphan_count} activos detectados fuera de productos.`
             : (launch.creative_strategy?.package?.name ? launch.creative_strategy.package.name : 'Análisis completado.')}
         </p>
 

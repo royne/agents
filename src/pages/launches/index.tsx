@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import HeaderCredits from '../../components/dashboard/HeaderCredits';
 import LaunchCard from '../../components/v2/Launches/LaunchCard';
@@ -10,6 +11,7 @@ import { supabase } from '../../lib/supabase';
 
 export default function LaunchesIndex() {
   const { authData } = useAppContext();
+  const router = useRouter();
   const [launches, setLaunches] = useState<Launch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,7 +50,7 @@ export default function LaunchesIndex() {
   return (
     <DashboardLayout>
       <Head>
-        <title>Mis Lanzamientos - DROPAPP</title>
+        <title>Mis Productos - DROPAPP</title>
       </Head>
 
       <div className="v2-layout-container flex flex-col gap-10 pb-20">
@@ -56,9 +58,10 @@ export default function LaunchesIndex() {
           <HeaderCredits className="flex-1" />
           <div className="pt-2">
             <button
+              onClick={() => router.push('/v2')}
               className="px-6 py-3 bg-primary-color text-black font-black rounded-xl text-[10px] uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-[0_10px_30px_rgba(18,216,250,0.2)] flex items-center gap-2"
             >
-              <FaPlus /> Nuevo Lanzamiento
+              <FaPlus /> Nuevo Producto
             </button>
           </div>
         </div>
@@ -66,7 +69,7 @@ export default function LaunchesIndex() {
         <div className="space-y-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-black text-white uppercase tracking-tighter">Centro de Lanzamientos</h1>
+              <h1 className="text-4xl font-black text-white uppercase tracking-tighter">Mis Productos</h1>
               <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold mt-1">Gestiona y escala tus activos comerciales de IA</p>
             </div>
 
@@ -100,10 +103,13 @@ export default function LaunchesIndex() {
                 <FaRocket className="text-3xl text-primary-color/40" />
               </div>
               <div>
-                <h3 className="text-xl font-black text-white uppercase tracking-tighter">No hay lanzamientos activos</h3>
-                <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold mt-2">Empieza analizando un producto para crear tu primer lanzamiento estratégico.</p>
+                <h3 className="text-xl font-black text-white uppercase tracking-tighter">No hay productos activos</h3>
+                <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold mt-2">Empieza analizando un producto para crear tu primer activo estratégico.</p>
               </div>
-              <button className="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase text-white tracking-widest hover:border-primary-color/40 transition-all">
+              <button
+                onClick={() => router.push('/v2')}
+                className="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase text-white tracking-widest hover:border-primary-color/40 transition-all"
+              >
                 Ir al Descubridor
               </button>
             </div>

@@ -689,7 +689,7 @@ export function useDiscovery() {
       const launchResult = await launchRes.json();
       const gensResult = await gensRes.json();
 
-      if (!launchResult.success) throw new Error(launchResult.error || 'No se pudo cargar el lanzamiento');
+      if (!launchResult.success) throw new Error(launchResult.error || 'No se pudo cargar el producto');
 
       const launch = launchResult.data as Launch;
       const generations = gensResult.success ? gensResult.data : [];
@@ -731,10 +731,10 @@ export function useDiscovery() {
         baseImageUrl: launch.thumbnail_url
       });
 
-      setSuccess?.('Lanzamiento cargado correctamente.');
+      setSuccess?.('Producto cargado correctamente.');
     } catch (err: any) {
       console.error('[useDiscovery] loadLaunch error:', err);
-      setError(err.message || 'Error al cargar el lanzamiento');
+      setError(err.message || 'Error al cargar el producto');
     } finally {
       setIsDiscovering(false);
     }

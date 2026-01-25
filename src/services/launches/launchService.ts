@@ -14,7 +14,7 @@ export class LaunchService implements ILaunchService {
       .from('launches')
       .insert({
         user_id: userId,
-        name: data.name || 'Nuevo Lanzamiento',
+        name: data.name || 'Nuevo Producto',
         product_dna: data.product_dna || {},
         creative_strategy: data.creative_strategy || {},
         landing_structure: data.landing_structure || { sections: [] },

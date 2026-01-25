@@ -43,7 +43,7 @@ export default function LaunchDetail() {
               name: 'Varios',
               angle: 'Activos generados en herramientas individuales o versiones anteriores.',
               buyer: 'Varios',
-              details: 'Este espacio centraliza todas las generaciones que no están vinculadas a un lanzamiento específico.'
+              details: 'Este espacio centraliza todas las generaciones que no están vinculadas a un producto específico.'
             },
             creative_strategy: { package: { name: 'Legacy / V1' }, justification: 'Colección de activos independientes.' },
             landing_structure: { sections: [] },
@@ -132,7 +132,7 @@ export default function LaunchDetail() {
     return (
       <DashboardLayout>
         <div className="text-center py-20">
-          <h1 className="text-2xl font-black text-white uppercase">Lanzamiento no encontrado</h1>
+          <h1 className="text-2xl font-black text-white uppercase">Producto no encontrado</h1>
           <button onClick={() => router.push('/launches')} className="mt-4 text-primary-color underline">Volver al Index</button>
         </div>
       </DashboardLayout>
@@ -156,7 +156,7 @@ export default function LaunchDetail() {
             onClick={() => router.push('/launches')}
             className="flex items-center gap-2 text-[9px] font-black text-white/40 uppercase tracking-widest hover:text-white transition-colors"
           >
-            <FaChevronLeft className="text-[7px]" /> Volver a mis lanzamientos
+            <FaChevronLeft className="text-[7px]" /> Volver a mis productos
           </button>
 
           <div className="flex gap-4">
