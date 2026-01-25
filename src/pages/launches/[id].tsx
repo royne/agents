@@ -128,7 +128,10 @@ export default function LaunchDetail() {
           </button>
 
           <div className="flex gap-4">
-            <button className="px-6 py-2 bg-primary-color text-black font-black rounded-xl text-[9px] uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-[0_10px_30px_rgba(18,216,250,0.2)] flex items-center gap-2">
+            <button
+              onClick={() => router.push(`/v2?load=${id}`)}
+              className="px-6 py-2 bg-primary-color text-black font-black rounded-xl text-[9px] uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-[0_10px_30px_rgba(18,216,250,0.2)] flex items-center gap-2"
+            >
               <FaRocket /> Cargar en Dashboard
             </button>
           </div>

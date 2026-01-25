@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { ProductData, CreativePath, LandingGenerationState, AspectRatio } from '../types/image-pro';
+import { ProductData, CreativePath, LandingGenerationState, AspectRatio, SectionGeneration, AdGeneration } from '../types/image-pro';
+import { Launch } from '../services/launches/types';
 import { useAppContext } from '../contexts/AppContext';
 
 export function useDiscovery() {
@@ -670,6 +671,75 @@ export function useDiscovery() {
     }
   };
 
+  const loadLaunch = async (launchId: string) => {
+    setIsDiscovering(true);
+    setError(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+      const headers = {
+        ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+      };
+
+      const [launchRes, gensRes] = await Promise.all([
+        fetch(`/api/v2/launches/${launchId}`, { headers }),
+        fetch(`/api/v2/launches/generations?launchId=${launchId}`, { headers })
+      ]);
+
+      const launchResult = await launchRes.json();
+      const gensResult = await gensRes.json();
+
+      if (!launchResult.success) throw new Error(launchResult.error || 'No se pudo cargar el lanzamiento');
+
+      const launch = launchResult.data as Launch;
+      const generations = gensResult.success ? gensResult.data : [];
+
+      // Mapear generaciones a los estados internos del Canvas
+      const gensMap: Record<string, SectionGeneration> = {};
+      const adGensMap: Record<string, AdGeneration> = {};
+
+      generations.forEach((g: any) => {
+        if (g.mode === 'landing' || g.mode === 'Discovery' || !g.mode) {
+          gensMap[g.sub_mode || 'hero'] = {
+            imageUrl: g.image_url,
+            status: g.status,
+            copy: g.details?.copy || { headline: '', body: '' },
+            aspectRatio: g.details?.aspectRatio || '9:16'
+          };
+        } else if (g.mode === 'ads' || g.mode === 'video') {
+          adGensMap[g.sub_mode || g.id] = {
+            imageUrl: g.image_url,
+            status: g.status,
+            aspectRatio: g.details?.aspectRatio || '1:1'
+          };
+        }
+      });
+
+      // Hidratar estados globales
+      setProductData(launch.product_dna);
+      setCreativePaths(launch.creative_strategy ? [launch.creative_strategy] : null);
+      
+      setLandingState({
+        phase: 'landing',
+        proposedStructure: launch.landing_structure,
+        selectedSectionId: null,
+        selectedReferenceUrl: null,
+        generations: gensMap,
+        adGenerations: adGensMap,
+        adConcepts: launch.ad_concepts || [],
+        launchId: launch.id,
+        baseImageUrl: launch.thumbnail_url
+      });
+
+      setSuccess?.('Lanzamiento cargado correctamente.');
+    } catch (err: any) {
+      console.error('[useDiscovery] loadLaunch error:', err);
+      setError(err.message || 'Error al cargar el lanzamiento');
+    } finally {
+      setIsDiscovering(false);
+    }
+  };
+
   const resetDiscovery = () => {
     setProductData(null);
     setCreativePaths(null);
@@ -710,6 +780,7 @@ export function useDiscovery() {
     setSuccess,
     startAutoGeneration,
     stopAutoGeneration,
-    refineAdConcept
+    refineAdConcept,
+    loadLaunch
   };
 }

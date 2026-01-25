@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import SplitLayout from '../../components/v2/Layout/SplitLayout';
 import ChatOrchestrator from '../../components/v2/Chat/ChatOrchestrator';
@@ -38,8 +39,18 @@ const V2PrototypePage: React.FC = () => {
     setPhase,
     startAutoGeneration,
     stopAutoGeneration,
-    refineAdConcept
+    refineAdConcept,
+    loadLaunch
   } = useDiscovery();
+  const router = useRouter(); // We need router to read query params
+
+  React.useEffect(() => {
+    const launchId = router.query.load as string;
+    if (launchId) {
+      console.log('[V2] Loading launch from URL parameter:', launchId);
+      loadLaunch(launchId);
+    }
+  }, [router.query.load]);
 
   return (
     <DashboardLayout>
