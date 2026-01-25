@@ -42,8 +42,8 @@ const LaunchCard: React.FC<LaunchCardProps> = ({ launch }) => {
 
         {/* Status Badge */}
         <div className="absolute top-3 left-3">
-          <span className={`px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest backdrop-blur-md border border-white/10 ${statusColors[launch.status as keyof typeof statusColors] || statusColors.draft}`}>
-            {launch.status}
+          <span className={`px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest backdrop-blur-md border border-white/10 ${launch.is_virtual ? 'bg-purple-500/20 text-purple-400' : (statusColors[launch.status as keyof typeof statusColors] || statusColors.draft)}`}>
+            {launch.is_virtual ? 'V1 / LEGACY' : launch.status}
           </span>
         </div>
       </div>
@@ -61,7 +61,9 @@ const LaunchCard: React.FC<LaunchCardProps> = ({ launch }) => {
         </div>
 
         <p className="text-[10px] text-white/40 line-clamp-2 leading-tight mb-4 font-medium italic">
-          {launch.creative_strategy?.package?.name ? launch.creative_strategy.package.name : 'Análisis completado.'}
+          {launch.is_virtual
+            ? `${launch.orphan_count} activos detectados fuera de lanzamientos.`
+            : (launch.creative_strategy?.package?.name ? launch.creative_strategy.package.name : 'Análisis completado.')}
         </p>
 
         <div className="mt-auto flex items-center justify-between pt-3 border-t border-white/5">

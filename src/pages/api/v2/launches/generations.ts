@@ -21,6 +21,18 @@ export default async function handler(req: NextRequest) {
   const launchService = LaunchService.createWithAdmin();
 
   try {
+    let generations;
+    
+    // CASO ESPECIAL: Bóveda de archivos sin clasificar (Legacy V1 / Sueltos)
+    if (launchId === 'unclassified-vault') {
+      generations = await launchService.getOrphanGenerations(userId);
+      return NextResponse.json({
+        success: true,
+        data: generations,
+        is_virtual: true
+      });
+    }
+
     // 1. Verificar propiedad del lanzamiento antes de devolver las generaciones
     const launch = await launchService.getById(launchId);
     if (!launch) {
@@ -31,7 +43,7 @@ export default async function handler(req: NextRequest) {
     }
 
     // 2. Obtener las generaciones
-    const generations = await launchService.getGenerationsByLaunchId(launchId);
+    generations = await launchService.getGenerationsByLaunchId(launchId);
 
     return NextResponse.json({
       success: true,

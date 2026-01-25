@@ -18,6 +18,8 @@ export interface Launch {
   thumbnail_url?: string; // New: original product image
   created_at: string;
   updated_at: string;
+  is_virtual?: boolean; // New: virtual project for V1/Legacy
+  orphan_count?: number; // New: count of orphan assets
 }
 
 export interface ILaunchService {

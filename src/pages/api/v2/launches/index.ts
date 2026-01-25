@@ -16,6 +16,27 @@ export default async function handler(req: NextRequest) {
   try {
     if (req.method === 'GET') {
       const launches = await launchService.getByUser(userId);
+      
+      // Detección de activos huérfanos (Legacy V1 / Sueltos)
+      const orphanCount = await launchService.getOrphanGenerationsCount(userId);
+      
+      if (orphanCount > 0) {
+        const lastOrphans = await launchService.getOrphanGenerations(userId, 1);
+        const virtualLaunch = {
+          id: 'unclassified-vault',
+          name: 'Sin Clasificar (V1 / Sueltos)',
+          status: 'archived',
+          thumbnail_url: lastOrphans[0]?.image_url || null,
+          created_at: lastOrphans[0]?.created_at || new Date().toISOString(),
+          updated_at: lastOrphans[0]?.created_at || new Date().toISOString(),
+          is_virtual: true,
+          orphan_count: orphanCount
+        };
+        
+        // Lo añadimos al final de la lista
+        launches.push(virtualLaunch as any);
+      }
+
       return NextResponse.json({ success: true, data: launches });
     }
 

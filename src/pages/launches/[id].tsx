@@ -3,10 +3,11 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import PhoneMockup from '../../components/v2/Canvas/PhoneMockup';
+import FullScreenPreview from '../../components/v2/Canvas/FullScreenPreview';
 import InstagramPost from '../../components/v2/Dashboard/InstagramPost';
 import { Launch } from '../../services/launches/types';
 import { LandingGenerationState, SectionGeneration, AdGeneration } from '../../types/image-pro';
-import { FaRocket, FaChevronLeft, FaMagic, FaBoxOpen, FaLink } from 'react-icons/fa';
+import { FaRocket, FaChevronLeft, FaSearchPlus, FaBoxOpen, FaLink, FaMagic } from 'react-icons/fa';
 import { useAppContext } from '../../contexts/AppContext';
 import { supabase } from '../../lib/supabase';
 
@@ -19,6 +20,7 @@ export default function LaunchDetail() {
   const [generations, setGenerations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'landing' | 'ads'>('landing');
+  const [fullScreenImageUrl, setFullScreenImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id || !authData?.isAuthenticated) return;
@@ -31,16 +33,46 @@ export default function LaunchDetail() {
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         };
 
-        const [launchRes, gensRes] = await Promise.all([
-          fetch(`/api/v2/launches/${id}`, { headers }),
-          fetch(`/api/v2/launches/generations?launchId=${id}`, { headers })
-        ]);
+        if (id === 'unclassified-vault') {
+          // Mock virtual launch
+          setLaunch({
+            id: 'unclassified-vault',
+            name: 'Sin Clasificar (V1 / Sueltos)',
+            status: 'archived',
+            product_dna: {
+              name: 'Varios',
+              angle: 'Activos generados en herramientas individuales o versiones anteriores.',
+              buyer: 'Varios',
+              details: 'Este espacio centraliza todas las generaciones que no están vinculadas a un lanzamiento específico.'
+            },
+            creative_strategy: { package: { name: 'Legacy / V1' }, justification: 'Colección de activos independientes.' },
+            landing_structure: { sections: [] },
+            ad_concepts: [],
+            thumbnail_url: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            user_id: authData.userId || ''
+          } as any);
 
-        const launchData = await launchRes.json();
-        const gensData = await gensRes.json();
+          const gensRes = await fetch(`/api/v2/launches/generations?launchId=${id}`, { headers });
+          const gensData = await gensRes.json();
+          if (gensData.success) {
+            setGenerations(gensData.data);
+            // Default to ads view for unclassified assets as it looks better for individual images
+            setViewMode('ads');
+          }
+        } else {
+          const [launchRes, gensRes] = await Promise.all([
+            fetch(`/api/v2/launches/${id}`, { headers }),
+            fetch(`/api/v2/launches/generations?launchId=${id}`, { headers })
+          ]);
 
-        if (launchData.success) setLaunch(launchData.data);
-        if (gensData.success) setGenerations(gensData.data);
+          const launchData = await launchRes.json();
+          const gensData = await gensRes.json();
+
+          if (launchData.success) setLaunch(launchData.data);
+          if (gensData.success) setGenerations(gensData.data);
+        }
       } catch (error) {
         console.error('Error loading launch details:', error);
       } finally {
@@ -128,12 +160,14 @@ export default function LaunchDetail() {
           </button>
 
           <div className="flex gap-4">
-            <button
-              onClick={() => router.push(`/v2?load=${id}`)}
-              className="px-6 py-2 bg-primary-color text-black font-black rounded-xl text-[9px] uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-[0_10px_30px_rgba(18,216,250,0.2)] flex items-center gap-2"
-            >
-              <FaRocket /> Cargar en Dashboard
-            </button>
+            {launch.id !== 'unclassified-vault' && (
+              <button
+                onClick={() => router.push(`/v2?load=${id}`)}
+                className="px-6 py-2 bg-primary-color text-black font-black rounded-xl text-[9px] uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-[0_10px_30px_rgba(18,216,250,0.2)] flex items-center gap-2"
+              >
+                <FaRocket /> Cargar en Dashboard
+              </button>
+            )}
           </div>
         </div>
 
@@ -221,36 +255,83 @@ export default function LaunchDetail() {
 
           </div>
 
-          {/* Right Column: Unified Mockup (40% -> 5/12) */}
+          {/* Right Column: Unified Mockup (40% -> 5/12) OR Gallery for virtual projects */}
           <div className="lg:col-span-4 flex flex-col items-center gap-6 sticky top-8">
 
-            {/* View Selector */}
-            <div className="flex bg-black/40 border border-white/10 rounded-2xl p-1.5 w-full max-w-[360px] mb-2">
-              <button
-                onClick={() => setViewMode('landing')}
-                className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'landing' ? 'bg-primary-color text-black shadow-lg shadow-primary-color/20' : 'text-white/40 hover:text-white'}`}
-              >
-                Landing
-              </button>
-              <button
-                onClick={() => setViewMode('ads')}
-                className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'ads' ? 'bg-primary-color text-black shadow-lg shadow-primary-color/20' : 'text-white/40 hover:text-white'}`}
-              >
-                Ads Feed
-              </button>
-            </div>
+            {launch.id === 'unclassified-vault' ? (
+              <div className="w-full flex flex-col gap-6">
+                <div className="flex bg-black/40 border border-white/10 rounded-2xl p-1.5 w-full mb-2">
+                  <div className="flex-1 py-2.5 bg-primary-color text-black text-center rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary-color/20">
+                    Galería de Activos
+                  </div>
+                </div>
 
-            <PhoneMockup
-              landingState={landingState}
-              className="w-full max-w-[360px]"
-              viewMode={viewMode}
-            />
+                <div className="w-full bg-white/[0.02] border border-white/5 rounded-[40px] p-6 h-[600px] overflow-y-auto v2-scrollbar relative">
+                  <div className="grid grid-cols-2 gap-4">
+                    {generations.length > 0 ? generations.map((gen, idx) => (
+                      <div
+                        key={gen.id || idx}
+                        onClick={() => setFullScreenImageUrl(gen.image_url)}
+                        className="group/item relative aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 hover:border-primary-color/50 transition-all cursor-zoom-in"
+                      >
+                        <img src={gen.image_url} alt="Legacy Asset" className="w-full h-full object-cover transition-transform duration-700 group-hover/item:scale-110" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/item:opacity-100 transition-opacity flex items-center justify-center">
+                          <div className="p-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
+                            <FaSearchPlus className="text-white text-[10px]" />
+                          </div>
+                        </div>
+                        <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity">
+                          <span className="text-[6px] font-black text-white uppercase tracking-widest">{gen.sub_mode || 'Legacy'}</span>
+                        </div>
+                      </div>
+                    )) : (
+                      <div className="col-span-2 py-20 text-center opacity-20">
+                        <FaBoxOpen className="text-4xl mx-auto mb-4" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Sin imágenes</span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Glass Reflection Overlay */}
+                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-white/5 to-transparent opacity-10"></div>
+                </div>
+                <span className="text-center text-[8px] font-black text-white/20 uppercase tracking-[0.3em]">Historial Consolidado V1</span>
+              </div>
+            ) : (
+              <>
+                {/* View Selector */}
+                <div className="flex bg-black/40 border border-white/10 rounded-2xl p-1.5 w-full max-w-[360px] mb-2">
+                  <button
+                    onClick={() => setViewMode('landing')}
+                    className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'landing' ? 'bg-primary-color text-black shadow-lg shadow-primary-color/20' : 'text-white/40 hover:text-white'}`}
+                  >
+                    Landing
+                  </button>
+                  <button
+                    onClick={() => setViewMode('ads')}
+                    className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'ads' ? 'bg-primary-color text-black shadow-lg shadow-primary-color/20' : 'text-white/40 hover:text-white'}`}
+                  >
+                    Ads Feed
+                  </button>
+                </div>
 
-            <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mt-2">V2 Realtime Renderer</span>
+                <PhoneMockup
+                  landingState={landingState}
+                  className="w-full max-w-[360px]"
+                  viewMode={viewMode}
+                />
+
+                <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mt-2">V2 Realtime Renderer</span>
+              </>
+            )}
           </div>
 
         </div>
       </div>
+
+      <FullScreenPreview
+        fullScreenImageUrl={fullScreenImageUrl}
+        setFullScreenImageUrl={setFullScreenImageUrl}
+      />
     </DashboardLayout>
   );
 }

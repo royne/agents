@@ -138,4 +138,34 @@ export class LaunchService implements ILaunchService {
       throw error;
     }
   }
+
+  /**
+   * Obtiene las generaciones que no están vinculadas a ningún lanzamiento (Legacy V1 / Sueltos)
+   */
+  async getOrphanGenerations(userId: string, limit: number = 50): Promise<any[]> {
+    const { data, error } = await this.supabase
+      .from('image_generations')
+      .select('*')
+      .eq('user_id', userId)
+      .is('launch_id', null)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  /**
+   * Cuenta cuántas generaciones huérfanas tiene un usuario
+   */
+  async getOrphanGenerationsCount(userId: string): Promise<number> {
+    const { count, error } = await this.supabase
+      .from('image_generations')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .is('launch_id', null);
+
+    if (error) throw error;
+    return count || 0;
+  }
 }
