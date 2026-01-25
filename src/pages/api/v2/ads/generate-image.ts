@@ -73,6 +73,8 @@ export default async function handler(req: NextRequest, event: any) {
 
         // B. Call Google AI
         const modelId = "gemini-3-pro-image-preview";
+        // model by tests
+        // const modelId = "gemini-2.5-flash-image";
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${googleKey}`;
         
         let aiRes;
