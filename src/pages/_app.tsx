@@ -48,8 +48,8 @@ function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
 
     if (authData.isAuthenticated) {
       // Si está autenticado y en una ruta de auth, redirigir a dashboard
-      // EXCEPCIÓN: Si está en registro, dejamos que el componente maneje el mensaje de éxito
-      if (isAuthPath && router.pathname !== '/auth/register') {
+      // EXCEPCIÓN: Si está en registro o callback de auth, dejamos que el componente maneje la redirección
+      if (isAuthPath && router.pathname !== '/auth/register' && router.pathname !== '/auth/callback') {
         router.push('/');
       }
     } else {
