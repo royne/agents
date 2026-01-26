@@ -37,7 +37,7 @@ export function useImagePro() {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   // Estados de modos
-  const [generationMode, setGenerationMode] = useState<GenerationMode>('libre');
+  const [generationMode, setGenerationMode] = useState<GenerationMode>('ads');
   const [adsSubMode, setAdsSubMode] = useState<AdsSubMode>('sencillo');
   const [personaOption, setPersonaOption] = useState<PersonaOption>('generar');
   const [faceSwapOption, setFaceSwapOption] = useState<FaceSwapOption>('completo');
