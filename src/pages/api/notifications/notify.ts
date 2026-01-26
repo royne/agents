@@ -8,14 +8,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const { type, email, name, userId, plan } = req.body;
-    console.log(`[NotifyAPI] Recibida petición: type=${type}, email=${email}, name=${name}`);
 
     if (type === 'new_user') {
-      const success = await NotificationService.notifyNewUser(email, name);
-      console.log(`[NotifyAPI] Resultado notifyNewUser: ${success}`);
+      await NotificationService.notifyNewUser(email, name);
     } else if (type === 'new_sale') {
-      const success = await NotificationService.notifyNewSale(userId, plan);
-      console.log(`[NotifyAPI] Resultado notifyNewSale: ${success}`);
+      await NotificationService.notifyNewSale(userId, plan);
     }
 
     return res.status(200).json({ success: true });

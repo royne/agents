@@ -11,63 +11,60 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     if (processedRef.current) return;
     processedRef.current = true;
-    console.log('[AuthCallback] Iniciando procesamiento de sesión (Unica vez)');
+
     const handleCallback = async () => {
-      const { data, error: sessionError } = await supabase.auth.getSession();
+      try {
+        const { data, error: sessionError } = await supabase.auth.getSession();
 
-      if (sessionError) {
-        console.error('Callback error:', sessionError);
-        setError(sessionError.message);
-        return;
-      }
+        if (sessionError) {
+          console.error('[AuthCallback] Error Session:', sessionError);
+          setError(sessionError.message);
+          return;
+        }
 
-      if (data.session && data.session.user) {
-        const user = data.session.user;
+        if (data.session && data.session.user) {
+          const user = data.session.user;
 
-        // Verificar si es un nuevo registro
-        const createdAt = new Date(user.created_at).getTime();
-        const now = new Date().getTime();
-        const diffInMinutes = (now - createdAt) / 1000 / 60;
-        const isNewUser = diffInMinutes < 1; // Revertido a 1 minuto por solicitud del usuario
+          // Lógica de detección de nuevo usuario (margen de 1 minuto)
+          const createdAt = new Date(user.created_at).getTime();
+          const now = new Date().getTime();
+          const diffInMinutes = (now - createdAt) / 1000 / 60;
+          const isNewUser = diffInMinutes < 1;
 
-        console.log(`[AuthCallback] Usuario: ${user.email}, Creado hace: ${diffInMinutes.toFixed(2)} minutos. isNewUser: ${isNewUser}`);
+          if (isNewUser) {
+            try {
+              const response = await fetch('/api/notifications/notify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  type: 'new_user',
+                  email: user.email,
+                  name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0]
+                })
+              });
 
-        if (isNewUser) {
-          try {
-            const response = await fetch('/api/notifications/notify', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                type: 'new_user',
-                email: user.email,
-                name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0]
-              })
-            });
-
-            if (!response.ok) {
-              const errData = await response.json();
-              console.error('[AuthCallback] Error en API notificación:', errData);
-            } else {
-              console.log('[AuthCallback] Notificación enviada correctamente a la API');
+              if (!response.ok) {
+                console.warn('[AuthCallback] No se pudo enviar la notificación a Discord');
+              }
+            } catch (notifyErr) {
+              console.error('[AuthCallback] Error enviando notificación:', notifyErr);
             }
-          } catch (e) {
-            console.error('[AuthCallback] Error al llamar a la API de notificación:', e);
+          }
+
+          // Redirección final al Dashboard
+          router.push('/');
+        } else {
+          // No hay sesión aún, verificar hash por si acaso
+          const hash = window.location.hash;
+          if (hash && (hash.includes('error') || hash.includes('access_token'))) {
+            setTimeout(() => router.push('/'), 2000);
+          } else {
+            router.push('/auth/login');
           }
         }
-
-        // Todo bien, redirigir al home o dashboard
-        router.push('/');
-      } else {
-        // No hay sesión aún, tal vez PKCE está procesando o hay error de hash
-        const hash = window.location.hash;
-        if (hash && (hash.includes('error') || hash.includes('access_token'))) {
-          // Si hay access_token el listener de onAuthStateChange en AppContext probablemente ya lo tomó
-          // Esperamos un poco y redirigimos
-          setTimeout(() => router.push('/'), 2000);
-        } else {
-          // Si no hay hash ni sesión, algo falló o se canceló
-          // setError('No se pudo establecer la sesión');
-        }
+      } catch (err) {
+        console.error('[AuthCallback] Critical Error:', err);
+        setError('Error crítico durante la autenticación.');
       }
     };
 
@@ -95,8 +92,8 @@ export default function AuthCallbackPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#050608]">
       <BrandLoader />
-      <p className="mt-8 text-gray-400 font-medium animate-pulse tracking-widest text-xs uppercase">
-        Verificando credenciales...
+      <p className="mt-8 text-gray-400 font-medium animate-pulse tracking-widest text-xs uppercase text-center px-4">
+        Cargando tu cuenta...
       </p>
     </div>
   );
