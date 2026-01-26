@@ -49,7 +49,9 @@ function AuthWrapper({ Component, pageProps, router }: AuthWrapperProps) {
     if (authData.isAuthenticated) {
       // Si está autenticado y en una ruta de auth, redirigir a dashboard
       // EXCEPCIÓN: Si está en registro o callback de auth, dejamos que el componente maneje la redirección
-      if (isAuthPath && router.pathname !== '/auth/register' && router.pathname !== '/auth/callback') {
+      const isCallbackPath = router.pathname.includes('/auth/callback');
+      if (isAuthPath && router.pathname !== '/auth/register' && !isCallbackPath) {
+        console.log('[AuthWrapper] Redirigiendo desde ruta de auth a Home:', router.pathname);
         router.push('/');
       }
     } else {
