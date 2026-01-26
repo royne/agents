@@ -38,10 +38,11 @@ const TermsLanding: React.FC = () => {
           <div className="prose prose-invert max-w-none space-y-12">
             <section>
               <h2 className="text-2xl font-black flex items-center gap-3 text-white uppercase tracking-wider">
-                <FaShieldAlt className="text-primary-color" /> 1. Aceptación de los Términos
+                <FaShieldAlt className="text-primary-color" /> 1. Descripción del Servicio y Aceptación
               </h2>
               <div className="mt-4 text-gray-400 leading-relaxed space-y-4">
-                <p>Al acceder y utilizar DROPAPP, usted acepta estar sujeto a estos Términos y Condiciones. Si no está de acuerdo con alguna parte de estos términos, no debe utilizar nuestra plataforma ni sus servicios asociados.</p>
+                <p>DROPAPP es una plataforma de software como servicio (SaaS) que proporciona herramientas basadas en inteligencia artificial para la optimización de negocios de E-commerce, incluyendo la generación de landings, creatividades visuales y análisis de mercado.</p>
+                <p>Al acceder y utilizar DROPAPP, usted acepta estos Términos y Condiciones. El acceso a ciertas funciones requiere la autenticación mediante correo electrónico o servicios de terceros como Google OAuth.</p>
               </div>
             </section>
 

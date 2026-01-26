@@ -4,6 +4,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { FaEnvelope, FaLock, FaArrowRight } from 'react-icons/fa';
 import Image from 'next/image';
 import Link from 'next/link';
+import { GoogleAuthButton } from '../../components/auth/GoogleAuthButton';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -120,6 +121,17 @@ export default function LoginPage() {
             )}
           </button>
         </form>
+
+        <div className="relative my-8">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-white/10"></div>
+          </div>
+          <div className="relative flex justify-center text-[10px] uppercase tracking-[0.3em] font-black">
+            <span className="bg-[#0b0c10] px-6 text-gray-500 py-1">Continúa con</span>
+          </div>
+        </div>
+
+        <GoogleAuthButton mode="login" />
 
         <div className="mt-8 text-center border-t border-white/5 pt-6">
           <p className="text-gray-500 text-sm font-medium">

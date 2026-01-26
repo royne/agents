@@ -53,6 +53,7 @@ const PrivacyLanding: React.FC = () => {
                 <p>Para proporcionar nuestros servicios, recopilamos la siguiente información:</p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li><strong>Información de Registro:</strong> Nombre, dirección de correo electrónico y contraseña (encriptada).</li>
+                  <li><strong>Servicios de Terceros (Google):</strong> Si elige registrarse o iniciar sesión a través de su cuenta de Google, recibiremos su nombre, dirección de correo electrónico y foto de perfil (avatar_url) conforme a la configuración de privacidad de su cuenta de Google.</li>
                   <li><strong>Datos de Uso:</strong> Información sobre cómo utiliza nuestras herramientas de IA, créditos consumidos y preferencias de diseño.</li>
                   <li><strong>Información de Pago:</strong> DROPAPP no almacena directamente sus datos de tarjeta. Utilizamos procesadores de pago seguros que cumplen con los estándares PCI-DSS.</li>
                 </ul>
@@ -61,36 +62,39 @@ const PrivacyLanding: React.FC = () => {
 
             <section>
               <h2 className="text-2xl font-black flex items-center gap-3 text-white uppercase tracking-wider">
-                <FaDatabase className="text-emerald-400" /> 3. Uso de la Información
+                <FaDatabase className="text-emerald-400" /> 3. Uso de la Información y Google User Data
               </h2>
               <div className="mt-4 text-gray-400 leading-relaxed space-y-4">
                 <p>Utilizamos sus datos para:</p>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li>Gestionar su cuenta y proporcionar acceso a las herramientas.</li>
-                  <li>Personalizar su experiencia y mejorar nuestros modelos de IA.</li>
+                  <li>Gestionar su cuenta, facilitar la autenticación segura y proporcionar acceso a las herramientas.</li>
+                  <li>Personalizar su perfil dentro de la aplicación utilizando su nombre y foto de perfil proporcionados por Google.</li>
                   <li>Enviar notificaciones importantes sobre su cuenta y actualizaciones del servicio.</li>
-                  <li>Analizar el rendimiento de la plataforma y detectar posibles fraudes.</li>
+                  <li>Mejorar nuestros modelos de IA basados en la interacción técnica, nunca utilizando sus datos privados para entrenar modelos públicos sin consentimiento.</li>
                 </ul>
+                <p className="border-l-2 border-emerald-400 pl-4 py-2 bg-emerald-400/5">
+                  <strong>Política de Google User Data:</strong> El uso de la información recibida de las API de Google por parte de DROPAPP se adherirá a la <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" className="text-emerald-400 underline">Política de Datos de Usuario de los Servicios de API de Google</a>, incluidos los requisitos de Uso Limitado. No vendemos ni compartimos sus datos de Google con terceros para fines publicitarios.
+                </p>
               </div>
             </section>
 
             <section>
               <h2 className="text-2xl font-black flex items-center gap-3 text-white uppercase tracking-wider">
-                <FaServer className="text-emerald-400" /> 4. Proveedores de Servicios
+                <FaServer className="text-emerald-400" /> 4. Proveedores de Servicios y Seguridad
               </h2>
               <div className="mt-4 text-gray-400 leading-relaxed space-y-4">
-                <p>Compartimos información con proveedores externos que nos ayudan a operar el servicio:</p>
+                <p>Compartimos información únicamente cuando es necesario para operar el servicio:</p>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li><strong>Supabase:</strong> Para el almacenamiento seguro de bases de datos y autenticación.</li>
-                  <li><strong>Google Cloud / OpenAI:</strong> Procesamiento de solicitudes de inteligencia artificial.</li>
-                  <li><strong>Bold / Vercel:</strong> Infraestructura de pagos y hosting de la aplicación.</li>
+                  <li><strong>Supabase/Google Cloud:</strong> Para autenticación segura, bases de datos e infraestructura de IA.</li>
+                  <li><strong>Seguridad:</strong> Implementamos medidas técnicas y organizativas para proteger sus datos contra el acceso no autorizado o la pérdida.</li>
+                  <li><strong>Retención:</strong> Conservamos sus datos solo mientras su cuenta esté activa o sea necesario para proporcionarle el servicio. Usted puede solicitar la eliminación de sus datos en cualquier momento.</li>
                 </ul>
               </div>
             </section>
 
             <section className="pt-12 border-t border-white/10">
               <p className="text-center text-gray-500 text-sm">
-                Para cualquier solicitud relacionada con sus datos personales, escribanos a <a href="mailto:dropapp.lat@gmail.com" className="text-emerald-400 hover:underline">dropapp.lat@gmail.com</a>
+                Para cualquier solicitud relacionada con sus datos personales o la eliminación de su cuenta, escribanos a <a href="mailto:dropapp.lat@gmail.com" className="text-emerald-400 hover:underline">dropapp.lat@gmail.com</a>
               </p>
             </section>
           </div>
