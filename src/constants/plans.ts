@@ -13,6 +13,7 @@ export type ModuleKey =
   | 'image-pro'
   | 'landing-pro'
   | 'video-pro'
+  | 'v2'
   | 'admin';
 
 export interface ModuleMetadata {
@@ -36,6 +37,7 @@ export const MODULE_METADATA: Record<ModuleKey, ModuleMetadata> = {
   'image-pro': { key: 'image-pro', label: 'Imagen Pro', description: 'Generación de imágenes con IA.', icon: 'FaImage' },
   'landing-pro': { key: 'landing-pro', label: 'Landing Pro', description: 'Creación de landing pages vendedoras.', icon: 'FaRocket' },
   'video-pro': { key: 'video-pro', label: 'Video Pro', description: 'Generación de videos UGC con IA.', icon: 'FaFilm' },
+  v2: { key: 'v2', label: 'Estratega Pro (V2)', description: 'Generación de estrategia, landing y anuncios.', icon: 'FaRocket' },
   admin: { key: 'admin', label: 'Panel Admin', description: 'Gestión global de la plataforma.', icon: 'FaUserShield' },
 };
 

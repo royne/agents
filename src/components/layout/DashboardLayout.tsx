@@ -18,7 +18,7 @@ const menuSections: MenuSection[] = [
   {
     title: 'CREACIÓN',
     items: [
-      { name: 'Estratega Pro', icon: FaRocket, path: '/v2', adminOnly: true, showForAllAdmins: true, moduleKey: 'admin' },
+      { name: 'Estratega Pro', icon: FaRocket, path: '/v2', moduleKey: 'v2' },
       { name: 'Imagen Pro', icon: FaMagic, path: '/image-pro', moduleKey: 'image-pro' },
       { name: 'Landing PRO', icon: FaAd, path: '/landing-pro', moduleKey: 'landing-pro' },
       { name: 'Video PRO', icon: FaFilm, path: '/video-pro', moduleKey: 'video-pro' }
@@ -42,7 +42,7 @@ const menuSections: MenuSection[] = [
   {
     title: 'SISTEMA',
     items: [
-      { name: 'Mis Productos', icon: FaDatabase, path: '/launches', moduleKey: 'admin' },
+      { name: 'Mis Productos', icon: FaDatabase, path: '/launches', moduleKey: 'settings' },
       { name: 'Referidos', icon: FaUsers, path: '/referrals', moduleKey: 'settings' }, // Usamos settings como key base accesible
       { name: 'Tutoriales', icon: FaPlayCircle, path: '/tutorials', moduleKey: 'settings' },
       { name: 'Configuración', icon: FaCog, path: '/settings', moduleKey: 'settings' },
