@@ -24,10 +24,13 @@ export default function AuthCallbackPage() {
       if (data.session && data.session.user) {
         const user = data.session.user;
 
-        // Verificar si es un nuevo registro (creado en los últimos 30 segundos)
+        // Verificar si es un nuevo registro
         const createdAt = new Date(user.created_at).getTime();
         const now = new Date().getTime();
-        const isNewUser = (now - createdAt) < 60000; // 1 minuto de gracia para mayor robustez
+        const diffInMinutes = (now - createdAt) / 1000 / 60;
+        const isNewUser = diffInMinutes < 1; // Revertido a 1 minuto por solicitud del usuario
+
+        console.log(`[AuthCallback] Usuario: ${user.email}, Creado hace: ${diffInMinutes.toFixed(2)} minutos. isNewUser: ${isNewUser}`);
 
         if (isNewUser) {
           try {
@@ -43,7 +46,9 @@ export default function AuthCallbackPage() {
 
             if (!response.ok) {
               const errData = await response.json();
-              console.warn('[AuthCallback] API de notificación devolvió error:', errData);
+              console.error('[AuthCallback] Error en API notificación:', errData);
+            } else {
+              console.log('[AuthCallback] Notificación enviada correctamente a la API');
             }
           } catch (e) {
             console.error('[AuthCallback] Error al llamar a la API de notificación:', e);

@@ -5,7 +5,7 @@ export class NotificationService {
 
   static async send(message: string, title?: string, color: number = 0x3B82F6, fields: { name: string, value: string, inline?: boolean }[] = []) {
     if (!this.webhookUrl) {
-      console.warn('NOTIFICATIONS_WEBHOOK_URL no configurada. Saltando notificación.');
+      console.error('[NotificationService] NOTIFICATIONS_WEBHOOK_URL no configurada en el entorno (PRODUCTION).');
       return false;
     }
 
