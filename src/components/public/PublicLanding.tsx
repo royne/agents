@@ -51,17 +51,17 @@ const PublicLanding: React.FC = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 backdrop-blur-md bg-black/20 border-b border-white/5">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center shadow-lg">
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center shadow-lg">
               <Image src="/droplab.png" alt="DROPAPP" width={24} height={24} className="object-cover" />
             </div>
-            <span className="text-xl font-black tracking-tighter">DROPAPP</span>
+            <span className="text-xl font-black tracking-tighter hidden sm:block">DROPAPP</span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <Link href="/auth/login" className="text-sm font-bold text-gray-400 hover:text-white transition-colors">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Link href="/auth/login" className="text-xs sm:text-sm font-bold text-gray-400 hover:text-white transition-colors">
               Entrar
             </Link>
-            <Link href="/auth/register" className="btn-premium py-2 px-6 text-xs font-black uppercase tracking-wider bg-primary-color text-white rounded-xl shadow-lg shadow-primary-color/20 hover:scale-105 transition-all">
+            <Link href="/auth/register" className="btn-premium py-2 px-3 sm:px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider bg-primary-color text-white rounded-xl shadow-lg shadow-primary-color/20 hover:scale-105 transition-all">
               Pruébalo Gratis
             </Link>
           </div>
