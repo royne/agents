@@ -10,11 +10,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { type, email, name, userId, plan } = req.body;
+    const { type, email, name, userId, plan, country, phone } = req.body;
 
     if (type === 'new_user') {
       console.log(`[API] Notificando nuevo usuario: ${email}`);
-      const success = await NotificationService.notifyNewUser(email, name);
+      const success = await NotificationService.notifyNewUser(email, name, country, phone);
       console.log(`[API] Resultado Discord: ${success}`);
       return res.status(200).json({ success, step: 'new_user' });
     } 

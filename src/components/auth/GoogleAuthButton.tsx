@@ -12,6 +12,12 @@ export const GoogleAuthButton = ({ referralCode, mode = 'login' }: GoogleAuthBut
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
+      // Guardar referido en localStorage antes de la redirección
+      if (referralCode) {
+        localStorage.setItem('dropapp_ref', referralCode);
+        console.log('[GoogleAuth] Referral guardado en localStorage:', referralCode);
+      }
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {

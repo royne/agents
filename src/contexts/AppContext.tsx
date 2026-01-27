@@ -27,6 +27,9 @@ type AppContextType = {
     expiresAt?: string;
     is_mentor?: boolean;
     community_name?: string;
+    phone?: string;
+    avatar_url?: string;
+    is_setup_completed?: boolean;
     country?: string;
   } | null;
   themeConfig: ThemeConfig;
@@ -90,7 +93,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           // Consultas con timeout para evitar bloqueos
           const [profileRes, creditsRes] = await Promise.race([
             Promise.all([
-              supabase.from('profiles').select('company_id, role, name, plan, modules_override, is_mentor, country').eq('user_id', session.user.id).single(),
+              supabase.from('profiles').select('company_id, role, name, plan, modules_override, is_mentor, country, phone, avatar_url, is_setup_completed').eq('user_id', session.user.id).single(),
               supabase.from('user_credits').select('plan_key, balance, expires_at').eq('user_id', session.user.id).single()
             ]),
             dbTimeout(5000) as Promise<[any, any]>
@@ -154,6 +157,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
             modulesOverride: (profile as any)?.modules_override || undefined,
             activeModules: activeModules,
             country: profile?.country,
+            phone: profile?.phone,
+            avatar_url: profile?.avatar_url,
+            is_setup_completed: profile?.is_setup_completed,
           };
 
           const currentSaved = localStorage.getItem('auth_data');
@@ -263,7 +269,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (data?.user) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('company_id, role, name, plan, modules_override, country')
+        .select('company_id, role, name, plan, modules_override, country, phone, avatar_url, is_setup_completed')
         .eq('user_id', data.user.id)
         .single();
 
@@ -300,6 +306,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         modulesOverride: (profile as any)?.modules_override || undefined,
         activeModules: activeModules,
         country: profile?.country,
+        phone: profile?.phone,
+        avatar_url: profile?.avatar_url,
+        is_setup_completed: profile?.is_setup_completed,
       };
 
       localStorage.setItem('auth_data', JSON.stringify(authData));

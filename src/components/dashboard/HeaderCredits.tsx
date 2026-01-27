@@ -21,8 +21,15 @@ const HeaderCredits: React.FC<HeaderCreditsProps> = ({ className = '', showWelco
     <div className={`flex flex-col md:flex-row md:items-end justify-between gap-6 ${showWelcome ? 'pb-6 border-b border-white/5' : ''} ${className}`}>
       {showWelcome && (
         <div className="flex flex-col">
-          <h2 id="tour-welcome" className="text-4xl font-black text-white tracking-tighter">
-            ¡Hola, <span className="text-primary-color">{authData.name?.split(' ')[0] || 'Usuario'}</span>!
+          <h2 id="tour-welcome" className="text-4xl font-black text-white tracking-tighter flex items-center gap-3">
+            {authData.avatar_url && (
+              <img
+                src={authData.avatar_url}
+                alt="Avatar"
+                className="w-10 h-10 rounded-full object-cover border-2 border-white/10"
+              />
+            )}
+            <span>¡Hola, <span className="text-primary-color">{authData.name?.split(' ')[0] || 'Usuario'}</span>!</span>
           </h2>
           <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.4em] mt-1 -ml-0.5">
             Portal de gestión inteligente

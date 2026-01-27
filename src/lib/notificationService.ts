@@ -45,15 +45,20 @@ export class NotificationService {
     }
   }
 
-  static async notifyNewUser(email: string, name: string) {
+  static async notifyNewUser(email: string, name: string, country?: string, phone?: string) {
+    const fields = [
+      { name: 'Nombre', value: name, inline: true },
+      { name: 'Email', value: email, inline: true }
+    ];
+
+    if (country) fields.push({ name: 'País', value: country, inline: true });
+    if (phone) fields.push({ name: 'Celular', value: `[WhatsApp](https://wa.me/${phone.replace(/\+/g, '')}) (${phone})`, inline: true });
+
     return this.send(
       `🚀 **¡Un nuevo usuario se ha unido a la plataforma!**`,
       'Nuevo Registro de Usuario',
       0x10B981, // Verde
-      [
-        { name: 'Nombre', value: name, inline: true },
-        { name: 'Email', value: email, inline: true }
-      ]
+      fields
     );
   }
 
