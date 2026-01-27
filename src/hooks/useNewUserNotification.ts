@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useEffect, useRef } from 'react';
+import { supabase } from '../lib/supabase';
 
 interface HookAuthData {
   isAuthenticated: boolean;
@@ -9,46 +9,59 @@ interface HookAuthData {
 }
 
 export const useNewUserNotification = (authData: HookAuthData | null) => {
-  const router = useRouter();
+  const isProcessing = useRef(false);
 
   useEffect(() => {
-    // 1. Solo actuar si el usuario está autenticado y el router está listo
-    if (!authData?.isAuthenticated || !authData.userId || !router.isReady) return;
+    // 1. Validaciones básicas
+    if (!authData?.isAuthenticated || !authData.userId || isProcessing.current) return;
 
-    // 2. Detectar señal (Query Param o Fallback en LocalStorage)
-    const hasQueryParam = router.query.new_user === 'true';
-    const hasLocalStorageFlag = localStorage.getItem('pending_new_user_notification') === 'true';
+    const checkAndNotify = async () => {
+      try {
+        const userId = authData.userId;
+        const storageKey = `notified_user_${userId}`;
 
-    if (hasQueryParam || hasLocalStorageFlag) {
-      const notifyNewUser = async () => {
-        try {
-          console.log('[useNewUserNotification] Señal de nuevo usuario detectada. Notificando...');
+        // 2. CANDADO INMUTABLE: Si ya lo procesamos en este navegador para esta cuenta, FIN.
+        if (localStorage.getItem(storageKey)) return;
+
+        isProcessing.current = true;
+        console.log('[useNewUserNotification] Verificando cuenta nueva por fecha...');
+
+        // 3. Consultar datos frescos de Supabase Auth
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          isProcessing.current = false;
+          return;
+        }
+
+        // 4. Lógica de antigüedad (1 minuto de margen para ser ultra-precisos)
+        const createdAt = new Date(user.created_at).getTime();
+        const now = new Date().getTime();
+        const diffInMinutes = Math.abs(now - createdAt) / 1000 / 60;
+
+        if (diffInMinutes < 1) {
+          console.log('[useNewUserNotification] ¡Bingo! Cuenta recién creada (menos de 1min). Notificando...');
           
-          // Limpiar señales para evitar duplicados
-          localStorage.removeItem('pending_new_user_notification');
-          
-          if (hasQueryParam) {
-            const { new_user, ...restQuery } = router.query;
-            router.replace({ pathname: router.pathname, query: restQuery }, undefined, { shallow: true });
-          }
-
           await fetch('/api/notifications/notify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               type: 'new_user',
-              email: authData.email || authData.userId,
-              name: authData.name || 'Nuevo Usuario'
+              email: user.email || authData.email,
+              name: authData.name || user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0]
             })
           });
-          
-          console.log('[useNewUserNotification] Notificación enviada con éxito.');
-        } catch (err) {
-          console.error('[useNewUserNotification] Error al procesar notificación:', err);
         }
-      };
 
-      notifyNewUser();
-    }
-  }, [authData?.isAuthenticated, authData?.userId, router.query.new_user, router.isReady]);
+        // 5. BLOQUEO PERMANENTE: Marcamos como procesado para este usuario.
+        localStorage.setItem(storageKey, 'true');
+        
+      } catch (err) {
+        console.error('[useNewUserNotification] Error silencioso:', err);
+      } finally {
+        isProcessing.current = false;
+      }
+    };
+
+    checkAndNotify();
+  }, [authData?.isAuthenticated, authData?.userId]);
 };

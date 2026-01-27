@@ -310,7 +310,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (email: string, password: string, phone: string, name: string, country: string, referralCode?: string): Promise<{ success: boolean; error?: string }> => {
-    const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/?new_user=true` : undefined;
+    const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/` : undefined;
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -330,9 +330,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     if (data.user) {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('pending_new_user_notification', 'true');
-      }
       // El perfil y los créditos se crean automáticamente vía Trigger SQL
       return { success: true };
     }

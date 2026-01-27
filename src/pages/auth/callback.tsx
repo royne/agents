@@ -13,32 +13,19 @@ export default function AuthCallbackPage() {
 
     const handleCallback = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
+        const { error } = await supabase.auth.getSession();
 
-        if (error || !data.session) {
+        if (error) {
+          console.error('[AuthCallback] Error en sesión:', error);
           router.push('/auth/login');
           return;
         }
 
-        const user = data.session.user;
-        const createdAt = new Date(user.created_at).getTime();
-        const now = new Date().getTime();
-        const isNewUser = Math.abs(now - createdAt) < 60000; // 1 minuto
-
-        if (isNewUser) {
-          // Backup: Guardamos un flag en localStorage por si el query param se pierde en los redirects de Next.js
-          localStorage.setItem('pending_new_user_notification', 'true');
-        }
-
-        // Redirigir al dashboard con flag si es nuevo
-        const target = isNewUser ? '/?new_user=true' : '/';
-
-        // Usamos window.location.href para un "hard redirect" que asegura que el parámetro llegue
-        // y evita interferencias del router de Next.js en el paso intermedio
-        window.location.href = target;
+        // Redirigir al dashboard simplemente
+        router.replace('/');
       } catch (err) {
         console.error('[AuthCallback] Error crítico:', err);
-        router.push('/auth/login');
+        router.replace('/auth/login');
       }
     };
 
