@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
+import { trackPixelEvent } from '../utils/pixelEvents';
 
 interface HookAuthData {
   isAuthenticated: boolean;
@@ -41,6 +42,12 @@ export const useNewUserNotification = (authData: HookAuthData | null) => {
         if (diffInMinutes < 1) {
           console.log('[useNewUserNotification] ¡Bingo! Cuenta recién creada (menos de 1min). Notificando...');
           
+          // Registrar evento en Facebook Pixel
+          trackPixelEvent('CompleteRegistration', {
+            content_name: 'Registro de Usuario',
+            status: 'success'
+          });
+
           await fetch('/api/notifications/notify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
