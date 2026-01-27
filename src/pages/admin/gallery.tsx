@@ -11,9 +11,11 @@ interface ImageGeneration {
   image_url: string;
   prompt: string;
   created_at: string;
+  mode?: string;
   profiles: {
     name: string;
     email: string;
+    avatar_url?: string;
   };
 }
 
@@ -52,6 +54,40 @@ export default function AdminGallery() {
   useEffect(() => {
     fetchImages(page);
   }, [page]);
+
+  useEffect(() => {
+    if (previewImage) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [previewImage]);
+
+  const renderPrompt = (prompt: string) => {
+    try {
+      // Check if it's a strategic prompt JSON
+      if (prompt.includes('"strategicPrompt"')) {
+        const parsed = JSON.parse(prompt);
+        return parsed.strategicPrompt || prompt;
+      }
+      return prompt;
+    } catch (e) {
+      return prompt;
+    }
+  };
+
+  const getModeLabel = (mode?: string) => {
+    if (!mode) return 'V2 Gen';
+    switch (mode.toLowerCase()) {
+      case 'ads': return 'Ads Pro';
+      case 'landing': return 'Landing Pro';
+      case 'section': return 'Sección';
+      default: return mode.toUpperCase();
+    }
+  };
 
   return (
     <ProtectedRoute adminOnly={true}>
@@ -98,33 +134,37 @@ export default function AdminGallery() {
                           <FaSearchPlus />
                         </div>
                         <p className="text-white text-xs line-clamp-4 italic font-medium leading-relaxed mb-1">
-                          "{img.prompt}"
+                          "{renderPrompt(img.prompt)}"
                         </p>
                       </div>
                     </div>
 
                     <div className="p-4 bg-white/[0.02] backdrop-blur-sm border-t border-white/5">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="w-9 h-9 rounded-xl bg-primary-color/10 flex items-center justify-center text-primary-color shrink-0 border border-primary-color/20">
-                          <FaUser className="text-sm" />
+                        <div className="w-9 h-9 rounded-xl bg-primary-color/10 flex items-center justify-center text-primary-color shrink-0 border border-primary-color/20 overflow-hidden">
+                          {img.profiles?.avatar_url ? (
+                            <img src={img.profiles.avatar_url} alt={img.profiles.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <FaUser className="text-sm" />
+                          )}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-black text-white truncate uppercase tracking-tight">
+                          <p className="text-xs font-black text-white truncate uppercase tracking-tight">
                             {img.profiles?.name || 'Usuario Anónimo'}
                           </p>
-                          <p className="text-[10px] text-theme-tertiary truncate font-bold lowercase opacity-60">
+                          <p className="text-[9px] text-theme-tertiary truncate font-bold lowercase opacity-60">
                             {img.profiles?.email}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between text-[10px] text-theme-tertiary font-black uppercase tracking-widest">
+                      <div className="flex items-center justify-between text-[9px] text-theme-tertiary font-black uppercase tracking-widest">
                         <div className="flex items-center gap-1.5 opacity-60">
                           <FaCalendarAlt size={10} />
                           <span>{new Date(img.created_at).toLocaleDateString()}</span>
                         </div>
                         <span className="bg-primary-color/10 text-primary-color px-2 py-0.5 rounded-md border border-primary-color/20">
-                          V2 Gen
+                          {getModeLabel(img.mode)}
                         </span>
                       </div>
                     </div>
@@ -166,44 +206,51 @@ export default function AdminGallery() {
       {previewImage && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-8 animate-in fade-in duration-300">
           <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" onClick={() => setPreviewImage(null)}></div>
-          <div className="relative max-w-6xl w-full h-full flex flex-col items-center justify-center gap-4">
-            <div className="relative w-full h-[70vh] flex items-center justify-center group">
+
+          <div className="relative max-w-6xl w-full max-h-full flex flex-col gap-4 overflow-y-auto scrollbar-hide py-10">
+            <div className="relative w-full flex-shrink-0 flex items-center justify-center">
               <img
                 src={previewImage.image_url}
                 alt="Fullscreen Preview"
-                className="max-w-full max-h-full object-contain rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10"
+                className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10"
               />
               <button
                 onClick={() => setPreviewImage(null)}
-                className="absolute -top-4 -right-4 bg-white/10 hover:bg-red-500/80 w-12 h-12 rounded-2xl text-white transition-all backdrop-blur-md border border-white/10 flex items-center justify-center shadow-2xl"
+                className="fixed top-8 right-8 bg-white/10 hover:bg-red-500/80 w-12 h-12 rounded-2xl text-white transition-all backdrop-blur-md border border-white/10 flex items-center justify-center shadow-2xl z-[120]"
               >
                 <FaTimes size={20} />
               </button>
             </div>
 
-            <div className="w-full max-w-3xl bg-theme-component/80 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-2xl">
-              <div className="flex justify-between items-start mb-4">
+            <div className="w-full max-w-4xl mx-auto bg-theme-component/80 backdrop-blur-md p-8 rounded-3xl border border-white/10 shadow-2xl flex-shrink-0 mb-10">
+              <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary-color flex items-center justify-center text-black shadow-lg shadow-primary-color/20 rotate-3">
-                    <FaUser size={20} />
+                  <div className="w-14 h-14 rounded-2xl bg-primary-color flex items-center justify-center text-black shadow-lg shadow-primary-color/20 rotate-3 overflow-hidden">
+                    {previewImage.profiles?.avatar_url ? (
+                      <img src={previewImage.profiles.avatar_url} alt={previewImage.profiles.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <FaUser size={24} />
+                    )}
                   </div>
                   <div>
-                    <h3 className="text-lg font-black text-white uppercase tracking-tight">{previewImage.profiles?.name}</h3>
-                    <p className="text-xs text-theme-tertiary font-bold lowercase opacity-60">{previewImage.profiles?.email}</p>
+                    <h3 className="text-xl font-black text-white uppercase tracking-tight">{previewImage.profiles?.name}</h3>
+                    <p className="text-sm text-theme-tertiary font-bold lowercase opacity-60">{previewImage.profiles?.email}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] font-black text-theme-tertiary uppercase tracking-widest mb-1 opacity-60">Generada</p>
-                  <p className="text-sm font-black text-white uppercase">{new Date(previewImage.created_at).toLocaleDateString()}</p>
+                  <p className="text-[10px] font-black text-theme-tertiary uppercase tracking-widest mb-1 opacity-60">Generada via {getModeLabel(previewImage.mode)}</p>
+                  <p className="text-lg font-black text-white uppercase">{new Date(previewImage.created_at).toLocaleDateString()}</p>
                 </div>
               </div>
 
-              <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
-                <p className="text-[10px] font-black text-primary-color uppercase tracking-widest mb-2 opacity-80 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary-color animate-pulse"></span> Prompt de Generación
-                </p>
-                <p className="text-sm text-theme-secondary leading-relaxed italic">
-                  "{previewImage.prompt}"
+              <div className="p-6 bg-black/40 rounded-2xl border border-white/5">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-[10px] font-black text-primary-color uppercase tracking-widest opacity-80 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary-color animate-pulse"></span> Strategic Visual Instructions
+                  </p>
+                </div>
+                <p className="text-sm text-theme-secondary leading-relaxed italic whitespace-pre-wrap">
+                  {renderPrompt(previewImage.prompt)}
                 </p>
               </div>
             </div>
