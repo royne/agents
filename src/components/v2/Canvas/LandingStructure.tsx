@@ -132,10 +132,10 @@ const LandingStructure: React.FC<LandingStructureProps> = ({
         )}
       </div>
 
-      {/* RIGHT COLUMN: PREVIEW MOCKUP (Sticky) */}
-      <div className="hidden lg:block w-[320px] shrink-0">
-        <div className="sticky top-1">
-          <div className="bg-white/[0.02] border border-white/5 rounded-[40px] p-8 backdrop-blur-3xl shadow-2xl flex flex-col items-center">
+      {/* RIGHT COLUMN: PREVIEW MOCKUP */}
+      <div className="w-full lg:w-[320px] shrink-0 mt-10 lg:mt-0">
+        <div className="lg:sticky lg:top-1 flex flex-col items-center">
+          <div className="bg-white/[0.02] border border-white/5 rounded-[40px] p-8 backdrop-blur-3xl shadow-2xl flex flex-col items-center w-full max-w-[340px] lg:max-w-none">
             <PhoneMockup
               landingState={landingState}
               viewMode="landing"
