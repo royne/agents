@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaTrash, FaChevronRight } from 'react-icons/fa';
+import { FaTrash, FaChevronRight, FaImages } from 'react-icons/fa';
 import UsageCounter from '../ImageGen/UsageCounter';
 import ImageUploader from '../ImageGen/ImageUploader';
 import { ProductData, MarketingLayout } from '../../types/landing-pro';
@@ -58,9 +58,21 @@ const IdentityCore: React.FC<IdentityCoreProps> = ({
           <div className="space-y-2">
             <label className="text-[10px] font-black text-theme-secondary uppercase tracking-[0.15em] flex justify-between">
               <span id="tour-branding-style">2. Referencia de Estilo / Branding</span>
-              <span className="text-theme-tertiary opacity-40 italic">Opcional</span>
             </label>
+
+            <div className="flex justify-between items-center bg-white/5 p-2 rounded-xl mt-4">
+              <label className="text-[10px] font-black text-theme-secondary uppercase tracking-[0.15em]">Elige un Estilo</label>
+              <button
+                onClick={() => setIsLibraryOpen(true)}
+                className="px-3 py-1.5 bg-primary-color/10 hover:bg-primary-color text-primary-color hover:text-black rounded-lg border border-primary-color/30 hover:shadow-[0_0_15px_rgba(18,216,250,0.3)] transition-all duration-300 flex items-center gap-1.5 group/lib"
+              >
+                <FaImages size={10} className="group-hover/lib:scale-110 transition-transform" />
+                <span className="text-[10px] font-black uppercase tracking-wider">Biblioteca</span>
+              </button>
+            </div>
+
             <div className="relative group">
+              <span className="text-[10px] font-black uppercase tracking-wider">O Subir una Imagen</span>
               <ImageUploader
                 onImageSelect={onStyleImageSelect}
                 externalPreview={styleImageBase64}
@@ -73,35 +85,6 @@ const IdentityCore: React.FC<IdentityCoreProps> = ({
                   <FaTrash />
                 </button>
               )}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between items-center bg-white/5 p-2 rounded-xl">
-              <label className="text-[10px] font-black text-theme-secondary uppercase tracking-[0.15em]">O elige un Estilo (Layout)</label>
-              <button
-                onClick={() => setIsLibraryOpen(true)}
-                className="text-[9px] bg-primary-color/10 text-primary-color px-2 py-0.5 rounded border border-primary-color/20 hover:bg-primary-color/20 transition-all font-bold"
-              >
-                + Biblioteca
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              {MARKETING_LAYOUTS.map((layout) => (
-                <button
-                  key={layout.id}
-                  onClick={() => onLayoutSelect(selectedLayout === layout.id ? null : layout.id)}
-                  className={`p-2 rounded-xl border text-left transition-all ${selectedLayout === layout.id
-                    ? 'border-primary-color bg-primary-color/10 shadow-lg'
-                    : 'border-white/5 bg-white/5 hover:border-white/10'
-                    }`}
-                >
-                  <p className={`text-[9px] font-black uppercase tracking-tighter ${selectedLayout === layout.id ? 'text-primary-color' : 'text-theme-tertiary'}`}>
-                    {layout.name}
-                  </p>
-                  <p className="text-[8px] opacity-40 leading-tight mt-0.5 line-clamp-1">{layout.desc}</p>
-                </button>
-              ))}
             </div>
           </div>
 
@@ -145,7 +128,7 @@ const IdentityCore: React.FC<IdentityCoreProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-theme-tertiary uppercase tracking-widest">Buyer Persona</label>
+                  <label className="text-[9px] font-black text-theme-tertiary uppercase tracking-widest">Cliente Ideal</label>
                   <input
                     type="text"
                     placeholder="Ej: Emprendedores..."

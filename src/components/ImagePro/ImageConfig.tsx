@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaTrash, FaRocket, FaCog } from 'react-icons/fa';
+import { FaTrash, FaRocket, FaImages } from 'react-icons/fa';
 import ImageUploader from '../ImageGen/ImageUploader';
 import UsageCounter from '../ImageGen/UsageCounter';
 import { PERSONA_PROMPTS } from '../../constants/image-pro';
@@ -124,12 +124,14 @@ const ImageConfig: React.FC<ImageConfigProps> = ({ state, actions }) => {
                 </label>
                 <button
                   onClick={() => actions.setIsLibraryOpen(true)}
-                  className="text-[10px] bg-primary-color/10 text-primary-color px-2 py-0.5 rounded border border-primary-color/20 hover:bg-primary-color/20 transition-all font-bold"
+                  className="px-3 py-1.5 bg-primary-color/10 hover:bg-primary-color text-primary-color hover:text-black rounded-lg border border-primary-color/30 hover:shadow-[0_0_15px_rgba(18,216,250,0.3)] transition-all duration-300 flex items-center gap-1.5 group/lib"
                 >
-                  + Biblioteca
+                  <FaImages size={10} className="group-hover/lib:scale-110 transition-transform" />
+                  <span className="text-[10px] font-black uppercase tracking-wider">Biblioteca</span>
                 </button>
               </div>
               <div className="relative group">
+                <span className="text-[10px] font-black uppercase tracking-wider">O Subir una Imagen</span>
                 <ImageUploader
                   onImageSelect={actions.handleStyleImageSelect}
                   externalPreview={styleImageBase64}

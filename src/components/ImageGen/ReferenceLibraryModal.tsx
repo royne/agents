@@ -12,7 +12,7 @@ interface ReferenceLibraryModalProps {
 export const ReferenceLibraryModal: React.FC<ReferenceLibraryModalProps> = ({ isOpen, onClose, onSelect, category }) => {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'inspiration' | 'template'>('template');
+  const [activeTab, setActiveTab] = useState<'inspiration' | 'template'>('inspiration');
   const [search, setSearch] = useState('');
 
   const [currentCategory, setCurrentCategory] = useState<string | undefined>(category);
