@@ -421,8 +421,14 @@ export function useDiscovery() {
 
   const getAdConcepts = async () => {
     if (!productData || !landingState.proposedStructure) return;
-    
-    setIsDesigning(true); // Re-using designing flag for loading state
+
+    if (landingState.adConcepts && landingState.adConcepts.length > 0) {
+      console.log('[useDiscovery] Ad concepts already exist, switching phase to ads.');
+      setLandingState(prev => ({ ...prev, phase: 'ads' }));
+      return;
+    }
+
+    setIsDesigning(true);
     setError(null);
     try {
       const response = await fetch('/api/v2/ads/concepts', {

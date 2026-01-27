@@ -30,14 +30,14 @@ export class BaseImageProService {
         const buffer = await response.arrayBuffer();
         const mimeType = response.headers.get('content-type') || 'image/png';
         
-        // Convertir ArrayBuffer a Base64 eficientemente en Edge Runtime
+        // Convertir ArrayBuffer a Base64 de forma eficiente y compatible con Edge Runtime (por bloques)
         const bytes = new Uint8Array(buffer);
         let binary = '';
-        for (let i = 0; i < bytes.byteLength; i++) {
-          binary += String.fromCharCode(bytes[i]);
+        const chunkSize = 8192;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunkSize)));
         }
         const base64 = btoa(binary);
-        
         return { data: base64, mimeType };
       } catch (error: any) {
         clearTimeout(timeoutId);
