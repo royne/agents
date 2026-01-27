@@ -188,7 +188,11 @@ export function useDiscovery() {
 
       if (result.success) {
         setProductData(result.data);
-        setLandingState(prev => ({ ...prev, launchId: result.data.launchId }));
+        setLandingState(prev => ({ 
+          ...prev, 
+          launchId: result.data.launchId,
+          baseImageUrl: result.data.thumbnailUrl || prev.baseImageUrl 
+        }));
         // Sync credits after project initialization
         syncUserData();
       } else {
@@ -490,7 +494,7 @@ export function useDiscovery() {
         body: JSON.stringify({
           productData,
           conceptId,
-          visualPrompt: manualInstructions || visualPrompt,
+          visualPrompt,
           adHook,
           adBody,
           adCta,
@@ -498,7 +502,8 @@ export function useDiscovery() {
           previousImageUrl: isCorrection ? landingState.adGenerations[conceptId]?.imageUrl || landingState.baseImageUrl : landingState.baseImageUrl,
           isCorrection,
           aspectRatio,
-          launchId: landingState.launchId
+          launchId: landingState.launchId,
+          extraInstructions: manualInstructions
         }),
       });
 

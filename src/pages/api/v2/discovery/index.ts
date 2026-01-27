@@ -76,7 +76,8 @@ export default async function handler(req: NextRequest) {
       success: true,
       data: {
         ...productData,
-        launchId: launch.id
+        launchId: launch.id,
+        thumbnailUrl: finalThumbnailUrl
       }
     });
 

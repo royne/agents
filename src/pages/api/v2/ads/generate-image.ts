@@ -17,7 +17,7 @@ export default async function handler(req: NextRequest, event: any) {
 
   try {
     const body = await req.json();
-    const { productData, conceptId, visualPrompt, adHook, adBody, adCta, referenceUrl, previousImageUrl, isCorrection, aspectRatio, launchId } = body;
+    const { productData, conceptId, visualPrompt, adHook, adBody, adCta, referenceUrl, previousImageUrl, isCorrection, aspectRatio, launchId, extraInstructions } = body;
 
     console.log('[API/V2/Ads/GenerateImage] Body received:', {
       conceptId,
@@ -67,7 +67,8 @@ export default async function handler(req: NextRequest, event: any) {
           aspectRatio: aspectRatio || '1:1',
           referenceImage: referenceUrl,
           referenceType: referenceUrl ? 'layout' : undefined,
-          previousImageUrl: previousImageUrl || productData.imageBase64 || productData.url,
+          previousImageUrl: previousImageUrl,
+          extraInstructions,
           isCorrection: isCorrection || false
         });
 
