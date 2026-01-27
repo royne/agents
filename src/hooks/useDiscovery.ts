@@ -453,6 +453,39 @@ export function useDiscovery() {
       setIsDesigning(false);
     }
   };
+  
+  const addAdConcept = async () => {
+    if (!productData || !landingState.proposedStructure) return;
+    
+    setIsDesigning(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/v2/ads/add-concept', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          productData, 
+          landingStructure: landingState.proposedStructure,
+          existingConcepts: landingState.adConcepts || [],
+          launchId: landingState.launchId
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setLandingState(prev => ({ 
+          ...prev, 
+          adConcepts: [...(prev.adConcepts || []), result.data] 
+        }));
+      } else {
+        setError(result.error || 'Failed to add ad concept.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error adding ad concept.');
+    } finally {
+      setIsDesigning(false);
+    }
+  };
 
   const setPhase = (phase: 'landing' | 'ads') => {
     setLandingState(prev => ({ ...prev, phase }));
@@ -784,6 +817,7 @@ export function useDiscovery() {
     generateSection,
     generateAdImage,
     getAdConcepts,
+    addAdConcept,
     setPhase,
     resetDiscovery,
     setProductData,

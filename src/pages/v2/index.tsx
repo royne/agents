@@ -41,6 +41,7 @@ const V2PrototypePage: React.FC = () => {
     startAutoGeneration,
     stopAutoGeneration,
     refineAdConcept,
+    addAdConcept,
     loadLaunch
   } = useDiscovery();
   const router = useRouter(); // We need router to read query params
@@ -124,6 +125,7 @@ const V2PrototypePage: React.FC = () => {
                 onAutoGenerate={startAutoGeneration}
                 onStopAutoGenerate={stopAutoGeneration}
                 onRefineAdConcept={refineAdConcept}
+                onAddAdConcept={addAdConcept}
                 setPhase={setPhase}
               />
             }

@@ -43,6 +43,7 @@ interface ArtifactViewerProps {
   onAutoGenerate?: () => void;
   onStopAutoGenerate?: () => void;
   onRefineAdConcept?: (conceptId: string, feedback?: string) => void;
+  onAddAdConcept?: () => void;
   setPhase?: (phase: 'landing' | 'ads') => void;
 }
 
@@ -64,6 +65,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   onAutoGenerate,
   onStopAutoGenerate,
   onRefineAdConcept,
+  onAddAdConcept,
   setPhase
 }: ArtifactViewerProps) => {
   const [references, setReferences] = useState<any[]>([]);
@@ -175,6 +177,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             adEditInstructions={adEditInstructions}
             setAdEditInstructions={setAdEditInstructions}
             onRefineAdConcept={onRefineAdConcept}
+            onAddAdConcept={onAddAdConcept}
           />
         ) : creativePaths ? (
           <PathSelector creativePaths={creativePaths} onSelectPath={onSelectPath} />

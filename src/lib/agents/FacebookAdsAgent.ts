@@ -141,4 +141,67 @@ export class FacebookAdsAgent {
       throw new Error("Invalid response during refinement: " + e.message);
     }
   }
+
+  static async addAdConcept(productData: any, landingStructure: any, existingConcepts: AdConcept[]): Promise<AdConcept> {
+    const googleKey = process.env.GOOGLE_AI_KEY;
+    if (!googleKey) throw new Error('Google AI Key is missing.');
+
+    const systemPrompt = `You are a Facebook Ads expert. 
+    Your goal is to generate ONE NEW HIGH-CONVERSION ad concept that is DIFFERENT from the ones already created.
+    
+    PRODUCT CONTEXT:
+    - Name: ${productData.name}
+    - Angle: ${productData.angle}
+    - Buyer: ${productData.buyer}
+    - Details: ${productData.details}
+    
+    EXISTING CONCEPTS (DO NOT REPEAT THESE ANGLES/HOOKS):
+    ${existingConcepts.map(c => `- ${c.title}: ${c.hook}`).join('\n')}
+    
+    LANDING STRUCTURE:
+    ${landingStructure.sections.map((s: any) => `- ${s.title}: ${s.reasoning}`).join('\n')}
+    
+    OUTPUT FORMAT (JSON ONLY):
+    {
+      "id": "new-unique-id",
+      "title": "Fresh internal title",
+      "hook": "The new scroll-stopper headline",
+      "body": "The new ad copy text",
+      "adCta": "Short text for a visual sticker/label",
+      "visualPrompt": "Detailed description for an AI image generator"
+    }`;
+
+    try {
+      const modelId = 'gemini-3-flash-preview';
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${googleKey}`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            role: 'user',
+            parts: [{ text: systemPrompt }]
+          }]
+        })
+      });
+
+      const result = await response.json();
+      const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      if (!text) throw new Error('Failed to generate additional concept.');
+      
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      const cleanText = jsonMatch ? jsonMatch[0] : text.replace(/```json|```/g, "").trim();
+      
+      const newConcept = JSON.parse(cleanText);
+      return {
+        ...newConcept,
+        id: `ad-concept-extra-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`
+      };
+    } catch (e: any) {
+      console.error("[FacebookAdsAgent] Add Concept Error:", e.message);
+      throw new Error("Invalid response from Ads Agent: " + e.message);
+    }
+  }
 }
