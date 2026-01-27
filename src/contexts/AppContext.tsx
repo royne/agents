@@ -159,7 +159,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             country: profile?.country,
             phone: profile?.phone,
             avatar_url: profile?.avatar_url,
-            is_setup_completed: profile?.is_setup_completed,
+            is_setup_completed: profile?.is_setup_completed ?? true, // Fallback a true para evitar modal fantasma en errores de DB
           };
 
           const currentSaved = localStorage.getItem('auth_data');
@@ -169,13 +169,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
           }
         } catch (innerError) {
           console.warn('Fallo temporal en DB, manteniendo sesión actual:', innerError);
-          setAuthData(prev => prev || {
-            isAuthenticated: true,
-            userId: session.user.id,
-            plan: 'free',
-            credits: 0,
-            is_mentor: false,
-            activeModules: []
+          setAuthData(prev => {
+            if (prev && prev.isAuthenticated) return prev;
+            return {
+              isAuthenticated: true,
+              userId: session.user.id,
+              plan: 'free' as Plan,
+              credits: 0,
+              is_mentor: false,
+              activeModules: [],
+              is_setup_completed: true // Evitar modal si no pudimos cargar el perfil
+            };
           });
         }
       } else {
@@ -200,16 +204,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Listener para cambios de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log(`[Auth] Event: ${event}`);
+
       if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
         localStorage.removeItem('auth_data');
         setAuthData({ isAuthenticated: false });
-        if (event === 'SIGNED_OUT' && !router.pathname.startsWith('/auth') && router.pathname !== '/') {
-          router.push('/');
+
+        // Solo redirigir si no estamos ya en una ruta pública
+        const isPublicPath = router.pathname.startsWith('/auth') || router.pathname === '/';
+        if (event === 'SIGNED_OUT' && !isPublicPath) {
+          await router.push('/');
         }
       } else if (session) {
-        await checkSession(session);
-      } else {
-        setAuthData(prev => prev || { isAuthenticated: false });
+        // Evitar re-sincronizar si ya tenemos datos frescos
+        if (!authData?.isAuthenticated || authData.userId !== session.user.id) {
+          await checkSession(session);
+        }
       }
     });
 
@@ -347,18 +357,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    console.log('[Auth] Iniciando cierre de sesión...');
     try {
-      // Limpiar localmente primero para feedback instantáneo
+      // 1. Limpiar estado local inmediatamente para UX
       localStorage.removeItem('auth_data');
       setAuthData({ isAuthenticated: false });
 
-      // SignOut global en Supabase
-      const { error } = await supabase.auth.signOut();
-      if (error) console.error('Error during signOut:', error);
+      // 2. Ejecutar signOut en Supabase (global: false para mayor rapidez si falla la red)
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
+      if (error) console.error('[Auth] Error en signOut local:', error);
 
-      // onAuthStateChange se encargará de la redirección final
+      // Intentar también el global si es posible
+      supabase.auth.signOut({ scope: 'global' }).catch(e => console.warn('[Auth] Error en signOut global:', e));
+
+      // 3. Forzar redirección manual por si onAuthStateChange tarda
+      if (router.pathname !== '/') {
+        await router.push('/');
+      }
+
+      console.log('[Auth] Sesión cerrada correctamente.');
     } catch (e) {
-      console.error('Logout error:', e);
+      console.error('[Auth] Error crítico en logout:', e);
+      // Asegurarse de que el estado quede limpio pase lo que pase
+      setAuthData({ isAuthenticated: false });
+      router.push('/');
     }
   };
 
