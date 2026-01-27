@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Head from 'next/head';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import HeaderCredits from '../components/dashboard/HeaderCredits';
@@ -11,6 +11,7 @@ import DashboardTour from '../components/tours/DashboardTour';
 import { useAppContext } from '../contexts/AppContext';
 import PublicLanding from '../components/public/PublicLanding';
 import WhatsAppButton from '../components/common/WhatsAppButton';
+import { useNewUserNotification } from '../hooks/useNewUserNotification';
 
 import { SHOWCASE_ADS, SHOWCASE_LANDING_SECTIONS } from '../config/v2-showcase';
 
@@ -45,6 +46,9 @@ export default function Dashboard() {
     adGenerations: {},
     adConcepts: []
   };
+
+  // Notificar registro de forma limpia y desacoplada
+  useNewUserNotification(authData);
 
   // Si authData es null (está cargando o verificando), mostramos un fondo oscuro mientras se decide
   if (!authData) {

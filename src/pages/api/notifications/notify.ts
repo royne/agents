@@ -2,9 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { NotificationService } from '../../../lib/notificationService';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // LOG QUE SÍ O SÍ APARECE EN VERCEL
   console.log('--- NOTIFICATION API START ---');
-  console.log('Method:', req.method);
   console.log('Body:', JSON.stringify(req.body));
 
   if (req.method !== 'POST') {

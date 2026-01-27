@@ -16,6 +16,7 @@ type AppContextType = {
   authData: {
     isAuthenticated: boolean;
     userId?: string;
+    email?: string;
     company_id?: string;
     role?: string;
     name?: string;
@@ -141,6 +142,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const newAuthData = {
             isAuthenticated: true,
             userId: session.user.id,
+            email: session.user.email,
             company_id: profile?.company_id,
             role: profile?.role,
             name: profile?.name,
@@ -288,6 +290,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const authData = {
         isAuthenticated: true,
         userId: data.user.id,
+        email: data.user.email,
         company_id: profile?.company_id,
         role: profile?.role,
         name: profile?.name,
@@ -307,7 +310,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (email: string, password: string, phone: string, name: string, country: string, referralCode?: string): Promise<{ success: boolean; error?: string }> => {
-    const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/` : undefined;
+    const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/?new_user=true` : undefined;
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -327,21 +330,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     if (data.user) {
-      // Notificar nuevo registro
-      try {
-        fetch('/api/notifications/notify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'new_user',
-            email: email,
-            name: name
-          })
-        });
-      } catch (e) {
-        console.warn('Error al enviar notificación de registro:', e);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pending_new_user_notification', 'true');
       }
-
       // El perfil y los créditos se crean automáticamente vía Trigger SQL
       return { success: true };
     }

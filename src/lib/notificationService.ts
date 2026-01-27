@@ -5,7 +5,7 @@ export class NotificationService {
 
   static async send(message: string, title?: string, color: number = 0x3B82F6, fields: { name: string, value: string, inline?: boolean }[] = []) {
     if (!this.webhookUrl) {
-      console.error('[NotificationService] NOTIFICATIONS_WEBHOOK_URL no configurada en el entorno (PRODUCTION).');
+      console.warn('NOTIFICATIONS_WEBHOOK_URL no configurada. Saltando notificación.');
       return false;
     }
 
@@ -33,9 +33,14 @@ export class NotificationService {
         body: JSON.stringify(payload),
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[NotificationService] Discord Error ${response.status}:`, errorText);
+      }
+
       return response.ok;
     } catch (error) {
-      console.error('Error al enviar notificación:', error);
+      console.error('[NotificationService] Fetch Exception:', error);
       return false;
     }
   }
