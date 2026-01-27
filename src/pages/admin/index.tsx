@@ -1,6 +1,6 @@
 import React from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { FaUsers, FaDatabase, FaTruck, FaShieldAlt, FaMagic, FaChartLine } from 'react-icons/fa';
+import { FaUsers, FaDatabase, FaTruck, FaShieldAlt, FaMagic, FaChartLine, FaImages } from 'react-icons/fa';
 import Link from 'next/link';
 import Head from 'next/head';
 import ProtectedRoute from '../../components/auth/ProtectedRoute';
@@ -62,6 +62,13 @@ const adminModules = [
     icon: FaChartLine,
     description: 'Análisis de rendimiento por campaña y anuncio',
     path: '/data-analysis/daily-orders',
+    superAdminOnly: false
+  },
+  {
+    name: 'Galería de Imágenes',
+    icon: FaImages,
+    description: 'Ver todas las imágenes generadas por los usuarios',
+    path: '/admin/gallery',
     superAdminOnly: false
   },
   {
