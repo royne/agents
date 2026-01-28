@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaCheckCircle, FaArrowRight, FaSpinner, FaExclamationTriangle, FaShieldAlt } from 'react-icons/fa';
+import PricingComparisonTable from './PricingComparisonTable';
 import { Plan, PLAN_CREDITS } from '../../constants/plans';
 import { useAppContext } from '../../contexts/AppContext';
 import { supabase } from '../../lib/supabase';
@@ -292,6 +293,9 @@ const PlanPricing: React.FC<PlanPricingProps> = ({ isPublic = false }) => {
         }
       `}</style>
       </div>
+
+      {/* Tabla Comparativa de Funciones */}
+      <PricingComparisonTable />
     </div>
   );
 };
