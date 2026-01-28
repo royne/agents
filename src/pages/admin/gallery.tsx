@@ -21,13 +21,16 @@ interface ImageGeneration {
 
 export default function AdminGallery() {
   const [images, setImages] = useState<ImageGeneration[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [previewImage, setPreviewImage] = useState<ImageGeneration | null>(null);
+  const [hasMore, setHasMore] = useState(true);
 
   const fetchImages = async (pageNum: number) => {
+    if (loading || (pageNum > 1 && !hasMore)) return;
+
     try {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
@@ -40,9 +43,14 @@ export default function AdminGallery() {
       });
       const data = await res.json();
       if (data.success) {
-        setImages(data.data);
+        if (pageNum === 1) {
+          setImages(data.data);
+        } else {
+          setImages(prev => [...prev, ...data.data]);
+        }
         setTotalPages(data.pagination.totalPages);
         setTotal(data.pagination.total);
+        setHasMore(pageNum < data.pagination.totalPages);
       }
     } catch (err) {
       console.error('Error fetching images:', err);
@@ -52,8 +60,32 @@ export default function AdminGallery() {
   };
 
   useEffect(() => {
-    fetchImages(page);
-  }, [page]);
+    fetchImages(1);
+  }, []);
+
+  // Intersection Observer for Infinite Scroll
+  const observerTarget = React.useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          setPage(prev => {
+            const nextPage = prev + 1;
+            fetchImages(nextPage);
+            return nextPage;
+          });
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, loading]);
 
   useEffect(() => {
     if (previewImage) {
@@ -172,30 +204,19 @@ export default function AdminGallery() {
                 ))}
               </div>
 
-              {/* Pagination Controls */}
-              <div className="flex items-center justify-center gap-6 py-10 mt-auto border-t border-white/5 bg-black/20 rounded-t-3xl">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1 || loading}
-                  className="w-12 h-12 flex items-center justify-center rounded-2xl bg-theme-component border border-white/5 text-theme-primary hover:bg-theme-component-hover hover:border-primary-color/50 disabled:opacity-20 disabled:cursor-not-allowed transition-all shadow-xl"
-                >
-                  <FaChevronLeft />
-                </button>
-
-                <div className="flex flex-col items-center">
-                  <span className="text-xs font-black text-theme-tertiary uppercase tracking-[0.2em] mb-1">Página</span>
-                  <span className="text-xl font-black text-white">
-                    {page} <span className="text-theme-tertiary opacity-30 mx-1">/</span> {totalPages}
+              {/* Infinite Scroll Sentinel */}
+              <div ref={observerTarget} className="h-20 flex items-center justify-center">
+                {loading && (
+                  <div className="flex flex-col items-center gap-2">
+                    <FaSpinner className="animate-spin text-2xl text-primary-color" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-theme-tertiary">Cargando más...</span>
+                  </div>
+                )}
+                {!hasMore && images.length > 0 && (
+                  <span className="text-[10px] font-black uppercase tracking-widest text-theme-tertiary opacity-40 italic">
+                    Has llegado al final de la galería
                   </span>
-                </div>
-
-                <button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages || loading}
-                  className="w-12 h-12 flex items-center justify-center rounded-2xl bg-theme-component border border-white/5 text-theme-primary hover:bg-theme-component-hover hover:border-primary-color/50 disabled:opacity-20 disabled:cursor-not-allowed transition-all shadow-xl"
-                >
-                  <FaChevronRight />
-                </button>
+                )}
               </div>
             </>
           )}
