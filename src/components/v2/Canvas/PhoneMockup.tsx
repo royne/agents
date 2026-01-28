@@ -9,9 +9,16 @@ interface PhoneMockupProps {
   className?: string;
   viewMode?: 'landing' | 'ads';
   showConversionBlur?: boolean;
+  onExpandImage?: (url: string) => void;
 }
 
-const PhoneMockup: React.FC<PhoneMockupProps> = ({ landingState, className, viewMode = 'landing', showConversionBlur = false }) => {
+const PhoneMockup: React.FC<PhoneMockupProps> = ({
+  landingState,
+  className,
+  viewMode = 'landing',
+  showConversionBlur = false,
+  onExpandImage
+}) => {
   const [hasScrolled, setHasScrolled] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -58,7 +65,8 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ landingState, className, view
                       <img
                         src={generation.imageUrl}
                         alt={s.title}
-                        className="w-full h-full object-cover min-h-[120px] transition-transform duration-700 group-hover/section:scale-110"
+                        onClick={() => !showConversionBlur && generation.imageUrl && onExpandImage && onExpandImage(generation.imageUrl)}
+                        className={`w-full h-full object-cover min-h-[120px] transition-transform duration-700 group-hover/section:scale-110 ${!showConversionBlur && onExpandImage ? 'cursor-zoom-in' : ''}`}
                       />
                     ) : (
                       <div className={`w-full ${showConversionBlur ? 'min-h-[220px]' : 'min-h-[140px]'} bg-white/[0.02] flex flex-col items-center justify-center p-6 text-center space-y-3 relative overflow-hidden ${showConversionBlur ? 'blur-[8px] opacity-70 grayscale' : ''}`}>
@@ -110,6 +118,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ landingState, className, view
                         hook={concept.hook}
                         cta={concept.adCta}
                         title={concept.title}
+                        onExpand={onExpandImage}
                         className="!max-w-full !rounded-2xl border-white/5"
                       />
                     </div>

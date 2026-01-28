@@ -147,6 +147,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             setEditInstructions={setEditInstructions}
             onGenerateSection={onGenerateSection}
             onSelectSection={onSelectSection}
+            onExpandImage={setFullScreenImageUrl}
           />
         ) : landingState.proposedStructure && landingState.phase === 'landing' ? (
           <LandingStructure
@@ -158,6 +159,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             onAutoGenerate={onAutoGenerate}
             onStopAutoGenerate={onStopAutoGenerate}
             previewSectionId={previewSectionId}
+            onExpandImage={setFullScreenImageUrl}
           />
         ) : landingState.proposedStructure && landingState.phase === 'ads' ? (
           <AdsStrategy
@@ -178,6 +180,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             setAdEditInstructions={setAdEditInstructions}
             onRefineAdConcept={onRefineAdConcept}
             onAddAdConcept={onAddAdConcept}
+            onExpandImage={setFullScreenImageUrl}
           />
         ) : creativePaths ? (
           <PathSelector creativePaths={creativePaths} onSelectPath={onSelectPath} />
@@ -203,7 +206,11 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
         )}
 
         <StrategyPanel showStrategyPanel={showStrategyPanel} setShowStrategyPanel={setShowStrategyPanel} data={data} />
-        <FullScreenPreview fullScreenImageUrl={fullScreenImageUrl} setFullScreenImageUrl={setFullScreenImageUrl} onSelectReference={onSelectReference} />
+        <FullScreenPreview
+          fullScreenImageUrl={fullScreenImageUrl}
+          setFullScreenImageUrl={setFullScreenImageUrl}
+          onSelectReference={landingState.selectedSectionId ? onSelectReference : undefined}
+        />
       </div>
     </div>
   );

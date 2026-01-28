@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaEllipsisH, FaHeart, FaComment, FaPaperPlane, FaBookmark } from 'react-icons/fa';
+import { FaEllipsisH, FaHeart, FaComment, FaPaperPlane, FaBookmark, FaSearchPlus } from 'react-icons/fa';
 
 interface InstagramPostProps {
   imageUrl: string;
@@ -9,6 +9,7 @@ interface InstagramPostProps {
   isLoading?: boolean;
   aspectRatio?: '1:1' | '9:16';
   className?: string;
+  onExpand?: (url: string) => void;
 }
 
 const InstagramPost: React.FC<InstagramPostProps> = ({
@@ -18,7 +19,8 @@ const InstagramPost: React.FC<InstagramPostProps> = ({
   title = "Concepto de Ad",
   isLoading = false,
   aspectRatio = '1:1',
-  className = ""
+  className = "",
+  onExpand
 }) => {
   return (
     <div className={`w-full max-w-[400px] bg-[#0A0A0A] border border-white/10 rounded-xl overflow-hidden flex flex-col shadow-2xl animate-in fade-in duration-500 group/igpost ${className}`}>
@@ -51,6 +53,19 @@ const InstagramPost: React.FC<InstagramPostProps> = ({
             alt={title}
             className="w-full h-full object-cover transition-all duration-700 group-hover/igpost:scale-110"
           />
+        )}
+
+        {/* Expansion Overlay */}
+        {!isLoading && imageUrl && onExpand && (
+          <div
+            onClick={() => onExpand(imageUrl)}
+            className="absolute inset-0 bg-black/40 opacity-0 group-hover/igpost:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-zoom-in z-20 gap-2"
+          >
+            <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white scale-90 group-hover/igpost:scale-100 transition-transform">
+              <FaSearchPlus />
+            </div>
+            <span className="text-[8px] font-black text-white uppercase tracking-[0.2em]">Ver / Descargar</span>
+          </div>
         )}
 
         {/* CTA Button Overlay (Instagram style) */}

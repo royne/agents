@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaChevronRight, FaEdit } from 'react-icons/fa';
+import { FaChevronRight, FaEdit, FaSearchPlus } from 'react-icons/fa';
 import { LandingGenerationState, AspectRatio } from '../../../types/image-pro';
 
 interface SectionPreviewProps {
@@ -13,6 +13,7 @@ interface SectionPreviewProps {
   setEditInstructions: (val: string) => void;
   onGenerateSection?: (sectionId: string, sectionTitle: string, isCorrection?: boolean, manualInstructions?: string, aspectRatio?: AspectRatio) => void;
   onSelectSection?: (sectionId: string) => void;
+  onExpandImage?: (url: string) => void;
 }
 
 const SectionPreview: React.FC<SectionPreviewProps> = ({
@@ -25,7 +26,8 @@ const SectionPreview: React.FC<SectionPreviewProps> = ({
   setEditingSectionId,
   setEditInstructions,
   onGenerateSection,
-  onSelectSection
+  onSelectSection,
+  onExpandImage
 }) => {
   const generation = landingState.generations[previewSectionId];
   if (!generation) return null;
@@ -44,6 +46,18 @@ const SectionPreview: React.FC<SectionPreviewProps> = ({
           src={generation.imageUrl || 'https://via.placeholder.com/1080x1920?text=Generando...'}
           className={`w-full h-full object-contain ${generation.status === 'pending' ? 'opacity-40 grayscale' : ''}`}
         />
+
+        {!isGeneratingAsset && generation.status === 'completed' && onExpandImage && (
+          <div
+            onClick={() => onExpandImage(generation.imageUrl)}
+            className="absolute inset-0 bg-black/40 opacity-0 group-hover/preview:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-zoom-in z-20 gap-3"
+          >
+            <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white scale-90 group-hover/preview:scale-100 transition-transform">
+              <FaSearchPlus className="text-xl" />
+            </div>
+            <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Ampliar / Descargar</span>
+          </div>
+        )}
         <div className="absolute top-4 left-4 p-2 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-[10px] font-black uppercase text-primary-color tracking-widest shadow-2xl">
           {generation.aspectRatio || '9:16'} {(generation.aspectRatio || '9:16') === '9:16' ? 'Mobile Optimized' : 'Square Format'}
         </div>

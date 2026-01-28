@@ -32,6 +32,7 @@ interface AdsStrategyProps {
   onStopAutoGenerate?: () => void;
   onRefineAdConcept?: (conceptId: string, feedback?: string) => void;
   onAddAdConcept?: () => void;
+  onExpandImage?: (url: string) => void;
 }
 
 const AdsStrategy: React.FC<AdsStrategyProps> = ({
@@ -51,7 +52,8 @@ const AdsStrategy: React.FC<AdsStrategyProps> = ({
   onAutoGenerate,
   onStopAutoGenerate,
   onRefineAdConcept,
-  onAddAdConcept
+  onAddAdConcept,
+  onExpandImage
 }) => {
   const [refiningAdId, setRefiningAdId] = React.useState<string | null>(null);
 
@@ -154,6 +156,7 @@ const AdsStrategy: React.FC<AdsStrategyProps> = ({
                       title={concept.title}
                       aspectRatio={currentAspect}
                       isLoading={generation?.status === 'pending'}
+                      onExpand={onExpandImage}
                       className="!max-w-full"
                     />
                   ) : (
@@ -297,7 +300,7 @@ const AdsStrategy: React.FC<AdsStrategyProps> = ({
 
         {/* MOCKUP COLUMN - Sticky */}
         <div className="lg:sticky lg:top-4 h-fit hidden lg:block">
-          <PhoneMockup landingState={landingState} viewMode="landing" />
+          <PhoneMockup landingState={landingState} viewMode="landing" onExpandImage={onExpandImage} />
         </div>
       </div>
     </div>

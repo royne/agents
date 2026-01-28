@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaCheckCircle, FaChevronRight } from 'react-icons/fa';
+import { FaCheckCircle, FaChevronRight, FaDownload } from 'react-icons/fa';
 
 interface FullScreenPreviewProps {
   fullScreenImageUrl: string | null;
@@ -12,6 +12,28 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
   setFullScreenImageUrl,
   onSelectReference
 }) => {
+  const handleDownload = async () => {
+    if (!fullScreenImageUrl) return;
+    try {
+      const response = await fetch(fullScreenImageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      // Get filename from URL or default to generation
+      const fileName = fullScreenImageUrl.split('/').pop() || 'dropapp-generation.png';
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      // Fallback: open in new tab
+      window.open(fullScreenImageUrl, '_blank');
+    }
+  };
+
   if (!fullScreenImageUrl) return null;
 
   return (
@@ -34,22 +56,33 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
         </div>
 
         <div className="flex items-center gap-4">
-          <button
-            onClick={() => {
-              onSelectReference?.(fullScreenImageUrl);
-              setFullScreenImageUrl(null);
-            }}
-            className="px-8 py-4 bg-primary-color text-black font-black rounded-2xl text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary-color/20 flex items-center gap-2"
-          >
-            <FaCheckCircle /> Seleccionar este estilo
-          </button>
+          {!onSelectReference ? (
+            <button
+              onClick={handleDownload}
+              className="px-8 py-4 bg-primary-color text-black font-black rounded-2xl text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary-color/20 flex items-center gap-2"
+            >
+              <FaDownload /> Descargar Imagen
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                onSelectReference?.(fullScreenImageUrl);
+                setFullScreenImageUrl(null);
+              }}
+              className="px-8 py-4 bg-primary-color text-black font-black rounded-2xl text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary-color/20 flex items-center gap-2"
+            >
+              <FaCheckCircle /> Seleccionar este estilo
+            </button>
+          )}
 
-          <button
-            onClick={() => setFullScreenImageUrl(null)}
-            className="px-8 py-4 bg-white/10 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest border border-white/10 hover:bg-white/20 transition-all"
-          >
-            Cerrar Vista
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setFullScreenImageUrl(null)}
+              className="px-8 py-4 bg-white/10 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest border border-white/10 hover:bg-white/20 transition-all"
+            >
+              Cerrar Vista
+            </button>
+          </div>
         </div>
       </div>
 

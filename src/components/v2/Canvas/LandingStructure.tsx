@@ -12,6 +12,7 @@ interface LandingStructureProps {
   onAutoGenerate?: () => void;
   onStopAutoGenerate?: () => void;
   previewSectionId: string | null;
+  onExpandImage?: (url: string) => void;
 }
 
 const LandingStructure: React.FC<LandingStructureProps> = ({
@@ -22,7 +23,8 @@ const LandingStructure: React.FC<LandingStructureProps> = ({
   onGenerateAds,
   onAutoGenerate,
   onStopAutoGenerate,
-  previewSectionId
+  previewSectionId,
+  onExpandImage
 }) => {
   if (!landingState.proposedStructure) return null;
 
@@ -139,6 +141,7 @@ const LandingStructure: React.FC<LandingStructureProps> = ({
             <PhoneMockup
               landingState={landingState}
               viewMode="landing"
+              onExpandImage={onExpandImage}
             />
           </div>
 
