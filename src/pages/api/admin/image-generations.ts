@@ -59,7 +59,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         profiles (
           name,
           email,
-          avatar_url
+          avatar_url,
+          plan
         )
       `, { count: 'exact' })
       .eq('status', 'completed')
