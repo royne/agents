@@ -20,15 +20,16 @@ interface DbPlan {
 
 const PLANS_METADATA: Record<string, { tagline: string; highlight: boolean; buttonText: string; features: string[] }> = {
   free: {
-    tagline: 'Validación / Free',
+    tagline: 'Free',
     highlight: false,
     buttonText: 'Empezar Gratis',
     features: [
-      'Imagen Pro (Ads y Personas) - 10 cr',
-      'Agentes IA Especializados - 1 cr',
-      'Logística (Análisis Básico) - $0 cr',
-      'Calculadora de Precios - $0 cr',
-      'Landing Fast Incluida'
+      '50 Créditos',
+      'Comienza con el Lanzamiento de tu producto y prueba la potencia de nuestro estartega',
+      'Analizador de Productos AI: Sube tu imagen y descubre ángulos de venta ganadores',
+      'Calculadora de Precios: Proyecta tu rentabilidad por país de forma ilimitada',
+      'Gestión Logística y rentable: Analiza tus informes de Dropi',
+      'Acceso a Agentes AI: Prueba los agentes de venta predeterminados'
     ],
   },
   starter: {
@@ -36,11 +37,13 @@ const PLANS_METADATA: Record<string, { tagline: string; highlight: boolean; butt
     highlight: false,
     buttonText: 'Seleccionar Starter',
     features: [
-      'Todo lo de Plan FREE',
-      'Video Pro UGC (Hasta 8s) - 80 cr',
-      'Master Chat de Ventas',
-      'Análisis de Rentabilidad Detallado',
-      'Landing Pro Incluida'
+      '500 Créditos mensuales',
+      'Hasta 5 Lanzamientos Completos (Estrategia + Landing + Ads)',
+      'Analizador de Productos',
+      'Creador manual de Imágenes y landing (individual, hasta 50 imágenes)',
+      'Video UGC',
+      'Análisis Gestión rentable y logística (Dropi)',
+      'Calculadora de Precios',
     ],
   },
   pro: {
@@ -48,10 +51,14 @@ const PLANS_METADATA: Record<string, { tagline: string; highlight: boolean; butt
     highlight: true,
     buttonText: 'Elegir PRO',
     features: [
-      'Todo lo de Plan Starter',
-      'Landing Pro Completas & Secciones',
-      'Auditoría de Rentabilidad Avanzada',
-      'Análisis de Fletes y Devoluciones',
+      '1.200 Créditos mensuales',
+      'Hasta 12 Lanzamientos Completos (Ideal para testeo intensivo)',
+      'Analizador de Productos',
+      'Creador manual de Imágenes y landing (individual, hasta 120 imágenes)',
+      'Video UGC',
+      'Agentes IA Personalizados (Entrena la IA con tu estilo)',
+      'Análisis Gestión rentable y logística (Dropi)',
+      'Calculadora de Precios',
       'Soporte Prioritario'
     ],
   },
@@ -60,11 +67,16 @@ const PLANS_METADATA: Record<string, { tagline: string; highlight: boolean; butt
     highlight: false,
     buttonText: 'Seleccionar Business',
     features: [
-      'Todo lo de Plan PRO',
-      'Consultoría Financiera IA',
-      'Análisis de logística, ultimos movimientos',
+      '3.000 Créditos mensuales',
+      'Hasta 30 Lanzamientos Completos (Ideal para testeo escalar tu negocio)',
+      'Analizador de Productos',
+      'Creador manual de Imágenes y landing (individual, hasta 300 imágenes)',
+      'Video UGC',
+      'Agentes IA Personalizados (Entrena la IA con tu estilo)',
+      'Análisis Gestión rentable y logística (Dropi)',
+      'Calculadora de Precios',
       'Soporte VIP por WhatsApp',
-      'Acceso Early Bird a Nuevos Agentes'
+      'Acceso Early Bird a Nuevas Funciones'
     ],
   }
 };
