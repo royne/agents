@@ -14,18 +14,20 @@ const PublicLanding: React.FC = () => {
     const gens: Record<string, any> = {};
     const sections: any[] = [];
 
-    SHOWCASE_LANDING_SECTIONS.forEach(s => {
-      sections.push({
-        sectionId: s.sectionId,
-        title: s.title,
-        reasoning: "Diseño optimizado para conversión."
+    [...SHOWCASE_LANDING_SECTIONS]
+      .sort(() => Math.random() - 0.5)
+      .forEach(s => {
+        sections.push({
+          sectionId: s.sectionId,
+          title: s.title,
+          reasoning: "Diseño optimizado para conversión."
+        });
+        gens[s.sectionId] = {
+          status: 'completed',
+          imageUrl: s.imageUrl,
+          copy: { headline: s.headline, body: s.body }
+        };
       });
-      gens[s.sectionId] = {
-        status: 'completed',
-        imageUrl: s.imageUrl,
-        copy: { headline: s.headline, body: s.body }
-      };
-    });
 
     return {
       phase: 'landing',
