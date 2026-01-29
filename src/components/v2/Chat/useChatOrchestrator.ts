@@ -69,25 +69,23 @@ export function useChatOrchestrator({
     
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 25000); // Sincronizado con Vercel (25s)
 
-      // DATA DIET: Strip heavy base64 images from state before sending to AI
-      // We only need the text structure and status, not the actual pixels.
+      // 1. DATA DIET & ISOLATION: Enviamos solo los campos de TEXTO del ADN.
+      // Así evitamos fugar Base64 pesados que causan timeouts.
+      const cleanDNA = productData ? {
+        name: productData.name,
+        angle: productData.angle,
+        buyer: productData.buyer,
+        details: productData.details
+      } : null;
+
+      // 2. LEAN STATE: Quitamos imágenes del estado de landing si existe.
       const leanLandingState = landingState ? {
         ...landingState,
-        baseImageUrl: undefined, // Remove original photo
-        generations: Object.fromEntries(
-          Object.entries(landingState.generations).map(([id, gen]) => [
-            id, 
-            { ...gen, imageUrl: undefined } // Remove generated section pixels
-          ])
-        ),
-        adGenerations: Object.fromEntries(
-          Object.entries(landingState.adGenerations).map(([id, gen]) => [
-            id,
-            { ...gen, imageUrl: undefined } // Remove generated ad pixels
-          ])
-        )
+        baseImageUrl: undefined,
+        generations: {}, // No las necesitamos para el refinamiento estratégico
+        adGenerations: {}
       } : null;
 
       const response = await fetch('/api/v2/chat', {
@@ -95,8 +93,8 @@ export function useChatOrchestrator({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [...messages, userMessage],
-          productData,
-          creativePaths,
+          productData: cleanDNA,
+          creativePaths: [], // No los enviamos para ahorrar payload
           landingState: leanLandingState
         }),
         signal: controller.signal
@@ -104,37 +102,51 @@ export function useChatOrchestrator({
 
       clearTimeout(timeoutId);
       const result = await response.json();
-      console.log('[useChatOrchestrator] API Result Full:', result);
       
       if (result.success) {
-        const { text, protocol } = result.data;
+        const { text, delta, protocol } = result.data;
 
-        if (protocol) {
-          console.log('[useChatOrchestrator] Protocol received:', protocol.action, protocol.data);
+        // 3. ACTUALIZACIÓN POR DELTA (Modular):
+        // Si el agente devuelve un delta (cambios), los aplicamos quirúrgicamente.
+        if (delta) {
+          console.log('[useChatOrchestrator] Delta received:', delta);
+          setProductData(prev => {
+            if (!prev) return prev;
+            const updated = { ...prev };
+            if (delta.name?.updated) updated.name = delta.name.value;
+            if (delta.angle?.updated) updated.angle = delta.angle.value;
+            if (delta.buyer?.updated) updated.buyer = delta.buyer.value;
+            if (delta.details?.updated) updated.details = delta.details.value;
+            return updated;
+          });
+          setSuccess?.('Estrategia actualizada correctamente.');
+        }
+
+        // Mantener compatibilidad con protocolos antiguos por si acaso
+        if (protocol && !delta) {
           if (protocol.action === 'UPDATE_DNA') {
-            console.log('[useChatOrchestrator] Updating DNA with:', protocol.data);
             setProductData(prev => ({ ...prev, ...protocol.data } as ProductData));
-            setSuccess?.('ADN de producto actualizado con éxito.');
           } else if (protocol.action === 'UPDATE_SECTION') {
-            console.log('[useChatOrchestrator] Updating Section Instruction:', protocol.data.sectionId);
             onUpdateSection?.(protocol.data.sectionId, protocol.data.extraInstructions);
-          } else if (protocol.action === 'REGENERATE_STRUCTURE') {
-            console.log('[useChatOrchestrator] Regenerating whole structure...');
-            if (landingState?.baseImageUrl) {
-              onDiscover({ url: landingState.baseImageUrl });
-              setSuccess?.('Re-formulando estrategia y estructura...');
-            }
           }
         }
 
         setMessages(prev => [...prev, { role: 'assistant', content: text }]);
       } else {
-        console.error('[useChatOrchestrator] API Error:', result.error);
-        setMessages(prev => [...prev, { role: 'assistant', content: 'Parece que tengo un problema de conexión. ¿Podemos reintentar?' }]);
+        throw new Error(result.error || 'API Error');
       }
-    } catch (error) {
-      console.error('[useChatOrchestrator] Critical Fetch Error:', error);
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Error crítico de comunicación. Revisa tu conexión.' }]);
+    } catch (error: any) {
+      console.error('[useChatOrchestrator] Critical Error:', error.message);
+      
+      // 4. MECANISMO DE ROLLBACK:
+      // Si falla, eliminamos el último mensaje del usuario para evitar el "Death Loop" de Gemini.
+      setMessages(prev => prev.slice(0, -1));
+      
+      const errorMsg = error.name === 'AbortError' 
+        ? 'El servidor tardó demasiado en responder. He limpiado el historial para que puedas reintentar con una instrucción más corta.' 
+        : 'Error de comunicación. El historial se ha restaurado para evitar bloqueos.';
+      
+      setMessages(prev => [...prev, { role: 'assistant', content: errorMsg }]);
     } finally {
       setIsThinking(false);
     }

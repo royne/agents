@@ -1,4 +1,5 @@
 import { CreativePath, ProductData, LandingGenerationState, ChatResponse } from '../../types/image-pro';
+import { StrategicRefiner } from './StrategicRefiner';
 
 export class ChatOrchestratorAgent {
   static async chat(
@@ -9,6 +10,18 @@ export class ChatOrchestratorAgent {
   ): Promise<ChatResponse> {
     console.log('[ChatOrchestratorAgent] Generating response...');
 
+    // 1. DELEGACIÓN (Modular)
+    if (productData) {
+      try {
+        console.log('[ChatOrchestratorAgent] Delegating to StrategicRefiner...');
+        return await StrategicRefiner.refine(messages, productData);
+      } catch (refinerError: any) {
+        console.error('[ChatOrchestratorAgent] Refiner failed, falling back to legacy logic...', refinerError.message);
+        // Continuar con la lógica legacy si el refiner falla
+      }
+    }
+
+    // 2. LÓGICA LEGACY (Fallback / Descubrimiento inicial)
     const googleKey = process.env.GOOGLE_AI_KEY;
     if (!googleKey) throw new Error('Google AI Key is missing.');
 
