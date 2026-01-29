@@ -49,6 +49,7 @@ export class CopywriterAgent {
       4. For 'hero' sections, focus on the big hook.
       5. For 'oferta', focus on scarcity and value.
       6. For 'beneficios', focus on the transformation.
+      7. TONE & EMPATHY: Balance technical authority with emotional empathy. Avoid cold clinical jargon especially in health/wellness. Focus on relatable human transformations.
       
       Respond ONLY with a JSON object in this format:
       {

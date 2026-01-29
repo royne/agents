@@ -58,6 +58,11 @@ export class LandingServiceV2 extends BaseImageProService {
     - If finalPrompt includes specific color/atmosphere instructions, they take absolute priority.
 
     SECTION OBJECTIVE (TEXT SOURCE): ${finalPrompt}
+
+    PHOTOREALISM & PEOPLE (CRITICAL):
+    - If people are present: Ensure ultra-realistic skin textures (natural pores, subtle imperfections), lifelike hair, and natural eye reflections.
+    - Avoid plastic, rubbery, or AI-generated 'perfect' look. Micro-expressions must feel authentic and human.
+    - Lighting on people must match the environment with professional studio or natural depth.
     
     CRITICAL TEXT & IDENTITY RULES:
     - NO COPYING TEXT from ITEM 2 (Reference). The reference is for LAYOUT ONLY.

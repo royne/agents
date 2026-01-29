@@ -70,7 +70,7 @@ class ImageAnalysisStrategy implements DiscoveryStrategy {
         "name": "Nombre conciso del producto",
         "angle": "Ángulo de venta ganador o propuesta de valor enfocado en los puntos de dolor, reptiles, beneficios del comprador ideal",
         "buyer": "Perfil psicográfico del comprador ideal",
-        "details": "ADN VISUAL: Describe colores predominantes, texturas (mate/brillante) y materiales. Sugiere brevemente el estilo que mejor conecte con el perfil del comprador definido y el angulo de venta"
+        "details": "ADN VISUAL & VOZ: Describe colores, texturas y materiales. Captura el 'vibe' de la marca (lujoso, técnico, empático, etc.) para guiar el tono del copy y el estilo visual que mejor conecte con el perfil del comprador definido y el angulo de venta."
       }
       Respond ONLY with the JSON.
     `;

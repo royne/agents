@@ -66,6 +66,10 @@ export class AdsServiceV2 extends BaseImageProService {
     3. VISUAL CTA: Render the sticker/badge precisely where it appears in ITEM 2 using the text "${adCta || ''}".
     - USER SPECIFIC OVERRIDE: ${extraInstructions ? extraInstructions : 'None'}
     
+    PHOTOREALISM & PEOPLE (CRITICAL):
+    - If people are present: Ensure ultra-realistic skin textures (natural pores, subtle imperfections), lifelike hair, and natural eye reflections.
+    - Avoid plastic or airbrushed looks. High-end commercial realism.
+    
     FORMAT: ${aspectRatio === '1:1' ? '1:1 square' : '9:16 vertical'} orientation. 2k resolution (max 2000px). Cinematic high quality.`;
     } else {
       console.log('[AdsServiceV2] Mode: Native (de 0)');
@@ -87,7 +91,9 @@ export class AdsServiceV2 extends BaseImageProService {
     3. CRITICAL: Do NOT render long paragraphs or the full VALUE PROP text on the image. Keep the visual clean.
     4. VISUAL CTA: Render a modern sticker/badge, flag, button or label that says "${adCta || ''}". Use high-contrast colors (red, yellow, or neon) to make it POP. Place it strategically (corner or near product) as a conversion signal.
     5. PRODUCT FIDELITY: ITEM 1 (PREVIOUS PRODUCT) is the absolute reference. Perfect label and shape.
-    6. ATMOSPHERE: High-end lifestyle or premium studio context.
+    PHOTOREALISM & PEOPLE (CRITICAL):
+    - If people are present: Ultra-realistic skin (natural pores, imperfections), lifelike hair.
+    - Lighting must be high-end lifestyle or premium studio context.
     
     FORMAT OPTIMIZATION:
     - ${aspectRatio === '1:1' ? '1: square' : '9:16 vertical'}.
