@@ -45,7 +45,9 @@ interface ArtifactViewerProps {
   onRefineAdConcept?: (conceptId: string, feedback?: string) => void;
   onAddAdConcept?: () => void;
   onRegeneratePaths?: () => void;
-  setPhase?: (phase: 'landing' | 'ads') => void;
+  onBackToPaths?: () => void;
+  onForwardToLanding?: () => void;
+  setPhase?: (phase: 'discovery' | 'landing' | 'ads') => void;
 }
 
 const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
@@ -68,6 +70,8 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   onRefineAdConcept,
   onAddAdConcept,
   onRegeneratePaths,
+  onBackToPaths,
+  onForwardToLanding,
   setPhase
 }: ArtifactViewerProps) => {
   const [references, setReferences] = useState<any[]>([]);
@@ -160,6 +164,7 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             onGenerateAds={onGenerateAds}
             onAutoGenerate={onAutoGenerate}
             onStopAutoGenerate={onStopAutoGenerate}
+            onBackToPaths={onBackToPaths}
             previewSectionId={previewSectionId}
             onExpandImage={setFullScreenImageUrl}
           />
@@ -185,7 +190,13 @@ const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             onExpandImage={setFullScreenImageUrl}
           />
         ) : creativePaths ? (
-          <PathSelector creativePaths={creativePaths} onSelectPath={onSelectPath} onRegenerate={onRegeneratePaths} />
+          <PathSelector
+            creativePaths={creativePaths}
+            onSelectPath={onSelectPath}
+            onRegenerate={onRegeneratePaths}
+            hasLandingStructure={!!landingState.proposedStructure}
+            onForward={onForwardToLanding}
+          />
         ) : data ? (
           <DiscoveryPanel data={data} onConfirmDiscovery={onConfirmDiscovery} />
         ) : error ? (

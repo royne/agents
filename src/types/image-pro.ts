@@ -68,7 +68,7 @@ export interface AdGeneration {
 }
 
 export interface LandingGenerationState {
-  phase: 'landing' | 'ads';
+  phase: 'discovery' | 'landing' | 'ads';
   proposedStructure: LandingLayoutProposal | null;
   selectedSectionId: string | null;
   selectedReferenceUrl: string | null;
@@ -79,6 +79,7 @@ export interface LandingGenerationState {
   isAutoMode?: boolean; // New: indicates if autopilot is active
   autoModeQueue?: string[]; // New: queue of pending section/concept IDs
   launchId?: string; // New: linking everything to a commercial launch
+  selectedPath?: CreativePath; // New: persists the chosen strategy
 }
 
 export interface LandingSection {

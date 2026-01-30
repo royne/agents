@@ -32,12 +32,36 @@ const CREATIVE_CATALOG: CreativePackage[] = [
     category: 'both',
     style: 'Authentic & Natural',
     tone: 'Cercano y Auténtico'
+  },
+  {
+    id: 'problem-solution',
+    name: 'Dolor y Alivio',
+    description: 'Enfoque en el problema vs la solución. Gráficos de comparación de "Antes/Después" realistas no exagerados y validación técnica o testimonial medida para no infringir politicas de ads (meta, tiktok, etc).',
+    category: 'both',
+    style: 'High Contrast & Comparative',
+    tone: 'Empático pero Resolutivo'
+  },
+  {
+    id: 'educational-authority',
+    name: 'Autoridad Educativa',
+    description: 'Infografías, desglose de componentes y esquemas técnicos. Posiciona el producto como la opción inteligente para un comprador informado.',
+    category: 'both',
+    style: 'Informative & Structured',
+    tone: 'Educativo y Confiable'
+  },
+  {
+    id: 'storytelling-emotional',
+    name: 'Viaje Emocional',
+    description: 'Narrativa centrada en el cambio de vida del usuario. Colores cálidos, enfoque en los sentimientos post-compra y menos en las specs técnicas.',
+    category: 'both',
+    style: 'Warm & Cinematic',
+    tone: 'Inspiracional y Humano'
   }
 ];
 
 export class CreativeDirector {
-  static async recommend(productData: ProductData): Promise<CreativePath[]> {
-    console.log('[CreativeDirector] Recommending paths for:', productData.name);
+  static async recommend(productData: ProductData, excludeIds: string[] = []): Promise<CreativePath[]> {
+    console.log('[CreativeDirector] Recommending paths for:', productData.name, 'Excluding:', excludeIds);
 
     const googleKey = process.env.GOOGLE_AI_KEY;
     if (!googleKey) throw new Error('Google AI Key is missing.');
@@ -53,12 +77,14 @@ export class CreativeDirector {
       - Visual Details: ${productData.details}
       
       CATALOG:
-      ${JSON.stringify(CREATIVE_CATALOG, null, 2)}
+      ${JSON.stringify([...CREATIVE_CATALOG].sort(() => Math.random() - 0.5), null, 2)}
       
       INSTRUCTIONS:
       1. Select EXACTLY 3 paths (objects from the catalog).
-      2. Provide a concise strategic justification for each selection in Spanish (max 2 sentences).
-      3. Respond ONLY with a JSON array in the following format:
+      2. CRITICAL: Avoid selecting any of these IDs if possible, as the user already rejected them: ${excludeIds.join(', ')}.
+      3. Focus on finding the NEXT BEST alternatives that are still highly relevant to the Product DNA but offer a different strategic perspective.
+      4. Provide a concise strategic justification in Spanish (max 3 sentences).
+      5. Respond ONLY with a JSON array in the following format:
       [
         {
           "package": { ...package object... },
@@ -78,7 +104,10 @@ export class CreativeDirector {
           contents: [{
             role: 'user',
             parts: [{ text: prompt }]
-          }]
+          }],
+          generationConfig: {
+            response_mime_type: "application/json"
+          }
         })
       });
 
@@ -87,8 +116,16 @@ export class CreativeDirector {
       
       if (!text) throw new Error('Creative Director failed to generate recommendations.');
 
-      const jsonStr = text.replace(/```json|```/g, '').trim();
-      return JSON.parse(jsonStr) as CreativePath[];
+      const paths = JSON.parse(text) as CreativePath[];
+
+      // Validation & Sanitization: Ensure we have valid objects
+      const validatedPaths = paths
+        .filter(p => p.package && p.package.id && p.package.name)
+        .slice(0, 3); // Strictly 3
+
+      if (validatedPaths.length === 0) throw new Error('No valid paths generated.');
+      
+      return validatedPaths;
 
     } catch (error: any) {
       console.error('[CreativeDirector] Error:', error.message);

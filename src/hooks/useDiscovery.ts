@@ -222,10 +222,16 @@ export function useDiscovery() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
 
+      const excludeIds = creativePaths 
+        ? creativePaths
+            .filter(p => p?.package?.id) 
+            .map(p => p.package.id) 
+        : [];
+
       const response = await fetch('/api/v2/creative/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productData: cleanDNA }),
+        body: JSON.stringify({ productData: cleanDNA, excludeIds }),
         signal: controller.signal
       });
 
@@ -272,7 +278,12 @@ export function useDiscovery() {
       });
       const result = await response.json();
       if (result.success) {
-        setLandingState(prev => ({ ...prev, proposedStructure: result.data }));
+        setLandingState(prev => ({ 
+          ...prev, 
+          proposedStructure: result.data,
+          phase: 'landing', // Cambiar a fase landing
+          selectedPath: creativePath 
+        }));
       } else {
         setError(result.error || 'Failed to generate landing proposal.');
       }
@@ -280,6 +291,24 @@ export function useDiscovery() {
       setError(err.message || 'Error connecting to landing designer.');
     } finally {
       setIsDesigning(false);
+    }
+  };
+
+  const backToPaths = () => {
+    setLandingState(prev => ({
+      ...prev,
+      phase: 'discovery', // Cambiar fase en lugar de borrar todo
+      selectedPath: undefined
+    }));
+
+    if (creativePaths && creativePaths.length <= 1) {
+      getCreativeRecommendations();
+    }
+  };
+
+  const forwardToLanding = () => {
+    if (landingState.proposedStructure) {
+      setLandingState(prev => ({ ...prev, phase: 'landing' }));
     }
   };
 
@@ -348,7 +377,7 @@ export function useDiscovery() {
     console.log('[useDiscovery] Using extraInstructions:', extraInstructions);
 
     try {
-      const creativePath = creativePaths?.[0]; // Defaulting to first for now, ideally pass selected
+      const creativePath = landingState.selectedPath || creativePaths?.[0]; 
       if (!creativePath) {
         console.error('[useDiscovery] generateSection ERROR: No creative path available');
         throw new Error('No creative path selected');
@@ -523,7 +552,7 @@ export function useDiscovery() {
     }
   };
 
-  const setPhase = (phase: 'landing' | 'ads') => {
+  const setPhase = (phase: 'discovery' | 'landing' | 'ads') => {
     setLandingState(prev => ({ ...prev, phase }));
   };
 
@@ -797,7 +826,8 @@ export function useDiscovery() {
 
       // Hidratar estados globales
       setProductData(launch.product_dna);
-      setCreativePaths(launch.creative_strategy ? [launch.creative_strategy] : null);
+      const initialPaths = launch.creative_strategy ? [launch.creative_strategy] : null;
+      setCreativePaths(initialPaths);
       
       setLandingState({
         phase: 'landing',
@@ -810,6 +840,16 @@ export function useDiscovery() {
         launchId: launch.id,
         baseImageUrl: launch.thumbnail_url
       });
+
+      // Si no hay estrategia creativa seleccionada pero el producto ya fue descubierto,
+      // disparamos automáticamente las recomendaciones para facilitar el flujo.
+      if (!launch.creative_strategy && launch.product_dna) {
+        console.log('[useDiscovery] No strategy found for loaded launch, fetching recommendations...');
+        // Pequeño timeout para asegurar que el estado se ha propagado
+        setTimeout(() => {
+          getCreativeRecommendations();
+        }, 500);
+      }
 
       setSuccess?.('Producto cargado correctamente.');
     } catch (err: any) {
@@ -854,6 +894,8 @@ export function useDiscovery() {
     generateAdImage,
     getAdConcepts,
     addAdConcept,
+    backToPaths,
+    forwardToLanding,
     setPhase,
     resetDiscovery,
     setProductData,

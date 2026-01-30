@@ -11,13 +11,13 @@ export default async function handler(req: NextRequest) {
   }
 
   try {
-    const { productData } = await req.json();
+    const { productData, excludeIds } = await req.json();
 
     if (!productData) {
       return NextResponse.json({ error: 'Missing product data' }, { status: 400 });
     }
 
-    const paths = await CreativeDirector.recommend(productData);
+    const paths = await CreativeDirector.recommend(productData, excludeIds || []);
 
     return NextResponse.json({
       success: true,

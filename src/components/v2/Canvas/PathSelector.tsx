@@ -1,14 +1,22 @@
 import React from 'react';
-import { FaRocket, FaBullseye, FaMagic } from 'react-icons/fa';
+import { FaRocket, FaBullseye, FaMagic, FaChevronRight } from 'react-icons/fa';
 import { CreativePath } from '../../../types/image-pro';
 
 interface PathSelectorProps {
   creativePaths: CreativePath[];
   onSelectPath?: (path: CreativePath) => void;
   onRegenerate?: () => void;
+  hasLandingStructure?: boolean; // New
+  onForward?: () => void; // New
 }
 
-const PathSelector: React.FC<PathSelectorProps> = ({ creativePaths, onSelectPath, onRegenerate }) => {
+const PathSelector: React.FC<PathSelectorProps> = ({
+  creativePaths,
+  onSelectPath,
+  onRegenerate,
+  hasLandingStructure,
+  onForward
+}) => {
   return (
     <div className="w-full max-w-4xl space-y-8 animate-in fade-in slide-in-from-bottom duration-1000">
       <div className="text-center space-y-2 mb-8">
@@ -46,13 +54,22 @@ const PathSelector: React.FC<PathSelectorProps> = ({ creativePaths, onSelectPath
         ))}
       </div>
 
-      <div className="flex justify-center pt-8">
+      <div className="flex justify-center items-center gap-4 pt-8">
         <button
           onClick={onRegenerate}
           className="px-8 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/10 transition-all text-[10px] uppercase tracking-widest font-black flex items-center gap-3 backdrop-blur-md active:scale-95"
         >
           <FaMagic className="text-primary-color" /> Probar otros ángulos
         </button>
+
+        {hasLandingStructure && (
+          <button
+            onClick={onForward}
+            className="px-8 py-3 bg-primary-color hover:scale-105 text-black rounded-2xl border border-white/10 transition-all text-[10px] uppercase tracking-widest font-black flex items-center gap-3 shadow-xl shadow-primary-color/20 active:scale-95"
+          >
+            Ver diseño actual <FaChevronRight className="text-[8px] mt-0.5" />
+          </button>
+        )}
       </div>
     </div>
   );

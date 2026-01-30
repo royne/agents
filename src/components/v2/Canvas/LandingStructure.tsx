@@ -11,6 +11,7 @@ interface LandingStructureProps {
   onGenerateAds?: () => void;
   onAutoGenerate?: () => void;
   onStopAutoGenerate?: () => void;
+  onBackToPaths?: () => void; // New
   previewSectionId: string | null;
   onExpandImage?: (url: string) => void;
 }
@@ -23,6 +24,7 @@ const LandingStructure: React.FC<LandingStructureProps> = ({
   onGenerateAds,
   onAutoGenerate,
   onStopAutoGenerate,
+  onBackToPaths,
   previewSectionId,
   onExpandImage
 }) => {
@@ -33,8 +35,21 @@ const LandingStructure: React.FC<LandingStructureProps> = ({
 
       {/* LEFT COLUMN: SECTIONS LIST */}
       <div className="flex-1 space-y-8">
-        <div className="text-left space-y-2 mb-8">
-          <h2 className="text-3xl font-black text-white tracking-tight">Diseño de Estructura</h2>
+        <div className="text-left space-y-4 mb-8">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <span className="text-primary-color text-[8px] font-black uppercase tracking-[0.3em] mb-1 block">Estilo: {landingState.selectedPath?.package.name || 'Personalizada'}</span>
+              <h2 className="text-3xl font-black text-white tracking-tight">Diseño de Estructura</h2>
+            </div>
+
+            <button
+              onClick={onBackToPaths}
+              className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white/50 hover:text-white rounded-xl border border-white/5 transition-all text-[9px] uppercase tracking-widest font-black flex items-center gap-2"
+            >
+              <FaChevronRight className="rotate-180" /> Cambiar estilo creativo
+            </button>
+          </div>
+
           <p className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold">Flujo de conversión personalizado para tu producto</p>
 
           {landingState.isAutoMode ? (
