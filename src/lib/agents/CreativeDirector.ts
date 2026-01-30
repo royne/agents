@@ -12,7 +12,7 @@ const CREATIVE_CATALOG: CreativePackage[] = [
   {
     id: 'minimal-scientific',
     name: 'Minimalista Científico',
-    description: 'Limpieza absoluta, tonos pastel o blancos, fotografía macro y texturas detalladas. Ideal para salud y belleza.',
+    description: 'Limpieza, tonos pastel o blancos, fotografía macro y texturas detalladas. Ideal para salud y belleza.',
     category: 'both',
     style: 'Clean & Soft',
     tone: 'Profesional y Confiable'

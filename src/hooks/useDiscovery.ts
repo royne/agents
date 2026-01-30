@@ -211,12 +211,25 @@ export function useDiscovery() {
     setIsRecommending(true);
     setError(null);
     try {
+      // Data Diet: Send only textual DNA to avoid timeout with heavy images
+      const cleanDNA = {
+        name: productData.name,
+        angle: productData.angle,
+        buyer: productData.buyer,
+        details: productData.details
+      };
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
+
       const response = await fetch('/api/v2/creative/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productData }),
+        body: JSON.stringify({ productData: cleanDNA }),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
       const result = await response.json();
 
       if (result.success) {
@@ -225,7 +238,11 @@ export function useDiscovery() {
         setError(result.error || 'Failed to get creative recommendations.');
       }
     } catch (err: any) {
-      setError(err.message || 'Error connecting to creative director.');
+      if (err.name === 'AbortError') {
+        setError('La recomendación creativa tardó demasiado. Por favor, intenta de nuevo.');
+      } else {
+        setError(err.message || 'Error connecting to creative director.');
+      }
     } finally {
       setIsRecommending(false);
     }
@@ -236,10 +253,22 @@ export function useDiscovery() {
     setIsDesigning(true);
     setError(null);
     try {
+      // Data Diet: Send only textual DNA
+      const cleanDNA = {
+        name: productData.name,
+        angle: productData.angle,
+        buyer: productData.buyer,
+        details: productData.details
+      };
+
       const response = await fetch('/api/v2/landing/design', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productData, creativePath, launchId: landingState.launchId }),
+        body: JSON.stringify({ 
+          productData: cleanDNA, 
+          creativePath, 
+          launchId: landingState.launchId 
+        }),
       });
       const result = await response.json();
       if (result.success) {
@@ -431,16 +460,23 @@ export function useDiscovery() {
     setIsDesigning(true);
     setError(null);
     try {
+      // Data Diet: Send only textual DNA
+      const cleanDNA = {
+        name: productData.name,
+        angle: productData.angle,
+        buyer: productData.buyer,
+        details: productData.details
+      };
+
       const response = await fetch('/api/v2/ads/concepts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          productData, 
+          productData: cleanDNA, 
           landingStructure: landingState.proposedStructure,
           launchId: landingState.launchId
         }),
       });
-
       const result = await response.json();
       if (result.success) {
         setLandingState(prev => ({ ...prev, adConcepts: result.data, phase: 'ads' }));

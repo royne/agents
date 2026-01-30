@@ -5,9 +5,10 @@ import { CreativePath } from '../../../types/image-pro';
 interface PathSelectorProps {
   creativePaths: CreativePath[];
   onSelectPath?: (path: CreativePath) => void;
+  onRegenerate?: () => void;
 }
 
-const PathSelector: React.FC<PathSelectorProps> = ({ creativePaths, onSelectPath }) => {
+const PathSelector: React.FC<PathSelectorProps> = ({ creativePaths, onSelectPath, onRegenerate }) => {
   return (
     <div className="w-full max-w-4xl space-y-8 animate-in fade-in slide-in-from-bottom duration-1000">
       <div className="text-center space-y-2 mb-8">
@@ -45,11 +46,14 @@ const PathSelector: React.FC<PathSelectorProps> = ({ creativePaths, onSelectPath
         ))}
       </div>
 
-      {/* <div className="flex justify-center pt-8">
-        <button onClick={() => window.location.reload()} className="text-[10px] text-gray-500 hover:text-white uppercase tracking-widest font-bold flex items-center gap-2">
-          <FaMagic /> Probar otros ángulos
+      <div className="flex justify-center pt-8">
+        <button
+          onClick={onRegenerate}
+          className="px-8 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/10 transition-all text-[10px] uppercase tracking-widest font-black flex items-center gap-3 backdrop-blur-md active:scale-95"
+        >
+          <FaMagic className="text-primary-color" /> Probar otros ángulos
         </button>
-      </div> */}
+      </div>
     </div>
   );
 };

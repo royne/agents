@@ -126,6 +126,7 @@ const V2PrototypePage: React.FC = () => {
                 onStopAutoGenerate={stopAutoGeneration}
                 onRefineAdConcept={refineAdConcept}
                 onAddAdConcept={addAdConcept}
+                onRegeneratePaths={getCreativeRecommendations}
                 setPhase={setPhase}
               />
             }
