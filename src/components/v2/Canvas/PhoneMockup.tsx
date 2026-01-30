@@ -7,7 +7,7 @@ import InstagramPost from '../Dashboard/InstagramPost';
 interface PhoneMockupProps {
   landingState: LandingGenerationState;
   className?: string;
-  viewMode?: 'landing' | 'ads';
+  viewMode?: 'discovery' | 'landing' | 'ads';
   showConversionBlur?: boolean;
   onExpandImage?: (url: string) => void;
 }
@@ -35,7 +35,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-black rounded-b-2xl z-30 border-x border-b border-white/5"></div>
 
         {/* Scroll Indicator Indicator */}
-        {!hasScrolled && viewMode === 'landing' && (landingState.proposedStructure?.sections?.length || 0) > 2 && (
+        {!hasScrolled && (viewMode === 'landing' || viewMode === 'discovery') && (landingState.proposedStructure?.sections?.length || 0) > 2 && (
           <div className="absolute bottom-10 inset-x-0 z-40 flex flex-col items-center pointer-events-none transition-opacity duration-700">
             <div className="flex flex-col items-center gap-1 animate-bounce">
               <div className="px-3 py-1 bg-black/80 backdrop-blur-md rounded-full border border-primary-color/30 flex items-center gap-2 shadow-[0_10px_20px_rgba(0,0,0,0.5)]">
@@ -53,7 +53,7 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({
           onScroll={handleScroll}
           className="w-full h-full bg-[#0a0a0a] rounded-[36px] overflow-y-auto v2-scrollbar-hidden relative"
         >
-          {viewMode === 'landing' ? (
+          {viewMode === 'landing' || viewMode === 'discovery' ? (
             <div className="flex flex-col">
               {landingState.proposedStructure?.sections.map((s, idx) => {
                 const generation = landingState.generations[s.sectionId];
