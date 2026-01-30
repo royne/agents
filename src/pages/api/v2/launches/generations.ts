@@ -5,20 +5,68 @@ export const config = {
   runtime: 'edge',
 };
 
-export default async function handler(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const launchId = searchParams.get('launchId');
 
-  if (!launchId) {
-    return NextResponse.json({ error: 'Missing launchId' }, { status: 400 });
+
+async function handleDelete(req: NextRequest, userId: string, launchService: LaunchService) {
+  const { searchParams } = new URL(req.url);
+  const imageId = searchParams.get('imageId');
+
+  if (!imageId) {
+    return NextResponse.json({ error: 'Missing imageId' }, { status: 400 });
   }
 
+  try {
+    // 1. Verificar propiedad (el registro debe pertenecer al usuario)
+    const { data: image, error: fetchError } = await (launchService as any).supabase
+      .from('image_generations')
+      .select('user_id')
+      .eq('id', imageId)
+      .single();
+
+    if (fetchError || !image) {
+      return NextResponse.json({ error: 'Image not found' }, { status: 404 });
+    }
+
+    if (image.user_id !== userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // 2. Ejecutar borrado
+    await launchService.deleteImage(imageId);
+
+    return NextResponse.json({ success: true, message: 'Image deleted successfully' });
+  } catch (error: any) {
+    console.error(`[API/V2/Launches/Generations] DELETE Error:`, error.message);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
+export default async function handler(req: NextRequest) {
   const userId = get_user_id_from_auth(req);
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const launchService = LaunchService.createWithAdmin();
+
+  if (req.method === 'GET') {
+    return handleGet(req, userId, launchService);
+  }
+
+  if (req.method === 'DELETE') {
+    return handleDelete(req, userId, launchService);
+  }
+
+  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
+}
+
+async function handleGet(req: NextRequest, userId: string, launchService: LaunchService) {
+  const { searchParams } = new URL(req.url);
+  const launchId = searchParams.get('launchId');
+
+  if (!launchId) {
+    return NextResponse.json({ error: 'Missing launchId' }, { status: 400 });
+  }
 
   try {
     let generations;

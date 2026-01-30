@@ -168,4 +168,52 @@ export class LaunchService implements ILaunchService {
     if (error) throw error;
     return count || 0;
   }
+  /**
+   * Elimina una generación de imagen tanto de la base de datos como del almacenamiento.
+   */
+  async deleteImage(id: string): Promise<void> {
+    try {
+      // 1. Obtener los datos de la imagen para tener la URL
+      const { data: record, error: fetchError } = await this.supabase
+        .from('image_generations')
+        .select('image_url')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) throw fetchError;
+      if (!record) return;
+
+      const imageUrl = record.image_url;
+
+      // 2. Extraer el path del storage si es una imagen propia
+      const BUCKET = 'temp-generations';
+      if (imageUrl && imageUrl.includes(`/${BUCKET}/`)) {
+        const parts = imageUrl.split(`/${BUCKET}/`);
+        if (parts.length > 1) {
+          const filePath = parts[1];
+          console.log(`[LaunchService] Borrando archivo físico: ${filePath}`);
+          const { error: storageError } = await this.supabase.storage
+            .from(BUCKET)
+            .remove([filePath]);
+          
+          if (storageError) {
+            console.error(`[LaunchService] Error borrando de storage:`, storageError.message);
+          }
+        }
+      }
+
+      // 3. Borrar el registro de la base de Datos
+      const { error: dbError } = await this.supabase
+        .from('image_generations')
+        .delete()
+        .eq('id', id);
+
+      if (dbError) throw dbError;
+
+      console.log(`[LaunchService] Imagen ${id} eliminada con éxito.`);
+    } catch (error) {
+      console.error('[LaunchService] Error en deleteImage:', error);
+      throw error;
+    }
+  }
 }

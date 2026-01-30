@@ -7,7 +7,7 @@ import FullScreenPreview from '../../components/v2/Canvas/FullScreenPreview';
 import InstagramPost from '../../components/v2/Dashboard/InstagramPost';
 import { Launch } from '../../services/launches/types';
 import { LandingGenerationState, SectionGeneration, AdGeneration } from '../../types/image-pro';
-import { FaRocket, FaChevronLeft, FaSearchPlus, FaBoxOpen, FaLink, FaMagic } from 'react-icons/fa';
+import { FaRocket, FaChevronLeft, FaSearchPlus, FaBoxOpen, FaLink, FaMagic, FaTrash } from 'react-icons/fa';
 import { useAppContext } from '../../contexts/AppContext';
 import { supabase } from '../../lib/supabase';
 
@@ -115,6 +115,33 @@ export default function LaunchDetail() {
       adGenerations: adGensMap,
       adConcepts: launch.ad_concepts
     };
+  };
+
+  const handleDeleteImage = async (e: React.MouseEvent, imageId: string) => {
+    e.stopPropagation();
+    if (!window.confirm('¿Estás seguro de que deseas eliminar esta imagen permanentemente? Esta acción no se puede deshacer.')) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch(`/api/v2/launches/generations?imageId=${imageId}`, {
+        method: 'DELETE',
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setGenerations(prev => prev.filter(g => g.id !== imageId));
+      } else {
+        alert('Error al eliminar la imagen: ' + (result.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      alert('Error de conexión al intentar eliminar la imagen.');
+    }
   };
 
   if (isLoading) {
@@ -280,8 +307,15 @@ export default function LaunchDetail() {
                             <FaSearchPlus className="text-white text-[10px]" />
                           </div>
                         </div>
-                        <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity">
+                        <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity flex items-center justify-between">
                           <span className="text-[6px] font-black text-white uppercase tracking-widest">{gen.sub_mode || 'Legacy'}</span>
+                          <button
+                            onClick={(e) => handleDeleteImage(e, gen.id)}
+                            className="p-1.5 bg-red-500/20 hover:bg-red-500 text-white rounded-lg transition-all border border-red-500/20"
+                            title="Eliminar imagen"
+                          >
+                            <FaTrash className="text-[8px]" />
+                          </button>
                         </div>
                       </div>
                     )) : (
