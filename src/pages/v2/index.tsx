@@ -70,7 +70,7 @@ const V2PrototypePage: React.FC = () => {
         <title>DropApp V2 | Invisible Engineering</title>
       </Head>
 
-      <div className="v2-layout-container flex flex-col gap-6">
+      <div className="v2-layout-container v2-app-screen flex flex-col gap-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-6">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">

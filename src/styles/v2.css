@@ -24,11 +24,10 @@
   flex-direction: column;
 }
 
-@media (min-width: 1024px) {
-  .v2-layout-container {
-    height: calc(100vh - 4rem);
-    overflow: hidden;
-  }
+/* Specific class for interactive apps that should be locked to viewport height */
+.v2-app-screen {
+  height: calc(100vh - 4rem);
+  overflow: hidden;
 }
 
 /* Hide scrollbar but keep functionality */
