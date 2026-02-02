@@ -95,6 +95,10 @@ const PlanPricing: React.FC<PlanPricingProps> = ({ isPublic = false }) => {
   const [loading, setLoading] = useState(!isPublic);
   const [error, setError] = useState<string | null>(null);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [showCouponInput, setShowCouponInput] = useState(false);
 
   useEffect(() => {
     // Si es público, no consultamos la DB (evitar carga innecesaria en landing)
@@ -129,6 +133,40 @@ const PlanPricing: React.FC<PlanPricingProps> = ({ isPublic = false }) => {
     fetchPlans();
   }, [isPublic]);
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+
+    setValidatingCoupon(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch('/api/payments/validate-coupon', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ code: couponCode }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAppliedCoupon(data.coupon);
+        alert(`Cupón ${couponCode} aplicado correctamente.`);
+      } else {
+        alert(data.error || 'Cupón inválido');
+        setAppliedCoupon(null);
+      }
+    } catch (error) {
+      console.error('Error validando cupón:', error);
+      alert('Error de conexión');
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
   const handleBuyPlan = async (planKey: string) => {
     if (isPublic && !authData?.isAuthenticated) {
       window.location.href = '/auth/register';
@@ -153,7 +191,10 @@ const PlanPricing: React.FC<PlanPricingProps> = ({ isPublic = false }) => {
           'Content-Type': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
-        body: JSON.stringify({ planKey }),
+        body: JSON.stringify({
+          planKey,
+          couponCode: appliedCoupon ? appliedCoupon.code : undefined
+        }),
       });
 
       const data = await response.json();
@@ -205,6 +246,47 @@ const PlanPricing: React.FC<PlanPricingProps> = ({ isPublic = false }) => {
         </div>
       )}
 
+      {/* Sección de Cupón */}
+      {!isPublic && (
+        <div className="max-w-md mx-auto">
+          {!showCouponInput ? (
+            <button
+              onClick={() => setShowCouponInput(true)}
+              className="text-[10px] font-black uppercase tracking-[0.2em] text-theme-tertiary hover:text-primary-color transition-colors mx-auto block"
+            >
+              ¿Tienes un código promocional?
+            </button>
+          ) : (
+            <div className="flex gap-2 animate-in slide-in-from-top-2 duration-300">
+              <input
+                type="text"
+                placeholder="Ingresar código..."
+                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-widest text-white outline-none focus:border-primary-color/50 transition-all"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value)}
+              />
+              <button
+                onClick={handleApplyCoupon}
+                disabled={validatingCoupon}
+                className="px-6 py-2 bg-primary-color/10 hover:bg-primary-color/20 text-primary-color border border-primary-color/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50"
+              >
+                {validatingCoupon ? <FaSpinner className="animate-spin" /> : 'Aplicar'}
+              </button>
+            </div>
+          )}
+          {appliedCoupon && (
+            <div className="mt-2 text-center h-4">
+              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest flex items-center justify-center gap-1">
+                <FaCheckCircle /> Cupón {appliedCoupon.code} aplicado
+                {appliedCoupon.type === 'percentage' && ` (-${appliedCoupon.value}%)`}
+                {appliedCoupon.type === 'fixed_amount' && ` (-$${appliedCoupon.value} USD)`}
+                {appliedCoupon.type === 'extra_credits' && ` (+${appliedCoupon.value} créditos bonus)`}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-end pt-2">
         {plans.map((plan) => {
           const meta = PLANS_METADATA[plan.key] || {
@@ -234,15 +316,31 @@ const PlanPricing: React.FC<PlanPricingProps> = ({ isPublic = false }) => {
                 <span className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 block transition-colors duration-300 ${meta.highlight ? 'text-primary-color' : 'text-gray-500 group-hover:text-gray-400'}`}>
                   {meta.tagline}
                 </span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-black text-white tracking-tighter">${plan.price_usd}</span>
-                  <span className="text-gray-500 font-bold text-[10px] uppercase tracking-widest">USD / Mes</span>
+                <div className="flex flex-col">
+                  {appliedCoupon && (appliedCoupon.type === 'percentage' || appliedCoupon.type === 'fixed_amount') && (!appliedCoupon.plan_key || appliedCoupon.plan_key === plan.key) && (
+                    <span className="text-xs text-rose-500 font-bold line-through opacity-60 mb-1">
+                      ${plan.price_usd} USD
+                    </span>
+                  )}
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-5xl font-black text-white tracking-tighter">
+                      ${appliedCoupon && (!appliedCoupon.plan_key || appliedCoupon.plan_key === plan.key)
+                        ? appliedCoupon.type === 'percentage'
+                          ? (plan.price_usd * (1 - appliedCoupon.value / 100)).toFixed(1).replace('.0', '')
+                          : appliedCoupon.type === 'fixed_amount'
+                            ? Math.max(0, plan.price_usd - appliedCoupon.value).toFixed(1).replace('.0', '')
+                            : plan.price_usd
+                        : plan.price_usd
+                      }
+                    </span>
+                    <span className="text-gray-500 font-bold text-[10px] uppercase tracking-widest">USD / Mes</span>
+                  </div>
                 </div>
               </div>
 
               <div className="mb-6 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
                 <span className="text-[10px] font-black text-theme-tertiary uppercase tracking-widest block text-center">
-                  {plan.monthly_credits.toLocaleString()} Créditos / Mes
+                  {(plan.monthly_credits + (appliedCoupon?.type === 'extra_credits' && (!appliedCoupon.plan_key || appliedCoupon.plan_key === plan.key) ? Number(appliedCoupon.value) : 0)).toLocaleString()} Créditos / Mes
                 </span>
               </div>
 

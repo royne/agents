@@ -523,5 +523,53 @@ export const adminService = {
         generationStats: { total: 0 }
       };
     }
+  },
+
+  // --- GESTIÓN DE CUPONES ---
+  async getCoupons(): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('coupons')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.error('Error fetching coupons:', error);
+      return [];
+    }
+    return data || [];
+  },
+
+  async createCoupon(coupon: any): Promise<boolean> {
+    const { error } = await supabase
+      .from('coupons')
+      .insert(coupon);
+    if (error) {
+      console.error('Error creating coupon:', error);
+      return false;
+    }
+    return true;
+  },
+
+  async updateCoupon(id: string, updates: any): Promise<boolean> {
+    const { error } = await supabase
+      .from('coupons')
+      .update(updates)
+      .eq('id', id);
+    if (error) {
+      console.error('Error updating coupon:', error);
+      return false;
+    }
+    return true;
+  },
+
+  async deleteCoupon(id: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('coupons')
+      .delete()
+      .eq('id', id);
+    if (error) {
+      console.error('Error deleting coupon:', error);
+      return false;
+    }
+    return true;
   }
 };

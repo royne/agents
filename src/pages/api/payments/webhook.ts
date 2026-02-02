@@ -3,6 +3,7 @@ import { BoldService } from '../../../lib/boldService';
 import { supabaseAdmin } from '../../../lib/supabaseAdmin';
 import { Plan, PLAN_CREDITS } from '../../../constants/plans';
 import { NotificationService } from '../../../lib/notificationService';
+import { CouponService } from '../../../lib/couponService';
 
 // Bold envía el cuerpo en crudo para la validación de la firma
 export const config = {
@@ -71,12 +72,55 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'Referencia ausente' });
       }
 
-      const referenceParts = reference.split('_');
-      const [userId, planKey] = referenceParts;
-      console.log(`[Bold-Webhook][${requestId}] PARSEO REFERENCIA -> User: ${userId}, Plan: ${planKey}`);
+      const parts = reference.split('_');
+      let userId = '';
+      let planKey = '';
+      let couponCode = null;
+
+      if (parts.length === 4) {
+        // Formato: UUID(36)_PFX(1)_COUPON(max 15)_UNIQ(4)
+        userId = parts[0];
+        const pfx = parts[1];
+        couponCode = parts[2] !== 'NONE' ? parts[2] : null;
+
+        const reversePrefixes: Record<string, string> = {
+          'F': 'free',
+          'S': 'starter',
+          'P': 'pro',
+          'B': 'business',
+          'T': 'tester'
+        };
+        planKey = reversePrefixes[pfx] || 'starter';
+      }
+
+      console.log(`[Bold-Webhook][${requestId}] PARSEO -> User: ${userId}, Plan: ${planKey}, Code: ${couponCode || 'NINGUNO'}`);
+
+      let coupon = null;
+      // Si hay un código de cupón, buscamos sus datos en la base de datos
+      if (couponCode) {
+        const { data: couponData } = await supabaseAdmin
+          .from('coupons')
+          .select('*')
+          .eq('code', couponCode.toUpperCase())
+          .single();
+        
+        if (couponData) {
+          coupon = couponData;
+          console.log(`[Bold-Webhook][${requestId}] Cupón encontrado: ${couponCode} (${coupon.type})`);
+        } else {
+          console.warn(`[Bold-Webhook][${requestId}] Cupón ${couponCode} no encontrado en DB.`);
+        }
+      }
 
       if (userId && planKey) {
-        const credits = PLAN_CREDITS[planKey as Plan] || 0;
+        let credits = PLAN_CREDITS[planKey as Plan] || 0;
+        
+        // 0. Procesar Cupón (Beneficios Extra)
+        if (coupon && coupon.type === 'extra_credits') {
+          console.log(`[Bold-Webhook][${requestId}] Aplicando créditos extra del cupón: +${coupon.value}`);
+          credits += Number(coupon.value);
+        }
+
         const expiresAt = new Date();
         expiresAt.setMonth(expiresAt.getMonth() + 1);
 
@@ -100,7 +144,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           console.error(`[Bold-Webhook][${requestId}] ERROR DB user_credits:`, creditError);
           throw creditError;
         }
-        console.log(`[Bold-Webhook][${requestId}] User credits OK`);
+        console.log(`[Bold-Webhook][${requestId}] User credits OK (${credits} otorgados)`);
+
+        // 1.1 Registrar Uso de Cupón si existe
+        if (coupon) {
+          await CouponService.registerUsage(coupon.id, userId, reference);
+          console.log(`[Bold-Webhook][${requestId}] Uso de cupón ${coupon.id} registrado.`);
+        }
 
         // 2. Actualizar perfil
         console.log(`[Bold-Webhook][${requestId}] [2/4] Actualizando profile...`);

@@ -51,6 +51,14 @@ export const PLAN_CREDITS: Record<Plan, number> = {
   tester: 99999
 };
 
+export const PLAN_NAMES: Record<Plan, string> = {
+  free: 'Gratis',
+  starter: 'Starter',
+  pro: 'Pro',
+  business: 'Business',
+  tester: 'Tester'
+};
+
 
 export function isPlanAtLeast(userPlan: Plan | undefined, required: Plan) {
   const up = userPlan || 'free';
