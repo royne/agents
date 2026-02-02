@@ -56,3 +56,5 @@ USING (
     AND (profiles.role = 'admin' OR profiles.role = 'superadmin')
   )
 );
+
+ALTER TABLE payment_history ADD COLUMN IF NOT EXISTS coupon_id UUID REFERENCES coupons(id) ON DELETE SET NULL;

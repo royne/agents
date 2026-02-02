@@ -117,16 +117,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         
         // 0. Procesar Cupón (Beneficios Extra)
         if (coupon && coupon.type === 'extra_credits') {
+          console.log(`[Bold-Webhook][${requestId}] Aplicando créditos extra del cupón: +${coupon.value}`);
           credits += Number(coupon.value);
         }
 
         const expiresAt = new Date();
         expiresAt.setMonth(expiresAt.getMonth() + 1);
 
-        console.log(`[Bold-Webhook][${requestId}] Procesando actualizaciones...`);
+        console.log(`[Bold-Webhook][${requestId}] Iniciando actualización de DB para ${userId}`);
 
         // 1. Actualizar créditos
-        await supabaseAdmin
+        console.log(`[Bold-Webhook][${requestId}] [1/4] Actualizando user_credits...`);
+        const { error: creditError } = await supabaseAdmin
           .from('user_credits')
           .update({
             plan_key: planKey,
@@ -138,8 +140,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           })
           .eq('user_id', userId);
 
+        if (creditError) {
+          console.error(`[Bold-Webhook][${requestId}] ERROR DB user_credits:`, creditError);
+          throw creditError;
+        }
+        console.log(`[Bold-Webhook][${requestId}] User credits OK (${credits} otorgados)`);
+
+        // 1.1 Registrar Uso de Cupón si existe
+        if (coupon) {
+          await CouponService.registerUsage(coupon.id, userId, reference);
+          console.log(`[Bold-Webhook][${requestId}] Uso de cupón ${coupon.id} registrado.`);
+        }
+
         // 2. Actualizar perfil
-        await supabaseAdmin
+        console.log(`[Bold-Webhook][${requestId}] [2/4] Actualizando profile...`);
+        const { error: profileError } = await supabaseAdmin
           .from('profiles')
           .update({ 
             plan: planKey,
@@ -147,12 +162,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           })
           .eq('user_id', userId);
 
+        if (profileError) {
+          console.error(`[Bold-Webhook][${requestId}] ERROR DB profiles:`, profileError);
+        } else {
+          console.log(`[Bold-Webhook][${requestId}] Profile OK`);
+        }
+
         // 3. Registrar Historial
+        console.log(`[Bold-Webhook][${requestId}] [3/4] Registrando payment_history...`);
         const rawAmount = typeof eventData.amount === 'number' 
           ? eventData.amount 
           : (eventData.amount?.total || eventData.amount?.total_amount || 0);
 
-        await supabaseAdmin
+        const { error: historyError } = await supabaseAdmin
           .from('payment_history')
           .insert({
             user_id: userId,
@@ -161,16 +183,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             currency: eventData.amount?.currency || 'COP',
             external_reference: eventData.id || payload.id,
             payment_method: eventData.payment_method?.type || 'bold',
-            status: 'success',
-            coupon_id: coupon?.id || null
+            status: 'success'
           });
 
-        // 4. Registrar Uso de Cupón si existe
-        if (coupon) {
-          await CouponService.registerUsage(coupon.id, userId, reference);
+        if (historyError) {
+          console.error(`[Bold-Webhook][${requestId}] ERROR registrando historial:`, historyError);
+        } else {
+          console.log(`[Bold-Webhook][${requestId}] History OK`);
         }
-
-        // 5. Referidos
+        
+        // 4. Referidos
+        console.log(`[Bold-Webhook][${requestId}] [4/4] Procesando Referidos...`);
         try {
           const { data: referral } = await supabaseAdmin
             .from('referrals')
@@ -179,6 +202,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .single();
 
           if (referral) {
+            console.log(`[Bold-Webhook][${requestId}] Referido encontrado (${referral.id}), registrando comisión.`);
             await supabaseAdmin.from('referral_commissions').insert({
               referral_id: referral.id,
               sale_amount: rawAmount,
@@ -188,26 +212,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             await supabaseAdmin
               .from('referrals')
               .update({ 
-                status: 'active', 
-                updated_at: new Date().toISOString() 
+                status: 'active',
+                updated_at: new Date().toISOString()
               })
               .eq('id', referral.id);
+            console.log(`[Bold-Webhook][${requestId}] Proceso de referidos OK`);
+          } else {
+            console.log(`[Bold-Webhook][${requestId}] No es un usuario referido.`);
           }
         } catch (refErr) {
-          console.warn(`[Bold-Webhook][${requestId}] Nota: No se procesaron referidos.`);
+          console.warn(`[Bold-Webhook][${requestId}] Nota: No se pudo procesar referidos (puede que no tenga mentor).`);
         }
 
-        // 6. Notificación Discord
+        // Notificación Final
+        console.log(`[Bold-Webhook][${requestId}] Disparando notificación Discord...`);
         try {
-          const amountStr = rawAmount ? `$${rawAmount.toLocaleString('es-CO')}` : undefined;
-          await NotificationService.notifyNewSale(userId, planKey, amountStr);
+          const amount = rawAmount ? `$${rawAmount.toLocaleString('es-CO')}` : undefined;
+          await NotificationService.notifyNewSale(userId, planKey, amount);
+          console.log(`[Bold-Webhook][${requestId}] Notificación enviada`);
         } catch (notifErr) {
-          console.error(`[Bold-Webhook][${requestId}] Error notificación:`, notifErr);
+          console.error(`[Bold-Webhook][${requestId}] Error en notificación:`, notifErr);
         }
         
         console.log(`[Bold-Webhook][${requestId}] ✅ PROCESO COMPLETADO EXITOSAMENTE`);
-      }
- else {
+      } else {
         console.error(`[Bold-Webhook][${requestId}] ERROR: No se pudieron extraer userId o planKey de la referencia: ${reference}`);
       }
     } else {
