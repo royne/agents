@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUser, FaEnvelope, FaCalendarAlt, FaHistory, FaCoins, FaTimes, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaCalendarAlt, FaHistory, FaCoins, FaTimes, FaCheckCircle, FaExclamationCircle, FaTrash } from 'react-icons/fa';
 import { CreditService } from '../../lib/creditService';
 import { adminService } from '../../services/database/adminService';
 import UsageHistoryTable from '../profile/UsageHistoryTable';
@@ -13,6 +13,8 @@ export default function UserUsageModal({ userId, onClose }: UserUsageModalProps)
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<any>(null);
   const [usageLogs, setUsageLogs] = useState<any[]>([]);
+  const [isPurging, setIsPurging] = useState(false);
+  const [imageCount, setImageCount] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -26,6 +28,10 @@ export default function UserUsageModal({ userId, onClose }: UserUsageModalProps)
         // Obtener logs de uso
         const logs = await CreditService.getUserUsageHistory(userId, 50);
         setUsageLogs(logs);
+
+        // Obtener conteo de imágenes reales almacenadas
+        const imgCount = await adminService.getUserImageGenerationsCount(userId);
+        setImageCount(imgCount);
       } catch (err) {
         console.error('Error fetching user usage data:', err);
       } finally {
@@ -34,6 +40,25 @@ export default function UserUsageModal({ userId, onClose }: UserUsageModalProps)
     }
     fetchData();
   }, [userId]);
+
+  const handlePurgeImages = async () => {
+    if (!window.confirm('¡ATENCIÓN! Esto eliminará PERMANENTEMENTE todos los archivos de almacenamiento y la base de datos vinculada a las imágenes de este usuario. ¿Deseas continuar?')) return;
+
+    setIsPurging(true);
+    try {
+      const result = await adminService.purgeUserImages(userId);
+      if (result.success) {
+        alert(result.message);
+        setImageCount(0);
+      } else {
+        alert('Error: ' + result.message);
+      }
+    } catch (err) {
+      alert('Error inesperado al purgar.');
+    } finally {
+      setIsPurging(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -94,6 +119,33 @@ export default function UserUsageModal({ userId, onClose }: UserUsageModalProps)
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Danger Zone: Purge Massively */}
+      <div className="p-4 bg-rose-500/10 border-b border-rose-500/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h4 className="text-rose-500 font-black text-sm uppercase tracking-widest flex items-center gap-2">
+            <FaExclamationCircle /> Zona Peligrosa
+            {imageCount !== null && (
+              <span className={`px-2 py-0.5 rounded-md text-[10px] ml-2 ${imageCount > 0 ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-green-500/20 text-green-400 border border-green-500/30'}`}>
+                {imageCount > 0 ? `${imageCount} Archivos S3 detectados` : 'Purgado ✓'}
+              </span>
+            )}
+          </h4>
+          <p className="text-xs text-rose-400/80">Esta acción eliminará físicamente las imágenes generadas por el usuario, liberando espacio.</p>
+        </div>
+        <button
+          onClick={handlePurgeImages}
+          disabled={isPurging || imageCount === 0}
+          className="px-6 py-2 bg-rose-500/20 hover:bg-rose-500 text-rose-500 hover:text-white border border-rose-500/50 font-black tracking-widest uppercase rounded-xl transition-all shadow-[0_0_15px_rgba(243,24,96,0.3)] flex items-center justify-center gap-2 text-xs disabled:opacity-50 min-w-max disabled:hover:bg-rose-500/20 disabled:hover:text-rose-500"
+        >
+          {isPurging ? (
+            <div className="w-4 h-4 border-2 border-rose-500/30 border-t-rose-500 rounded-full animate-spin"></div>
+          ) : (
+            <FaTrash />
+          )}
+          {isPurging ? 'Purgando...' : 'Purgar Imágenes'}
+        </button>
       </div>
 
       {/* Usage Logs Section */}

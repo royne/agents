@@ -437,6 +437,46 @@ export const adminService = {
     }
   },
 
+  async purgeUserImages(userId: string): Promise<{ success: boolean; message: string; count?: number }> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || '';
+
+      const response = await fetch('/api/admin/purge-user-images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ userId })
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        return { success: false, message: result.error || 'Error al purgar imágenes' };
+      }
+
+      return { success: true, message: result.message, count: result.count };
+    } catch (err: any) {
+      console.error('Error enviando purga de imágenes:', err);
+      return { success: false, message: 'Fallo de conexión con el servidor' };
+    }
+  },
+
+  async getUserImageGenerationsCount(userId: string): Promise<number> {
+    const { count, error } = await supabase
+      .from('image_generations')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .not('image_url', 'is', null);
+
+    if (error) {
+      console.error('Error al obtener conteo de imágenes:', error);
+      return 0;
+    }
+    return count || 0;
+  },
+
   // --- ANALÍTICA DE PAGOS (Fase 3) ---
   async getPaymentAnalytics(): Promise<{
     totalRevenue: number;
